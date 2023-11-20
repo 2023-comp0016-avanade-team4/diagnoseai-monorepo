@@ -1,0 +1,11 @@
+# Do not include azure-functions-worker in this file
+# The Python Worker is managed by the Azure Functions platform
+# Manually managing azure-functions-worker may cause unexpected issues
+
+azure-functions
+azure-ai-formrecognizer==3.3.0
+azure-identity==1.15.0
+
+langchain==0.0.339
+azure-search-documents==11.4.0b8
+tiktoken==0.5.1
