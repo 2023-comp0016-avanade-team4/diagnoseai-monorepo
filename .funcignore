@@ -1,0 +1,8 @@
+# python environments
+.pyenv
+
+# vscode environments
+.vscode
+
+# mypy
+.mypy_cache

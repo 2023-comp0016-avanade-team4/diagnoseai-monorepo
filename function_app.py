@@ -1,3 +1,7 @@
+"""
+Temporary script to load a file & store embeddings into cloud search
+"""
+
 import logging
 import os
 
