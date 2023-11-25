@@ -1,0 +1,10 @@
+{
+  "disabled": false,
+  "scriptFile": "poc.py",
+  "bindings": [
+    {
+      "type": "blobTrigger",
+      "direction": "in",
+    }
+  ]
+}

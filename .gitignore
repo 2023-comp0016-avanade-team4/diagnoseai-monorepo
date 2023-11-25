@@ -50,3 +50,6 @@ __azurite_db*__.json
 
 # mypy
 .mypy_cache
+
+# egg info
+*.egg-info/

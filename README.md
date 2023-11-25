@@ -15,11 +15,9 @@ sudo npm install -g azure-functions-core-tools@4 --unsafe-perm true
 sudo npm install -g azurite
 ```
 
-Each project should have their own `README.md` to run some kind of bug
-
 ## Configuring Local Development
 
-Create a JSON file called `local.settings.json`.
+Create a JSON file called `core/local.settings.json`.
 
 ``` json
 {
@@ -42,14 +40,20 @@ Create a JSON file called `local.settings.json`.
 
 The endpoint and keys should be self-explanatory.
 
+**Important**: To get proper linting, you must install the current
+package: `pip install -e.` See [this StackOverflow
+answer](https://stackoverflow.com/a/50193944) for why this is required.
+
 ## Installing developer dependencies
 
-`requirements.txt` are the dependencies required for the Azure
+`core/requirements.txt` are the dependencies required for the Azure
 functions, while `requirements-dev.txt` are for the developers. The
 latter includes tools such as:
 
 - `pylint`
 - `mypy`
+- `flake8`
+
 
 ## Running Azurite
 
@@ -85,10 +89,20 @@ az storage blob upload -f something.txt -c validation-documents -n something.txt
 ## Running the functions locally
 
 Most of the functions written here can be run locally after running
-[Azurite](#azurite) Try:
+[Azurite](#azurite), run the following command within `core/`:
 
 ``` text
 func start
 ```
 
 Then, start uploading starting to begin the process.
+
+## Deploying
+
+In the `core/` folder, run:
+
+``` text
+func azure functionapp publish <function app name>
+```
+
+In our environment, this is currently `diagnose-ai-core`.

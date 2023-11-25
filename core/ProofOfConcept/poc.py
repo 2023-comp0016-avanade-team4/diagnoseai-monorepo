@@ -54,7 +54,7 @@ vector_store = AzureSearch(
 @app.function_name(name="BlobTrigger")
 @app.blob_trigger(arg_name="blob", path="validation-documents",
                   connection="BlobBindingConnection")
-def analyzer(blob: func.InputStream):
+def analyzer(blob: func.InputStream) -> None:
     """
     Analyzer entrypoint. For every supported file uploaded, sends it
     through the DocumentAnalyzer, gets an embedding, and then dumps it
