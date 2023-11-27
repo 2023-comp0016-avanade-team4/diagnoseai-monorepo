@@ -26,8 +26,9 @@ os.environ['OpenAIEndpoint'] = ''
 from core.Chat.chat import (ai_client, main, process_message,  # noqa: E402
                             ws_log_and_send_error, ws_send_message)
 from core.utils.chat_message import ChatMessage  # noqa: E402
-from core.utils.web_pub_sub_interfaces import (WebPubSubConnectionContext,  # pylint: disable=line-too-long # noqa: E402, E501
-                                               WebPubSubRequest)
+from core.utils.web_pub_sub_interfaces import \
+    WebPubSubConnectionContext  # pylint: disable=line-too-long # noqa: E402, E501
+from core.utils.web_pub_sub_interfaces import WebPubSubRequest
 
 
 class TestChat(unittest.TestCase):
@@ -149,8 +150,8 @@ class TestChat(unittest.TestCase):
         """
         client_mock = MagicMock()
         with patch(
-                'azure.messaging.webpubsubservice.WebPubSubServiceClient'
-                '.from_connection_string',
+                'azure.messaging.webpubsubservice._patch'
+                '.WebPubSubServiceClient.from_connection_string',
                 return_value=client_mock):
             ws_send_message('text', '123')
             client_mock.send_to_connection.assert_called_once_with(
