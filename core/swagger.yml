@@ -43,7 +43,7 @@ components:
           description: The WebSocket URL for this conversation (temporary)
         ttl:
           type: integer
-          description: The time to live for the WebSocket URL. Ideally, when WebSocket requesting moves to another endpoint, the client will re-request a new websocket URL
+          description: The time to live for the WebSocket URL in minutes. Ideally, when WebSocket requesting moves to another endpoint, the client will re-request a new websocket URL
   securitySchemes:
     api_key:
       type: apiKey
