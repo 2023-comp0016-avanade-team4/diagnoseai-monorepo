@@ -7,45 +7,45 @@ info:
 servers:
   - url: https://diagnoseai-core-apis.azure-api.net
 paths:
-  /make_conversation:
+  /chat_connection:
     post:
-      summary: Creates a conversation.
-      description: Creates a conversation for a given user ID.
+      summary: Creates a pre-authenticated chat connection for the given user ID
+      description: Creates a pre-authenticated chat connection (WebSockets) for the given user ID
       requestBody:
-        description: Creates a conversation
+        description: Request for a pre-authenticated chat connection
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MakeConversationRequest'
+              $ref: '#/components/schemas/MakeChatConnectionRequest'
       responses:
         '200':
           description: 'Success'
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MakeConversationResponse'
+                $ref: '#/components/schemas/MakeChatConnectionResponse'
       security:
         - api_key: []
 
 components:
   schemas:
-    MakeConversationRequest:
+    MakeChatConnectionRequest:
       type: object
       properties:
         userId:
           type: string
-          description: The UserID this conversation belongs to
-    MakeConversationResponse:
+          description: The UserID this connection belongs to
+    MakeChatConnectionResponse:
       type: object
       properties:
         wsUrl:
           type: string
-          description: The WebSocket URL for this conversation (temporary)
+          description: The WebSocket URL for this connection (temporary)
         ttl:
           type: integer
           description: The time to live for the WebSocket URL in minutes. Ideally, when WebSocket requesting moves to another endpoint, the client will re-request a new websocket URL
   securitySchemes:
     api_key:
       type: apiKey
-      name: api_key
+      name: Ocp-Apim-Subscription-Key
       in: header

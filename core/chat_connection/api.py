@@ -35,13 +35,16 @@ def generate_wss_url(request: MakeConversationRequest) -> str:
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     """
-    Makes a conversation.
+    Creates a chat connection
 
-    TODO: contact some database to store user id if needed
+    TODO: contact some database to store user id (if
+    needed). WebPubSub service can store user IDs on their own, so we
+    may not even need to do this
+
     Args:
         req (func.HttpRequest): The HTTP request
     """
-    logging.info('Make conversation called.')
+    logging.info('Chat Connection called with %s', req.method)
     try:
         serialized = MakeConversationRequest.from_json(req.get_body())
         url = generate_wss_url(serialized)
