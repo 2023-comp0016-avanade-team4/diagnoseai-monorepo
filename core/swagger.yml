@@ -1,0 +1,51 @@
+openapi: 3.1.0
+info:
+  title: Core API
+  description: |-
+    This is the Core API
+  version: 0.0.1
+servers:
+  - url: https://diagnoseai-core-apis.azure-api.net
+paths:
+  /make_conversation:
+    post:
+      summary: Creates a conversation.
+      description: Creates a conversation for a given user ID.
+      requestBody:
+        description: Creates a conversation
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MakeConversationRequest'
+      responses:
+        '200':
+          description: 'Success'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MakeConversationResponse'
+      security:
+        - api_key: []
+
+components:
+  schemas:
+    MakeConversationRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+          description: The UserID this conversation belongs to
+    MakeConversationResponse:
+      type: object
+      properties:
+        wsUrl:
+          type: string
+          description: The WebSocket URL for this conversation (temporary)
+        ttl:
+          type: integer
+          description: The time to live for the WebSocket URL. Ideally, when WebSocket requesting moves to another endpoint, the client will re-request a new websocket URL
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
