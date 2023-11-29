@@ -26,8 +26,8 @@ const DiagnoseAIUploaderForm = () => {
               Extracted images
             </i>
           </div>
-          <div className="absolute top-[267px] left-[0px] w-[221px] overflow-hidden flex flex-col items-end justify-center">
-            <i className="relative inline-block w-[202px] h-[37px] shrink-0">
+          <div className="absolute top-[267px] left-[0px] w-[221px] overflow-hidden flex flex-col items-center justify-center">
+            <i className="relative inline-block w-[202px] h-[37px] shrink-0 text-center">
               Extracted text
             </i>
           </div>
@@ -41,15 +41,15 @@ const DiagnoseAIUploaderForm = () => {
             alt=""
             src="/frame1.svg"
           />
-          <div className="absolute top-[315px] left-[0px] w-[761px] overflow-hidden flex flex-col items-end justify-center text-base font-inter">
-            <div className="rounded-8xs box-border w-[748px] flex flex-row items-end justify-end p-5 gap-[20px] border-[1px] border-solid border-black">
+          <div className="absolute top-[315px] left-[0px] w-[fit-content] overflow-hidden flex flex-col items-end justify-center text-base font-inter">
+            <div className="rounded-8xs box-border flex flex-row items-end justify-end p-5 gap-[20px] border-[1px] border-solid border-black">
               <div className="flex-1 relative">
                 Doloribus eius qui repudiandae adipisci dolor. Dolorem harum
                 ducimus eos est voluptatem eos hic. Sit velit quaerat voluptatum
                 quae. Facilis consequatur in consequatur sequi. Quia aliquid ut
                 voluptas similique quos voluptas.…
               </div>
-              <FormContainer1 />
+              {/* <FormContainer1 /> */}
             </div>
           </div>
         </div>

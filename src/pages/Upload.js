@@ -1,4 +1,5 @@
 import Property1Default1 from "../components/Property1Default1";
+import FormContainer from "../components/FormContainer";
 
 const Upload = () => {
   return (
@@ -33,7 +34,7 @@ const Upload = () => {
             <p className="m-0">All pdf, docx, csv, xlsx types are supported</p>
           </div>
         </div>
-        <div className="absolute top-[0px] left-[0px] bg-white box-border w-52 h-[772px] border-[1px] border-solid border-whitesmoke-200" />
+        {/* <div className="absolute top-[0px] left-[0px] bg-white box-border w-52 h-[772px] border-[1px] border-solid border-whitesmoke-200" />
         <div className="absolute h-[7.62%] w-[14.02%] top-[24.18%] right-[85.57%] bottom-[68.2%] left-[0.41%] bg-white box-border flex flex-row items-center justify-start py-[19px] px-[21.12353515625px] gap-[20px] text-darkslategray-300 border-[1px] border-solid border-whitesmoke-100">
           <img className="relative w-5 h-5" alt="" src="/check-circle.svg" />
           <div className="relative inline-block w-[99.9px] h-[23.5px] shrink-0">
@@ -45,7 +46,16 @@ const Upload = () => {
           <div className="relative inline-block w-[99.9px] h-[23.5px] shrink-0">
             Upload
           </div>
+        </div> */}
+        <div className="absolute top-[0px] left-[0px] w-52 h-[846px] overflow-hidden flex flex-col items-center justify-end">
+          <div className="relative bg-white box-border w-52 h-[772px] border-[1px] border-solid border-whitesmoke-200" />
         </div>
+        <FormContainer imageId="/check-circle.svg" actionButtonText="Validate" />
+        <FormContainer
+          imageId="/upload.svg"
+          actionButtonText="Upload"
+          propHeight="262.5px"
+        />
         <Property1Default1
           property1DefaultPosition="absolute"
           property1DefaultTop="159px"
