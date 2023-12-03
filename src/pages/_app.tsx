@@ -1,19 +1,13 @@
 import "../styles/globals.css";
 
 import type { AppProps } from "next/app";
-import { SessionProvider } from "next-auth/react";
-
-import { ApolloProviderWrapper } from "../components/apollo-provider-wrapper";
+//import { SessionProvider } from "next-auth/react";
 
 export default function App({
   Component,
-  pageProps: { session, ...pageProps },
+  pageProps: { ...pageProps },
 }: AppProps) {
   return (
-    <SessionProvider session={session}>
-      <ApolloProviderWrapper>
-        <Component {...pageProps} />
-      </ApolloProviderWrapper>
-    </SessionProvider>
+    <Component {...pageProps} />
   );
 }

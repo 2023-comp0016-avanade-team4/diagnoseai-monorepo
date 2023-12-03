@@ -1,3 +1,5 @@
+// DEPRECATED
+
 import type { PropsWithChildren } from "react";
 import { useMemo } from "react";
 import {

@@ -1,26 +1,25 @@
-import { useQuery, gql } from "@apollo/client";
 import { useEffect } from "react";
 import { useInView } from "react-intersection-observer";
 
-import type { Message as IMessage } from "@/components/message";
+// import { Message as IMessage } from "@/components/message";
 import { Message } from "@/components/message";
 
-const GetRecentMessagesQuery = gql`
-  query GetRecentMessages($last: Int) @live {
-    messageCollection(last: $last) {
-      edges {
-        node {
-          id
-          username
-          avatar
-          body
-          likes
-          createdAt
-        }
-      }
-    }
-  }
-`;
+// const GetRecentMessagesQuery = gql`
+//   query GetRecentMessages($last: Int) @live {
+//     messageCollection(last: $last) {
+//       edges {
+//         node {
+//           id
+//           username
+//           avatar
+//           body
+//           likes
+//           createdAt
+//         }
+//       }
+//     }
+//   }
+// `;
 
 export const MessageList = () => {
   const [scrollRef, inView, entry] = useInView({
@@ -28,13 +27,38 @@ export const MessageList = () => {
     delay: 1000,
   });
 
-  const { loading, error, data } = useQuery<{
-    messageCollection: { edges: { node: IMessage }[] };
-  }>(GetRecentMessagesQuery, {
-    variables: {
-      last: 100,
-    },
-  });
+  // const { loading, error, data } = useQuery<{
+  //   messageCollection: { edges: { node: IMessage }[] };
+  // }>(GetRecentMessagesQuery, {
+  //   variables: {
+  //     last: 100,
+  //   },
+  // });
+  const data = {
+    messageCollection: {
+      edges:
+        [
+          {
+            node: {
+              id: 'msg_id_1',
+              username: 'some_user',
+              avatar: 'https://avatars.githubusercontent.com/u/1856293?v=4',
+              body: 'hello world',
+              createdAt: '2023-12-03T20:02:05.686Z'
+            }
+          },
+          {
+            node: {
+              id: 'msg_id_2',
+              username: 'the_bot',
+              avatar: 'https://avatars.githubusercontent.com/u/114498077?v=4',
+              body: 'yo',
+              createdAt: '2023-12-03T20:02:05.686Z'
+            }
+          }
+        ]
+    }
+  }
 
   useEffect(() => {
     if (entry?.target) {
@@ -42,14 +66,14 @@ export const MessageList = () => {
     }
   }, [data?.messageCollection.edges.length, entry?.target]);
 
-  if (loading)
+  if (false)
     return (
       <div className="flex items-center justify-center h-full">
         <p className="text-white">Fetching most recent chat messages.</p>
       </div>
     );
 
-  if (error)
+  if (false)
     return (
       <p className="text-white">Something went wrong. Refresh to try again.</p>
     );

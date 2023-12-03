@@ -1,27 +1,34 @@
-import { gql, useMutation } from "@apollo/client";
-import { useSession } from "next-auth/react";
+// import { gql, useMutation } from "@apollo/client";
+// import { useSession } from "next-auth/react";
 import { useState } from "react";
 import useSound from "use-sound";
 
-const AddNewMessageMutation = gql`
-  mutation AddNewMessage($username: String!, $avatar: URL, $body: String!) {
-    messageCreate(
-      input: { username: $username, avatar: $avatar, body: $body }
-    ) {
-      message {
-        id
-      }
-    }
-  }
-`;
+// const AddNewMessageMutation = gql`
+//   mutation AddNewMessage($username: String!, $avatar: URL, $body: String!) {
+//     messageCreate(
+//       input: { username: $username, avatar: $avatar, body: $body }
+//     ) {
+//       message {
+//         id
+//       }
+//     }
+//   }
+// `;
+
+export type AddNewMessageRequest = {
+  username: string,
+  avatar?: string | null,
+  body: string
+};
 
 export const NewMessageForm = () => {
-  const { data: session } = useSession();
+  // const { data: session } = useSession();
   const [play] = useSound("sent.wav");
   const [body, setBody] = useState("");
-  const [addNewMessage] = useMutation(AddNewMessageMutation, {
-    onCompleted: () => play(),
-  });
+  const addNewMessage = (accepting: AddNewMessageRequest) => {
+    console.log(accepting);
+    play();
+  }
 
   return (
     <form
@@ -30,11 +37,9 @@ export const NewMessageForm = () => {
 
         if (body) {
           addNewMessage({
-            variables: {
-              username: session?.username ?? "",
-              avatar: session?.user?.image,
-              body,
-            },
+            username: "some_user",
+            avatar: 'https://avatars.githubusercontent.com/u/1856293?v=4',
+            body,
           });
           setBody("");
         }
@@ -53,10 +58,10 @@ export const NewMessageForm = () => {
       <button
         type="submit"
         className="bg-[#222226] rounded h-12 font-medium text-white w-24 text-lg border border-transparent hover:bg-[#363739] transition"
-        disabled={!body || !session}
+        disabled={!body}
       >
         Send
       </button>
-    </form>
+    </form >
   );
 };
