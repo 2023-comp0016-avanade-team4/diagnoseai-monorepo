@@ -5,14 +5,16 @@ import FormContainer from "./components/FormContainer";
 
 export default function Home() {
     async function onSubmit(event) {
+        console.log("onSubmit");
+        console.log(event);
         event.preventDefault();
         const data = new FormData(event.target);
-        const res = await fetch("/api/upload", {
+        const res = await fetch("/api/fileUpload", {
             method: "POST",
             body: data,
         });
+        console.log(res);
         const json = res.json().then((data) => {return data}).catch((err) => console.log(err));
-        console.log(json);
     }
   return (
    <div className="relative bg-gray-100 w-full flex flex-col items-start justify-start gap-[7px] text-left text-11xl text-black font-crete-round">
