@@ -1,25 +1,7 @@
 import { useEffect } from "react";
 import { useInView } from "react-intersection-observer";
 
-// import { Message as IMessage } from "@/components/message";
 import { Message } from "@/components/message";
-
-// const GetRecentMessagesQuery = gql`
-//   query GetRecentMessages($last: Int) @live {
-//     messageCollection(last: $last) {
-//       edges {
-//         node {
-//           id
-//           username
-//           avatar
-//           body
-//           likes
-//           createdAt
-//         }
-//       }
-//     }
-//   }
-// `;
 
 export const MessageList = () => {
   const [scrollRef, inView, entry] = useInView({
@@ -27,13 +9,6 @@ export const MessageList = () => {
     delay: 1000,
   });
 
-  // const { loading, error, data } = useQuery<{
-  //   messageCollection: { edges: { node: IMessage }[] };
-  // }>(GetRecentMessagesQuery, {
-  //   variables: {
-  //     last: 100,
-  //   },
-  // });
   const data = {
     messageCollection: {
       edges:

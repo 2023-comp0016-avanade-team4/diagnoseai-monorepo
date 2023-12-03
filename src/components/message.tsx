@@ -1,5 +1,4 @@
 import { formatRelative, formatDistance, differenceInHours } from "date-fns";
-// import { useSession } from "next-auth/react";
 import Image from "next/image";
 
 export type Message = {
@@ -15,7 +14,6 @@ interface Props {
 }
 
 export const Message = ({ message }: Props) => {
-  // const { data: session } = useSession();
 
   return (
     <div

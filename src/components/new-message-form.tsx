@@ -1,19 +1,5 @@
-// import { gql, useMutation } from "@apollo/client";
-// import { useSession } from "next-auth/react";
 import { useState } from "react";
 import useSound from "use-sound";
-
-// const AddNewMessageMutation = gql`
-//   mutation AddNewMessage($username: String!, $avatar: URL, $body: String!) {
-//     messageCreate(
-//       input: { username: $username, avatar: $avatar, body: $body }
-//     ) {
-//       message {
-//         id
-//       }
-//     }
-//   }
-// `;
 
 export type AddNewMessageRequest = {
   username: string,
@@ -22,7 +8,6 @@ export type AddNewMessageRequest = {
 };
 
 export const NewMessageForm = () => {
-  // const { data: session } = useSession();
   const [play] = useSound("sent.wav");
   const [body, setBody] = useState("");
   const addNewMessage = (accepting: AddNewMessageRequest) => {
