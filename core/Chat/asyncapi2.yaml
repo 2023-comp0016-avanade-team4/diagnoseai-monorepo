@@ -60,7 +60,7 @@ components:
         conversationId:
           type: string
           description: The conversation ID
-        body:
+        message:
           type: string
           description: The body of the chat message
         sentAt:
@@ -91,9 +91,9 @@ components:
           type: string
           description: The body of the error
     sentAt:
-      type: string
+      type: number
       format: date-time
-      description: Date and time when the message was sent.
+      description: UNIX Timestamp for date and time when the message was sent.
 
   securitySchemes:
     certs:
