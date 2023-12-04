@@ -1,5 +1,7 @@
-import { useState } from "react";
-import useSound from "use-sound";
+import React, { useState, useEffect, useContext } from 'react';
+import useSound from 'use-sound';
+import { useWebSocket, WebSocketContext } from '@/contexts/WebSocketContext';
+
 
 export type AddNewMessageRequest = {
   username: string,
@@ -8,25 +10,83 @@ export type AddNewMessageRequest = {
 };
 
 export const NewMessageForm = () => {
-  const [play] = useSound("sent.wav");
-  const [body, setBody] = useState("");
-  const addNewMessage = (accepting: AddNewMessageRequest) => {
-    console.log(accepting);
-    play();
-  }
+  const [play] = useSound('sent.wav');
+  const [body, setBody] = useState('');
+  const { wsUrl } = useWebSocket(); // Use the WebSocket URL from the context
+  const [webSocket, setWebSocket] = useState<WebSocket | null>(null);
+
+  useEffect(() => {
+    console.log('WebSocket URL:', wsUrl); // Print the WebSocket URL
+    
+    if (wsUrl) {
+      const ws = new WebSocket(wsUrl);
+
+      ws.onmessage = (event) => {
+        try {
+          const messageData = JSON.parse(event.data);
+          const textResponse = JSON.parse(messageData).body;
+
+          console.log("text:", textResponse);
+
+          const responseMessage = {
+            id: "2",
+            username: "bot",
+            avatar: 'https://avatars.githubusercontent.com/u/1856293?v=4',
+            body: textResponse,
+            createdAt: "1"
+          };
+          addMessage(responseMessage);
+
+        } catch (error) {
+          console.error("Error parsing message data:", error);
+        }
+      };
+
+      setWebSocket(ws);
+
+      return () => {
+        ws.close(); // Clean up the WebSocket connection on unmount
+      };
+    }
+  }, [wsUrl]);
+  const { addMessage } = useContext(WebSocketContext);
+
+
+  const addNewMessage = (body: string) => {
+    if (webSocket && webSocket.readyState === WebSocket.OPEN) {
+      // Structure the message in the required format
+      const message = {
+        conversationId: "1",
+        message: body,
+        sentAt: 1
+      };
+      // DEBUG
+      console.log('Sending message:', message); // Print the message body
+
+      webSocket.send(JSON.stringify(message)); // Send message through the WebSocket
+      const newMessage = {
+        id: "1",
+        username: "some_user",
+        avatar: 'https://avatars.githubusercontent.com/u/114498077?v=4',
+        body: body,
+        createdAt: "1"
+      };
+
+      addMessage(newMessage);
+      play();
+    } else {
+      console.error('WebSocket is not connected.');
+    }
+  };
+  
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-
         if (body) {
-          addNewMessage({
-            username: "some_user",
-            avatar: 'https://avatars.githubusercontent.com/u/1856293?v=4',
-            body,
-          });
-          setBody("");
+          addNewMessage(body);
+          setBody('');
         }
       }}
       className="flex items-center space-x-3"
