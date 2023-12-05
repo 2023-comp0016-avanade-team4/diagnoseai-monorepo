@@ -1,13 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, FC } from 'react';
 import axios from 'axios';
-
-export type Message = {
-  id: string;
-  username: string;
-  avatar?: string;
-  body: string;
-  createdAt: string;
-};
+import { Message } from '@/components/message-component';
 
 
 type WebSocketContextState = {
@@ -30,7 +23,6 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
   const [wsUrl, setWsUrl] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
 
-  // add a new message to the state
   const addMessage = (message: Message) => {
     setMessages(prevMessages => [...prevMessages, message]);
   };
@@ -46,13 +38,12 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
         url: 'https://diagnoseai-core-apis.azure-api.net/core/chat_connection',
         headers: { 
           // 'Ocp-Apim-Subscription-Key': process.env.OCP_APIM_SUBSCRIPTION_KEY, 
-          'Ocp-Apim-Subscription-Key': "key here", 
+          'Ocp-Apim-Subscription-Key': "KEY", 
           'Content-Type': 'application/json'
         },
-        data: data
+        data
       };
 
-      console.log(config);
       try {
         const response = await axios(config);
         const wsUrl = response.data.wsUrl; // Extract the wsUrl from the response
@@ -72,7 +63,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       ws.onmessage = (event) => {
         try {
           const messageData: Message = JSON.parse(event.data);
-          addMessage(messageData); // Add the received message to the state
+          addMessage(messageData);
         } catch (error) {
           console.error("Error parsing message data:", error);
         }
@@ -91,7 +82,6 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
   );
 };
 
-// Custom hook to use the WebSocket context
 export const useWebSocket = () => {
   const context = useContext(WebSocketContext);
   if (!context) {

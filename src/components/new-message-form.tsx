@@ -12,12 +12,10 @@ export type AddNewMessageRequest = {
 export const NewMessageForm = () => {
   const [play] = useSound('sent.wav');
   const [body, setBody] = useState('');
-  const { wsUrl } = useWebSocket(); // Use the WebSocket URL from the context
+  const { wsUrl } = useWebSocket();
   const [webSocket, setWebSocket] = useState<WebSocket | null>(null);
 
-  useEffect(() => {
-    console.log('WebSocket URL:', wsUrl); // Print the WebSocket URL
-    
+  useEffect(() => {    
     if (wsUrl) {
       const ws = new WebSocket(wsUrl);
 
@@ -25,8 +23,6 @@ export const NewMessageForm = () => {
         try {
           const messageData = JSON.parse(event.data);
           const textResponse = JSON.parse(messageData).body;
-
-          console.log("text:", textResponse);
 
           const responseMessage = {
             id: "2",
@@ -54,25 +50,21 @@ export const NewMessageForm = () => {
 
   const addNewMessage = (body: string) => {
     if (webSocket && webSocket.readyState === WebSocket.OPEN) {
-      // Structure the message in the required format
       const message = {
         conversationId: "1",
         message: body,
         sentAt: 1
       };
-      // DEBUG
-      console.log('Sending message:', message); // Print the message body
 
-      webSocket.send(JSON.stringify(message)); // Send message through the WebSocket
-      const newMessage = {
+      webSocket.send(JSON.stringify(message));
+      addMessage({
         id: "1",
         username: "some_user",
         avatar: 'https://avatars.githubusercontent.com/u/114498077?v=4',
         body: body,
         createdAt: "1"
-      };
+      });
 
-      addMessage(newMessage);
       play();
     } else {
       console.error('WebSocket is not connected.');

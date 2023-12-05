@@ -36,3 +36,9 @@ grafbase/.env
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# api key
+api-key.txt
+
+# gitignore
+.gitignore

@@ -5,7 +5,7 @@ import { WebSocketProvider } from "@/contexts/WebSocketContext";
 
 const App = ({ Component, pageProps }: AppProps) => {
   return (
-    <WebSocketProvider> {}
+    <WebSocketProvider>
       <Component {...pageProps} />
     </WebSocketProvider>
   );

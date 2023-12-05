@@ -13,7 +13,7 @@ interface Props {
   message: Message;
 }
 
-export const Message = ({ message }: Props) => {
+export const MessageComponent = ({ message }: Props) => {
 
   return (
     <div
