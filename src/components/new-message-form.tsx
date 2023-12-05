@@ -15,7 +15,7 @@ export const NewMessageForm = () => {
   const { wsUrl } = useWebSocket();
   const [webSocket, setWebSocket] = useState<WebSocket | null>(null);
 
-  useEffect(() => {    
+  useEffect(() => {
     if (wsUrl) {
       const ws = new WebSocket(wsUrl);
 
@@ -70,7 +70,7 @@ export const NewMessageForm = () => {
       console.error('WebSocket is not connected.');
     }
   };
-  
+
 
   return (
     <form

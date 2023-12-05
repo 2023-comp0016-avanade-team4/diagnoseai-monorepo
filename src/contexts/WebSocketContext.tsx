@@ -36,9 +36,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       const config = {
         method: 'post',
         url: 'https://diagnoseai-core-apis.azure-api.net/core/chat_connection',
-        headers: { 
-          // 'Ocp-Apim-Subscription-Key': process.env.OCP_APIM_SUBSCRIPTION_KEY, 
-          'Ocp-Apim-Subscription-Key': "KEY", 
+        headers: {
+          // 'Ocp-Apim-Subscription-Key': process.env.OCP_APIM_SUBSCRIPTION_KEY,
+          'Ocp-Apim-Subscription-Key': "KEY",
           'Content-Type': 'application/json'
         },
         data
