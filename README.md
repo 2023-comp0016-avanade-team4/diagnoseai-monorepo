@@ -41,7 +41,7 @@ Create a JSON file called `core/local.settings.json`.
 The endpoint and keys should be self-explanatory.
 
 **Important**: To get proper linting, you must install the current
-package: `pip install -e.` See [this StackOverflow
+package: `pip install -e .` See [this StackOverflow
 answer](https://stackoverflow.com/a/50193944) for why this is required.
 
 ## Installing developer dependencies
@@ -53,6 +53,18 @@ latter includes tools such as:
 - `pylint`
 - `mypy`
 - `flake8`
+
+## Running Tests
+
+Before continuing, ensure all dependencies, and `pip install -e .` has
+been run on the project root directory.
+
+Then, to run tests, navigate to the the `core` directory. The
+following command will run the test:
+
+``` text
+python3 -m unittest discover test
+```
 
 
 ## Running Azurite
