@@ -20,7 +20,7 @@ os.environ['WebPubSubHubName'] = ''
 # pylint: disable=wrong-import-position
 from core.chat_connection.api import (generate_wss_url,  # noqa: E402, E501
                                       main, service)
-from core.utils.conversation import MakeConversationRequest  # noqa: E402, E501
+from core.utils.conversation import ChatConnectionRequest  # noqa: E402, E501
 
 
 class TestChatConnection(unittest.TestCase):
@@ -30,7 +30,7 @@ class TestChatConnection(unittest.TestCase):
     def test_main_happy(self):
         """Parses the expected Chat Connection"""
         req = create_autospec(HttpRequest)
-        req.get_body.return_value = MakeConversationRequest(
+        req.get_body.return_value = ChatConnectionRequest(
             user_id='123'
         ).to_json()
 
@@ -41,7 +41,7 @@ class TestChatConnection(unittest.TestCase):
 
     def test_generate_wss_url(self):
         """Expects the function to call the service"""
-        make_convo_request = MakeConversationRequest(
+        make_convo_request = ChatConnectionRequest(
             user_id='123'
         )
 

@@ -9,8 +9,8 @@ from json import JSONDecodeError
 
 import azure.functions as func  # type: ignore[import-untyped]
 from azure.messaging.webpubsubservice import WebPubSubServiceClient  # type: ignore[import-untyped] # noqa: E501 # pylint: disable=line-too-long
-from utils.conversation import (MakeConversationRequest,
-                                MakeConversationResponse)
+from utils.conversation import (ChatConnectionRequest,
+                                ChatConnectionResponse)
 
 app = func.FunctionApp()
 
@@ -25,7 +25,7 @@ service: WebPubSubServiceClient = WebPubSubServiceClient \
     )
 
 
-def generate_wss_url(request: MakeConversationRequest) -> str:
+def generate_wss_url(request: ChatConnectionRequest) -> str:
     """
     Generates the client access URL.
     """
@@ -46,10 +46,10 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     """
     logging.info('Chat Connection called with %s', req.method)
     try:
-        serialized = MakeConversationRequest.from_json(req.get_body())
+        serialized = ChatConnectionRequest.from_json(req.get_body())
         url = generate_wss_url(serialized)
         return func.HttpResponse(
-            MakeConversationResponse(url, 60).to_json(),
+            ChatConnectionResponse(url, 60).to_json(),
             status_code=200,
             mimetype='application/json'
         )

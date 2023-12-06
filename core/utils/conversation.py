@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from dataclasses_json import DataClassJsonMixin, config
 
 @dataclass
-class MakeConversationRequest(DataClassJsonMixin):
+class ChatConnectionRequest(DataClassJsonMixin):
     """
     A request to make a conversation.
     """
@@ -15,7 +15,7 @@ class MakeConversationRequest(DataClassJsonMixin):
 
 
 @dataclass
-class MakeConversationResponse(DataClassJsonMixin):
+class ChatConnectionResponse(DataClassJsonMixin):
     """
     A response from making a conversation
     """

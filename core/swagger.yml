@@ -16,26 +16,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MakeChatConnectionRequest'
+              $ref: '#/components/schemas/ChatConnectionRequest'
       responses:
         '200':
           description: 'Success'
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MakeChatConnectionResponse'
+                $ref: '#/components/schemas/ChatConnectionResponse'
       security:
         - api_key: []
 
 components:
   schemas:
-    MakeChatConnectionRequest:
+    ChatConnectionRequest:
       type: object
       properties:
         userId:
           type: string
           description: The UserID this connection belongs to
-    MakeChatConnectionResponse:
+    ChatConnectionResponse:
       type: object
       properties:
         wsUrl:
