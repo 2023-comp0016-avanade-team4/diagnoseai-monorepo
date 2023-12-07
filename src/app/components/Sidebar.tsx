@@ -11,7 +11,7 @@ const Sidebar = () => {
       <ul>
 
         <li className="mb-2">
-          <div className="bg-white flex flex-row items-center justify-start gap-2 text-darkslategray-300 p-5">
+          <div className="bg-white flex flex-row items-center justify-start gap-2 text-darkslategray-300 p-5 border border-2 border-blue-500 p-4 border-da">
             <Image className="w-5 h-5" alt="Upload Icon" src={uploadsvg} />
             <div className="inline-block shrink-0">
               Upload File
@@ -20,7 +20,7 @@ const Sidebar = () => {
         </li>
 
         <li className="mb-2">
-          <div className="bg-white flex flex-row items-center justify-start gap-2 text-darkslategray-300 p-5">
+          <div className="bg-gray-300 flex flex-row items-center justify-start gap-2 text-darkslategray-300 p-5">
             <Image className="w-5 h-5" alt="Validate" src={checkcirclesvg} />
             <div className="inline-block shrink-0">
               Validate

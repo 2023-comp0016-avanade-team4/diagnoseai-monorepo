@@ -3,5 +3,5 @@
 @tailwind utilities;
 
 .file-uploader > label {
-  @apply min-w-full bg-white;
+  @apply min-w-full bg-white flex-auto;
 }
