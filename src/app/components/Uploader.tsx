@@ -1,5 +1,4 @@
 import FileUploader from "./FileUploader";
-import { Button } from '@nextui-org/react';
 
 import './uploader.css';
 
@@ -9,12 +8,7 @@ export const Uploader = () => {
       <div className="text-5xl flex-0 mb-5">
         Upload Files
       </div>
-      <div className="w-full h-full rounded-md box-border border-solid border-whitesmoke-300 file-uploader mr-5 flex-1 flex flex-col items-center">
-        <FileUploader />
-        <Button className="my-10 max-w-xs flex-0" color="primary">
-          Confirm Upload
-        </Button>
-      </div>
+      <FileUploader />
     </div >
   );
 }

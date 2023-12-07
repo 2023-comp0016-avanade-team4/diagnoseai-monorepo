@@ -1,11 +1,11 @@
-.file-uploader > .file-uploader-skeleton {
+.file-uploader {
   @apply min-w-full h-full;
 
   > div {
-    @apply h-full;
+    @apply min-w-full h-full flex flex-col items-center;
   }
 }
 
-.file-uploader > .file-uploader-skeleton label {
+.file-uploader label {
   @apply min-w-full h-full bg-white;
 }
