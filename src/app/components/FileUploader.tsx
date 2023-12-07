@@ -19,8 +19,23 @@ export const Uploader = () => {
     console.log("File selected", file);
   }
 
-  const uploadBtnCLicked = () => {
+  const uploadBtnClicked = async () => {
     setIsUploading((_) => true);
+    // TODO: very rough
+    if (file === undefined) {
+      alert('please choose a file')
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await fetch('/api/fileUpload', {
+      method: 'POST',
+      body: formData
+    })
+
+    const data = await response.json();
+    console.log(data);
     router.push('/uploadsuccess')
   }
 
@@ -50,7 +65,7 @@ export const Uploader = () => {
         types={fileTypes}
         disabled={isUploading}
         required={true} />
-      <Button className="my-10 max-w-xs flex-0" color="primary" disabled={isUploading} onClick={uploadBtnCLicked}>
+      <Button className="my-10 max-w-xs flex-0" color="primary" disabled={isUploading} onClick={uploadBtnClicked}>
         Confirm Upload
       </Button>
 

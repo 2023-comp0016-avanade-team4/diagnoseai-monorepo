@@ -5,7 +5,8 @@ const formidable = require('formidable');
 require("dotenv").config();
 
 async function handler(req, res) {
-  //If the request is not a POST request, return a 405 'Method Not Allowed'
+  console.log("Aadhik, the console log here doesn't work");
+  //If the request is not a POST request, return a 405 'Method Not Allowed';
   if (req.method == 'POST') {
     const form = new formidable.IncomingForm();
     form.parse(req, async (error, fields, files) => {
