@@ -1,0 +1,4 @@
+pylint==3.0.2
+mypy==1.7.0
+pyflakes
+flake8
