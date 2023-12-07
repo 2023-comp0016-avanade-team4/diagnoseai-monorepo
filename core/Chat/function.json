@@ -1,0 +1,14 @@
+{
+  "disabled": false,
+  "scriptFile": "chat.py",
+  "bindings": [
+    {
+      "type": "WebPubSubTrigger",
+      "direction": "in",
+      "name": "request",
+      "hub": "chat",
+      "eventName": "message",
+      "eventType": "user"
+    }
+  ]
+}

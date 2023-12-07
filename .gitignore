@@ -53,3 +53,7 @@ __azurite_db*__.json
 
 # egg info
 *.egg-info/
+
+# Coverage
+.coverage
+htmlcov/

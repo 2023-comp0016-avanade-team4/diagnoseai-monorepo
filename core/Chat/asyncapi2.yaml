@@ -1,0 +1,107 @@
+asyncapi: '2.6.0'
+info:
+  title: DiagnoseAI Core API Chat
+  version: '0.0.1'
+  description: |
+    The chatting web socket API for DiagnoseAI
+
+servers:
+  development:
+    url: diagnoseai-core.webpubsub.azure.com/client/hubs/Chat
+    protocol: websocket
+    description: The development WebSocket URL. This cannot be used directly, as a Hub needs to be generated first. See DiagnoseAI Core API specs.
+    security:
+      - certs: []
+
+defaultContentType: application/json
+
+channels:
+  /{chat_uuid}:
+    description: Talk to the model over websockets
+    parameters:
+      chat_uuid:
+        $ref: '#/components/parameters/chatUUID'
+    publish:
+      summary: Send chat messages
+      message:
+        $ref: '#/components/messages/message'
+    subscribe:
+      summary: Receive chat messages
+      message:
+        oneOf:
+          - $ref: '#/components/messages/responseMessage'
+          - $ref: '#/components/messages/responseError'
+
+components:
+  messages:
+    message:
+      name: message
+      title: Chat Message
+      summary: A chat message
+      payload:
+        $ref: '#/components/schemas/messagePayload'
+    responseMessage:
+      name: message
+      title: Chat Message
+      summary: A response chat message
+      payload:
+        $ref: '#/components/schemas/responseMessagePayload'
+    responseError:
+      name: message
+      title: Chat Error
+      summary: An error
+      payload:
+        $ref: '#/components/schemas/responseErrorPayload'
+
+  schemas:
+    messagePayload:
+      type: object
+      properties:
+        conversationId:
+          type: string
+          description: The conversation ID
+        message:
+          type: string
+          description: The body of the chat message
+        sentAt:
+          $ref: '#/components/schemas/sentAt'
+    responseMessagePayload:
+      type: object
+      properties:
+        conversationId:
+          type: string
+          description: The conversation ID
+        type:
+          type: string
+          const: 'message'
+          description: Signifies that this response is a message
+        body:
+          type: string
+          description: The body of the chat message
+        sentAt:
+          $ref: '#/components/schemas/sentAt'
+    responseErrorPayload:
+      type: object
+      properties:
+        type:
+          type: string
+          const: 'error'
+          description: Signifies that this response is an error
+        body:
+          type: string
+          description: The body of the error
+    sentAt:
+      type: number
+      format: date-time
+      description: UNIX Timestamp for date and time when the message was sent.
+
+  securitySchemes:
+    certs:
+      type: X509
+      description: Download the certificate files from service provider
+
+  parameters:
+    chatUUID:
+      description: The UUID of the chat channel. Every conversation should have a different UUID
+      schema:
+        type: string

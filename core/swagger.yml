@@ -1,0 +1,51 @@
+openapi: 3.1.0
+info:
+  title: Core API
+  description: |-
+    This is the Core API
+  version: 0.0.1
+servers:
+  - url: https://diagnoseai-core-apis.azure-api.net
+paths:
+  /chat_connection:
+    post:
+      summary: Creates a pre-authenticated chat connection for the given user ID
+      description: Creates a pre-authenticated chat connection (WebSockets) for the given user ID
+      requestBody:
+        description: Request for a pre-authenticated chat connection
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatConnectionRequest'
+      responses:
+        '200':
+          description: 'Success'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatConnectionResponse'
+      security:
+        - api_key: []
+
+components:
+  schemas:
+    ChatConnectionRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+          description: The UserID this connection belongs to
+    ChatConnectionResponse:
+      type: object
+      properties:
+        wsUrl:
+          type: string
+          description: The WebSocket URL for this connection (temporary)
+        ttl:
+          type: integer
+          description: The time to live for the WebSocket URL in minutes. Ideally, when WebSocket requesting moves to another endpoint, the client will re-request a new websocket URL
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: Ocp-Apim-Subscription-Key
+      in: header
