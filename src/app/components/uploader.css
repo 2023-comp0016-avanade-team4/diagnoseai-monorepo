@@ -1,7 +1,11 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+.file-uploader > .file-uploader-skeleton {
+  @apply min-w-full h-full;
 
-.file-uploader > label {
-  @apply min-w-full bg-white flex-auto;
+  > div {
+    @apply h-full;
+  }
+}
+
+.file-uploader > .file-uploader-skeleton label {
+  @apply min-w-full h-full bg-white;
 }

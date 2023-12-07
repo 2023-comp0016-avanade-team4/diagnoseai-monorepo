@@ -2,7 +2,6 @@ import { Inter } from 'next/font/google'
 import { Metadata } from 'next'
 import { Providers } from './providers'
 import { BlockSmallWidth } from './block-small-width';
-import { Button } from '@nextui-org/react'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
 import '../global.css'
@@ -31,6 +30,6 @@ export default function RootLayout({ children }) {
           </div>
         </BlockSmallWidth>
       </body>
-    </html >
+    </html>
   )
 }
