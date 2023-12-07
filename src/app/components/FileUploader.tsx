@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { FileUploader } from "react-drag-drop-files";
 import { Skeleton } from "@nextui-org/react";
 import { Button } from '@nextui-org/react';
@@ -10,10 +11,17 @@ const fileTypes = ["PDF", "DOCX"];
 export const Uploader = () => {
   const [file, setFile] = useState<File | undefined>(undefined);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const router = useRouter();
   const handleChange = (file) => {
     setFile(file);
     // TODO(james): remove this debugging line
     console.log("File selected", file);
+  }
+
+  const uploadBtnCLicked = () => {
+    setIsUploading((_) => true);
+    router.push('/uploadsuccess')
   }
 
   useEffect(() => {
@@ -35,13 +43,14 @@ export const Uploader = () => {
   })
 
   return (
-    <Skeleton className="w-full h-full rounded-md box-border border-solid border-whitesmoke-300 file-uploader mr-5 flex-1" isLoaded={isLoaded}>
+    <Skeleton className="w-full h-full rounded-md box-border border-solid border-whitesmoke-300 file-uploader mr-5 flex-1" isLoaded={isLoaded && !isUploading}>
       <FileUploader
         handleChange={handleChange}
         name="file"
         types={fileTypes}
+        disabled={isUploading}
         required={true} />
-      <Button className="my-10 max-w-xs flex-0" color="primary">
+      <Button className="my-10 max-w-xs flex-0" color="primary" disabled={isUploading} onClick={uploadBtnCLicked}>
         Confirm Upload
       </Button>
 
