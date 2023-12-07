@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.file-uploader > label {
+  @apply min-w-full bg-white;
+}
