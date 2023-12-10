@@ -12,8 +12,6 @@ const blobServiceClient = BlobServiceClient.fromConnectionString(
   AZURE_STORAGE_CONNECTION_STRING
 );
 const containerClient = blobServiceClient.getContainerClient("document-storage");
-const blobName = uuidv1() + files.file[0].originalFilename;
-const blockBlobClient = containerClient.getBlockBlobClient(blobName);
  
 async function handler(req, res) {
   //If the request is not a POST request, return a 405 'Method Not Allowed'
@@ -24,6 +22,8 @@ async function handler(req, res) {
         if (error) {
           throw error;
         }
+        const blobName = uuidv1() + files.file[0].originalFilename;
+        const blockBlobClient = containerClient.getBlockBlobClient(blobName);
         blockBlobClient.uploadFile(files.file[0].filepath).then((response) => {
             res.status(200).json({ message: "File uploaded successfully" 
         });
