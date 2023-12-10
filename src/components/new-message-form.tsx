@@ -1,52 +1,39 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import useSound from 'use-sound';
-import { useWebSocket, WebSocketContext } from '@/contexts/WebSocketContext';
-
-
-export type AddNewMessageRequest = {
-  username: string,
-  avatar?: string | null,
-  body: string
-};
+import { useWebSocket } from '@/contexts/WebSocketContext';
 
 export const NewMessageForm = () => {
   const [play] = useSound('sent.wav');
   const [body, setBody] = useState('');
-  const { wsUrl } = useWebSocket();
-  const [webSocket, setWebSocket] = useState<WebSocket | null>(null);
+  const { addMessage, webSocket } = useWebSocket(); // Get WebSocket from context
 
   useEffect(() => {
-    if (wsUrl) {
-      const ws = new WebSocket(wsUrl);
+    const handleIncomingMessages = (event: MessageEvent) => {
+      try {
+        const messageData = JSON.parse(event.data);
+        const textResponse = JSON.parse(messageData).body;
 
-      ws.onmessage = (event) => {
-        try {
-          const messageData = JSON.parse(event.data);
-          const textResponse = JSON.parse(messageData).body;
+        const responseMessage = {
+          id: "2",
+          username: "bot",
+          avatar: 'https://avatars.githubusercontent.com/u/1856293?v=4',
+          body: textResponse,
+          createdAt: "1"
+        };
+        addMessage(responseMessage);
+      } catch (error) {
+        console.error("Error parsing message data:", error);
+      }
+    };
 
-          const responseMessage = {
-            id: "2",
-            username: "bot",
-            avatar: 'https://avatars.githubusercontent.com/u/1856293?v=4',
-            body: textResponse,
-            createdAt: "1"
-          };
-          addMessage(responseMessage);
-
-        } catch (error) {
-          console.error("Error parsing message data:", error);
-        }
-      };
-
-      setWebSocket(ws);
+    if (webSocket) {
+      webSocket.onmessage = handleIncomingMessages;
 
       return () => {
-        ws.close(); // Clean up the WebSocket connection on unmount
+        webSocket.onmessage = null; // Cleanup event handler on unmount
       };
     }
-  }, [wsUrl]);
-  const { addMessage } = useContext(WebSocketContext);
-
+  }, [addMessage, webSocket]);
 
   const addNewMessage = (body: string) => {
     if (webSocket && webSocket.readyState === WebSocket.OPEN) {

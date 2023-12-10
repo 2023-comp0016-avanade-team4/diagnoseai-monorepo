@@ -1,4 +1,4 @@
-import { formatRelative, formatDistance, differenceInHours } from "date-fns";
+// import { formatRelative, formatDistance, differenceInHours } from "date-fns";
 import Image from "next/image";
 
 export type Message = {
@@ -55,13 +55,13 @@ export const MessageComponent = ({ message }: Props) => {
           <span className="max-w-sm">{message.body}</span>
         </span>
       </div>
-      <p className="text-xs text-white/50">
+      {/* <p className="text-xs text-white/50">
         {differenceInHours(new Date(), new Date(message.createdAt)) >= 1
           ? formatRelative(new Date(message.createdAt), new Date())
           : formatDistance(new Date(message.createdAt), new Date(), {
             addSuffix: true,
           })}
-      </p>
+      </p> */}
     </div>
   );
 };

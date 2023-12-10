@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, FC } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Message } from '@/components/message-component';
 
@@ -7,12 +7,14 @@ type WebSocketContextState = {
   wsUrl: string | null;
   messages: Message[];
   addMessage: (message: Message) => void;
+  webSocket: WebSocket | null;
 };
 
 export const WebSocketContext = createContext<WebSocketContextState>({
   wsUrl: null,
   messages: [],
   addMessage: () => {},
+  webSocket: null,
 });
 
 type WebSocketProviderProps = {
@@ -22,10 +24,11 @@ type WebSocketProviderProps = {
 export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }) => {
   const [wsUrl, setWsUrl] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [webSocket, setWebSocket] = useState<WebSocket | null>(null);
 
-  const addMessage = (message: Message) => {
+  const addMessage = useCallback((message: Message) => {
     setMessages(prevMessages => [...prevMessages, message]);
-  };
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -57,7 +60,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
   }, []);
 
   useEffect(() => {
-    if (wsUrl) {
+    if (wsUrl && !webSocket) {
       const ws = new WebSocket(wsUrl);
 
       ws.onmessage = (event) => {
@@ -69,14 +72,26 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
         }
       };
 
-      // Clean up the WebSocket on unmount or wsUrl change
-      return () => ws.close();
+      setWebSocket(ws);
     }
-  }, [wsUrl]);
 
-  // Provide wsUrl, messages, and addMessage to the context
+    return () => {
+      if (webSocket) {
+        webSocket.close(); // Clean up the WebSocket on unmount
+      }
+    };
+  }, [wsUrl, webSocket, addMessage]);
+
+  const contextValue = {
+    wsUrl,
+    messages,
+    addMessage,
+    webSocket, // Provide the WebSocket instance in context
+  };
+
+
   return (
-    <WebSocketContext.Provider value={{ wsUrl, messages, addMessage }}>
+    <WebSocketContext.Provider value={contextValue}>
       {children}
     </WebSocketContext.Provider>
   );
