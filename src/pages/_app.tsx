@@ -1,12 +1,14 @@
+import React from 'react';
 import "../styles/globals.css";
-
 import type { AppProps } from "next/app";
+import { WebSocketProvider } from "@/contexts/WebSocketContext";
 
-export default function App({
-  Component,
-  pageProps: { ...pageProps },
-}: AppProps) {
+const App = ({ Component, pageProps }: AppProps) => {
   return (
-    <Component {...pageProps} />
+    <WebSocketProvider>
+      <Component {...pageProps} />
+    </WebSocketProvider>
   );
-}
+};
+
+export default App;

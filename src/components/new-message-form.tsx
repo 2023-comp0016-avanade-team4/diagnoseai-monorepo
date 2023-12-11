@@ -1,32 +1,71 @@
-import { useState } from "react";
-import useSound from "use-sound";
-
-export type AddNewMessageRequest = {
-  username: string,
-  avatar?: string | null,
-  body: string
-};
+import React, { useState, useEffect } from 'react';
+import useSound from 'use-sound';
+import { useWebSocket } from '@/contexts/WebSocketContext';
 
 export const NewMessageForm = () => {
-  const [play] = useSound("sent.wav");
-  const [body, setBody] = useState("");
-  const addNewMessage = (accepting: AddNewMessageRequest) => {
-    console.log(accepting);
-    play();
-  }
+  const [play] = useSound('sent.wav');
+  const [body, setBody] = useState('');
+  const { addMessage, webSocket } = useWebSocket(); // Get WebSocket from context
+
+  useEffect(() => {
+    const handleIncomingMessages = (event: MessageEvent) => {
+      try {
+        const messageData = JSON.parse(event.data);
+        const textResponse = JSON.parse(messageData).body;
+
+        const responseMessage = {
+          id: "2",
+          username: "bot",
+          avatar: 'https://avatars.githubusercontent.com/u/1856293?v=4',
+          body: textResponse,
+          createdAt: "1"
+        };
+        addMessage(responseMessage);
+      } catch (error) {
+        console.error("Error parsing message data:", error);
+      }
+    };
+
+    if (webSocket) {
+      webSocket.onmessage = handleIncomingMessages;
+
+      return () => {
+        webSocket.onmessage = null; // Cleanup event handler on unmount
+      };
+    }
+  }, [addMessage, webSocket]);
+
+  const addNewMessage = (body: string) => {
+    if (webSocket && webSocket.readyState === WebSocket.OPEN) {
+      const message = {
+        conversationId: "1",
+        message: body,
+        sentAt: 1
+      };
+
+      webSocket.send(JSON.stringify(message));
+      addMessage({
+        id: "1",
+        username: "some_user",
+        avatar: 'https://avatars.githubusercontent.com/u/114498077?v=4',
+        body: body,
+        createdAt: "1"
+      });
+
+      play();
+    } else {
+      console.error('WebSocket is not connected.');
+    }
+  };
+
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-
         if (body) {
-          addNewMessage({
-            username: "some_user",
-            avatar: 'https://avatars.githubusercontent.com/u/1856293?v=4',
-            body,
-          });
-          setBody("");
+          addNewMessage(body);
+          setBody('');
         }
       }}
       className="flex items-center space-x-3"
