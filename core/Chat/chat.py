@@ -24,6 +24,10 @@ from utils.web_pub_sub_interfaces import WebPubSubRequest
 WPBSS_CONNECTION_STRING = os.environ['WebPubSubConnectionString']
 WPBSS_HUB_NAME = os.environ['WebPubSubHubName']
 
+SEARCH_KEY = os.environ["CognitiveSearchKey"]
+SEARCH_ENDPOINT = os.environ["CognitiveSearchEndpoint"]
+SEARCH_INDEX = 'validation-index'
+
 OPENAI_KEY = os.environ["OpenAIKey"]
 OPENAI_ENDPOINT = os.environ["OpenAIEndpoint"]
 
