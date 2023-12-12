@@ -3,7 +3,10 @@
   "scriptFile": "poc.py",
   "bindings": [
     {
+      "name": "blob",
       "type": "blobTrigger",
+      "path": "validation-documents",
+      "connection": "BlobBindingConnection",
       "direction": "in",
     }
   ]
