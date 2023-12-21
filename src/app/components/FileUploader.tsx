@@ -13,16 +13,15 @@ export const Uploader = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const router = useRouter();
-  const handleChange = (file) => {
+  const handleChange = (file: File) => {
     setFile(file);
-    // TODO(james): remove this debugging line
-    console.log("File selected", file);
   }
 
   const uploadBtnClicked = async () => {
     setIsUploading((_) => true);
-    // TODO: very rough
     if (file === undefined) {
+      // TODO: Eventually, we should have a toast within the website
+      // to show errors instead of using the alert box
       alert('please choose a file')
       return;
     }
@@ -35,8 +34,12 @@ export const Uploader = () => {
     })
 
     const data = await response.json();
-    console.log(data);
-    router.push('/uploadsuccess')
+    if (data.error) {
+      alert('cannot upload file');
+      setIsUploading((_) => false);
+    } else {
+      router.push('/uploadsuccess');
+    }
   }
 
   useEffect(() => {
@@ -65,7 +68,7 @@ export const Uploader = () => {
         types={fileTypes}
         disabled={isUploading}
         required={true} />
-      <Button className="my-10 max-w-xs flex-0" color="primary" disabled={isUploading} onClick={uploadBtnClicked}>
+      <Button className="my-10 max-w-xs flex-0" color="primary" disabled={!file || isUploading} onClick={uploadBtnClicked}>
         Confirm Upload
       </Button>
 
