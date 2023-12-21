@@ -39,6 +39,16 @@ class TestChatConnection(unittest.TestCase):
             fn.assert_called_once()
             self.assertEqual(fn.call_args[0][0].user_id, '123')
 
+    def test_main_sad(self):
+        """Invalid JSON should return a 500"""
+        req = create_autospec(HttpRequest)
+        req.get_body.return_value = 'not json'
+
+        with patch('core.chat_connection.api.generate_wss_url') as fn:
+            response = main(req)
+            fn.assert_not_called()
+            self.assertEqual(response.status_code, 500)
+
     def test_generate_wss_url(self):
         """Expects the function to call the service"""
         make_convo_request = ChatConnectionRequest(
