@@ -88,7 +88,8 @@ class ChatMessageDAO:
     Methods used with the ChatMessageModel. These are namespaced, static
     methods. (i.e. do not instantitate)
     """
-    def __init__(self):
+    def __init__(self):  # pragma: no cover
+        # There is literally no point testing this
         raise NotImplementedError("do not instantiate")
 
     @staticmethod
@@ -102,7 +103,9 @@ class ChatMessageDAO:
     ) -> Sequence[ChatMessageModel]:
         """
         Gets all the messages for a conversation. Guaranteed to be
-        ordered correctly.
+        ordered correctly. If msg_range is not provided right
+        (e.g. (a, b) but b > a), then the function will just return an
+        empty list.
 
         Args:
             session (Session): The database session
@@ -110,7 +113,7 @@ class ChatMessageDAO:
 
         Keyword Args:
             msg_range (Tuple[int, int]): The range of messages to
-                                         get. Inclusive of start ,
+                                         get. Inclusive of start,
                                          exclusive of end. Set any to
                                          -1 to "unspecify"
             count (int): The number of messages to limit. Overrides

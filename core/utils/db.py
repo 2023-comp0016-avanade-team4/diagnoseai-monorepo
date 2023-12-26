@@ -13,7 +13,7 @@ def create_session(
         server_url: str,
         database_name: str,
         username: str,
-        password: str) -> Session:
+        password: str) -> Session:  # pragma: no cover
     """
     Creates a database session.
 
@@ -26,6 +26,7 @@ def create_session(
     Returns:
         Session: The database session
     """
+    # This instantiates the session, and cannot be unit tested.
     engine = create_engine(
         f"mssql+pyodbc://{username}:{password}@{server_url}/{database_name}"
         f"?driver=ODBC+Driver+17+for+SQL+Server"
