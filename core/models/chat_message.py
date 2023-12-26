@@ -5,8 +5,9 @@ All data access related functions for chat messages.
 from typing import Sequence, Tuple, Literal, cast
 from uuid import uuid4
 
+import enum
 from datetime import datetime
-from sqlalchemy import DateTime, Enum, select
+from sqlalchemy import Column, Enum, select
 from sqlalchemy.orm import Mapped, Session, mapped_column
 from utils.chat_message import BidirectionalChatMessage
 
@@ -15,7 +16,7 @@ from .common import Base
 # pylint: disable=too-few-public-methods,too-many-ancestors
 
 
-class SenderTypes(Enum):
+class SenderTypes(enum.Enum):
     """
     Enum representing all the types of senders available. Since this
     is a chatbot, the only two conversation partners are the bot and
@@ -37,8 +38,8 @@ class ChatMessageModel(Base):
     conversation_id: Mapped[str] = mapped_column(default=uuid4)
     order: Mapped[int] = mapped_column()
     message: Mapped[str] = mapped_column()
-    sent_at: Mapped[DateTime] = mapped_column()
-    sender: Mapped[SenderTypes] = mapped_column()
+    sent_at: Mapped[datetime] = mapped_column()
+    sender: Column = Column(Enum(SenderTypes))
 
     @staticmethod
     def from_bidirectional_chat_message(
@@ -72,16 +73,13 @@ class ChatMessageModel(Base):
         Raises:
             ValueError: If the sender is None (this is an impossible case)
         """
-        if message.sender.name is None:
-            raise ValueError("sender is None (impossible case)")
-
         return BidirectionalChatMessage(
             conversation_id=message.conversation_id,
             message=message.message,
-            sent_at=cast(datetime, message.sent_at),
-            # casted because message.sender.name (is a str) should
+            sent_at=message.sent_at,
+            # casted because message.sender (is a str) should
             # become either bot or user
-            sender=cast(Literal['bot', 'user'], message.sender.name)
+            sender=cast(Literal['bot', 'user'], message.sender)
         )
 
 

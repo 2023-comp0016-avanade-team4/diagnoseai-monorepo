@@ -31,7 +31,7 @@ def get_history_from_db(
         convesation_id (str): The conversation ID
 
     Returns:
-        Generator[Any, Any, BidirectionalChatMessage]: The chat history
+        map: The chat history
     """
     return map(ChatMessageModel.to_bidirectional_chat_message,
                ChatMessageDAO.get_all_messages_for_conversation(
@@ -61,20 +61,14 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         req (func.HttpRequest): The HTTP request
     """
     logging.info('Chat History called with %s', req.method)
-    try:
-        if 'conversation_id' not in req.route_params:
-            return func.HttpResponse(
-                '', status_code=400
-            )
+    if 'conversation_id' not in req.params:
+        return func.HttpResponse(
+            '', status_code=400
+        )
 
-        conversation_id = req.route_params.get('conversation_id')
-        return func.HttpResponse(
-            handle_request_by_conversation_id(conversation_id).to_json(),
-            status_code=200,
-            mimetype='application/json'
-        )
-    except (KeyError, JSONDecodeError) as e:
-        logging.error('Cannot deserialize JSON %s', e)
-        return func.HttpResponse(
-            '', status_code=500
-        )
+    conversation_id = req.params.get('conversation_id')
+    return func.HttpResponse(
+        handle_request_by_conversation_id(conversation_id).to_json(),
+        status_code=200,
+        mimetype='application/json'
+    )
