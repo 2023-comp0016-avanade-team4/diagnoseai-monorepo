@@ -1,0 +1,17 @@
+{
+  "disabled": false,
+  "scriptFile": "api.py",
+  "bindings": [
+    {
+      "authLevel": "function",
+      "type": "httpTrigger",
+      "name": "req",
+      "direction": "in",
+    },
+    {
+      "type": "http",
+      "name": "$return",
+      "direction": "out"
+    }
+  ]
+}
