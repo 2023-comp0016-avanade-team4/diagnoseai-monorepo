@@ -36,10 +36,11 @@ SEARCH_INDEX = 'validation-index'
 OPENAI_KEY = os.environ["OpenAIKey"]
 OPENAI_ENDPOINT = os.environ["OpenAIEndpoint"]
 
-SERVER_URL = os.environ['SERVER_URL']
-DATABASE_NAME = os.environ['DATABASE_NAME']
-USERNAME = os.environ['USERNAME']
-PASSWORD = os.environ['PASSWORD']
+DATABASE_URL = os.environ['DatabaseURL']
+DATABASE_NAME = os.environ['DatabaseName']
+DATABASE_USERNAME = os.environ['DatabaseUsername']
+DATABASE_PASSWORD = os.environ['DatabasePassword']
+DATABASE_SELFSIGNED = os.environ.get('DatabaseSelfSigned')
 
 # Global clients
 
@@ -53,7 +54,8 @@ ai_client = AzureOpenAI(
 )
 
 db_session = create_session(
-    SERVER_URL, DATABASE_NAME, USERNAME, PASSWORD
+    DATABASE_URL, DATABASE_NAME, DATABASE_USERNAME, DATABASE_PASSWORD,
+    DATABASE_SELFSIGNED
 )
 
 

@@ -11,14 +11,16 @@ from models.chat_message import ChatMessageDAO, ChatMessageModel
 from utils.db import create_session
 from utils.history import ChatHistoryResponse
 
-SERVER_URL = os.environ['SERVER_URL']
-DATABASE_NAME = os.environ['DATABASE_NAME']
-USERNAME = os.environ['USERNAME']
-PASSWORD = os.environ['PASSWORD']
+DATABASE_URL = os.environ['DatabaseURL']
+DATABASE_NAME = os.environ['DatabaseName']
+DATABASE_USERNAME = os.environ['DatabaseUsername']
+DATABASE_PASSWORD = os.environ['DatabasePassword']
+DATABASE_SELFSIGNED = os.environ.get('DatabaseSelfSigned')
 
 # Global clients
 db_session = create_session(
-    SERVER_URL, DATABASE_NAME, USERNAME, PASSWORD
+    DATABASE_URL, DATABASE_NAME, DATABASE_USERNAME, DATABASE_PASSWORD,
+    bool(DATABASE_SELFSIGNED)
 )
 
 

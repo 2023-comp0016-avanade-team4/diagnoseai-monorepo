@@ -7,7 +7,7 @@ from uuid import uuid4
 
 import enum
 from datetime import datetime
-from sqlalchemy import Column, Enum, select
+from sqlalchemy import Column, Enum, String, select
 from sqlalchemy.orm import Mapped, Session, mapped_column
 from utils.chat_message import BidirectionalChatMessage
 
@@ -32,7 +32,7 @@ class ChatMessageModel(Base):
     This is modelled after BidirectionalChatMessage, but it is not equivalent.
     """
     __tablename__ = 'chat_messages'
-    message_id: Mapped[str] = mapped_column(primary_key=True, default=uuid4)
+    message_id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid4)
     # TODO: We can probably 3NF this and make this a foreign key. This
     # is not very important for now, though
     conversation_id: Mapped[str] = mapped_column(default=uuid4)

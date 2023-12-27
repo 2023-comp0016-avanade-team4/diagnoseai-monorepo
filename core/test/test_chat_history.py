@@ -14,10 +14,10 @@ from core.models.chat_message import ChatMessageModel
 db_session_patch = patch('utils.db.create_session') \
     .start()
 
-os.environ['SERVER_URL'] = ''
-os.environ['DATABASE_NAME'] = ''
-os.environ['USERNAME'] = ''
-os.environ['PASSWORD'] = ''
+os.environ['DatabaseURL'] = ''
+os.environ['DatabaseName'] = ''
+os.environ['DatabaseUsername'] = ''
+os.environ['DatabasePassword'] = ''
 
 # This import must come after the global patches
 # pylint: disable=wrong-import-position

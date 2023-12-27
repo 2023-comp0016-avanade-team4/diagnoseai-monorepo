@@ -23,10 +23,10 @@ os.environ['OpenAIKey'] = ''
 os.environ['OpenAIEndpoint'] = ''
 os.environ['CognitiveSearchKey'] = ''
 os.environ['CognitiveSearchEndpoint'] = ''
-os.environ['SERVER_URL'] = ''
-os.environ['DATABASE_NAME'] = ''
-os.environ['USERNAME'] = ''
-os.environ['PASSWORD'] = ''
+os.environ['DatabaseURL'] = ''
+os.environ['DatabaseName'] = ''
+os.environ['DatabaseUsername'] = ''
+os.environ['DatabasePassword'] = ''
 
 
 # This import must come after the global patches
