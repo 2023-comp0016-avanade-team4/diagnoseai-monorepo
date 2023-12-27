@@ -8,7 +8,7 @@ import unittest
 from typing import Tuple
 from unittest.mock import MagicMock, patch
 
-from core.models.chat_message import ChatMessageDAO, ChatMessageModel
+from core.models.chat_message import ChatMessageDAO
 
 
 class TestDB(unittest.TestCase):
@@ -39,17 +39,13 @@ class TestDB(unittest.TestCase):
         with patch('core.models.chat_message.select') as select:
             with patch('sqlalchemy.orm.Session') as session:
                 whereable = MagicMock()
-                whereable_nested = MagicMock()
-                whereable_nested_more = MagicMock()
-                whereable.where.return_value = whereable_nested
-                whereable_nested.where.return_value = whereable_nested_more
+                whereable.where.return_value = whereable
+                whereable.order_by.return_value = whereable
                 select.return_value = whereable
                 ChatMessageDAO.get_all_messages_for_conversation(
                     session, '123', msg_range=msg_range)
 
-                return len(whereable.where.call_args_list) \
-                    + len(whereable_nested.where.call_args_list) \
-                    + len(whereable_nested_more.where.call_args_list)
+                return len(whereable.where.call_args_list)
 
     def test_get_all_messages_for_conversation_range_start(self):
         """
@@ -68,21 +64,3 @@ class TestDB(unittest.TestCase):
         Tests the range with both start and end
         """
         self.assertEqual(self.run_get_all_messages_with_range((1, 999)), 3)
-
-    def test_save_message_no_past_messages(self):
-        """
-        If there are old messages in the database, then the order
-        should be the next-in-sequence
-        """
-        with patch(
-                'core.models.chat_message.ChatMessageDAO'
-                '.get_all_messages_for_conversation'
-        ) as m:
-            m.return_value = [
-                ChatMessageModel(
-                    conversation_id='123', order=1)]
-            session = MagicMock()
-            message = MagicMock()
-            ChatMessageDAO.save_message(session, message)
-            session.add.assert_called_once()
-            self.assertEqual(message.order, 2)

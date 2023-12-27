@@ -32,11 +32,11 @@ class ChatMessageModel(Base):
     This is modelled after BidirectionalChatMessage, but it is not equivalent.
     """
     __tablename__ = 'chat_messages'
-    message_id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid4)
+    message_id: Mapped[str] = mapped_column(String(36), primary_key=True,
+                                            default=uuid4)
     # TODO: We can probably 3NF this and make this a foreign key. This
     # is not very important for now, though
     conversation_id: Mapped[str] = mapped_column(default=uuid4)
-    order: Mapped[int] = mapped_column()
     message: Mapped[str] = mapped_column()
     sent_at: Mapped[datetime] = mapped_column()
     sender: Column = Column(Enum(SenderTypes))
@@ -112,10 +112,11 @@ class ChatMessageDAO:
             conversation_id (str): The conversation ID
 
         Keyword Args:
-            msg_range (Tuple[int, int]): The range of messages to
-                                         get. Inclusive of start,
-                                         exclusive of end. Set any to
-                                         -1 to "unspecify"
+            msg_range (Tuple[int, int]): The range of messages to get
+                                         in terms of
+                                         timestamp. Inclusive of
+                                         start, exclusive of end. Set
+                                         any to -1 to "unspecify"
             count (int): The number of messages to limit. Overrides
                          the number of messages specified by the
                          range.
@@ -124,16 +125,16 @@ class ChatMessageDAO:
             Sequence[ChatMessageModel]: A sequence of all the messages
         """
         stmt = select(ChatMessageModel) \
-            .where(ChatMessageModel.conversation_id == conversation_id)
+            .where(ChatMessageModel.conversation_id == conversation_id) \
+            .order_by(ChatMessageModel.sent_at.desc())
         if msg_range[0] != -1:
-            stmt = stmt.where(ChatMessageModel.order >= msg_range[0])
+            stmt = stmt.where(ChatMessageModel.sent_at >= msg_range[0])
         if msg_range[1] != -1:
-            stmt = stmt.where(ChatMessageModel.order < msg_range[1])
+            stmt = stmt.where(ChatMessageModel.sent_at < msg_range[1])
         if count != -1:
             stmt = stmt.limit(count)
 
-        stmt.order_by(ChatMessageModel.order)
-        return session.scalars(stmt).all()
+        return list(reversed(session.scalars(stmt).all()))
 
     @staticmethod
     def save_message(session: Session, message: ChatMessageModel) -> None:
@@ -144,14 +145,6 @@ class ChatMessageDAO:
             session (Session): The database session
             message (BidirectionalChatMessage): The message to save
         """
-        conversation_id = message.conversation_id
-        past_messages = ChatMessageDAO.get_all_messages_for_conversation(
-            session, conversation_id
-        )
-        if len(past_messages) > 0:
-            message.order = past_messages[-1].order + 1
-        else:
-            message.order = 0
 
         session.add(message)
         session.commit()

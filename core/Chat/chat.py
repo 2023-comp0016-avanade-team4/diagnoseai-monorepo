@@ -55,7 +55,7 @@ ai_client = AzureOpenAI(
 
 db_session = create_session(
     DATABASE_URL, DATABASE_NAME, DATABASE_USERNAME, DATABASE_PASSWORD,
-    DATABASE_SELFSIGNED
+    bool(DATABASE_SELFSIGNED)
 )
 
 
@@ -93,7 +93,7 @@ def shadow_msg_to_db(
     )
 
 
-def db_history_to_ai_history(conversation_id: str, history_size: int = 5) \
+def db_history_to_ai_history(conversation_id: str, history_size: int = 10) \
         -> list[ChatCompletionMessageParam]:
     """
     Gets the history from the database and converts openai format
@@ -130,9 +130,9 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
         connection_id (str): The conneciton ID of the websocket in question
     """
     logging.info('%s: sending to model', connection_id)
-    shadow_msg_to_db(message.conversation_id, message.message, False)
     messages = db_history_to_ai_history(message.conversation_id)
     messages.append({'role': 'user', 'content': message.message})
+    shadow_msg_to_db(message.conversation_id, message.message, False)
     # TODO: Probably want to refactor calling the model to a function
     # to reduce the size of this monster
     chat_response = ai_client.chat.completions.create(
