@@ -4,12 +4,13 @@ Chat History API endpoint.
 
 import logging
 import os
-from json import JSONDecodeError
 
 import azure.functions as func  # type: ignore[import-untyped]
 from models.chat_message import ChatMessageDAO, ChatMessageModel
 from utils.db import create_session
 from utils.history import ChatHistoryResponse
+
+app = func.FunctionApp()
 
 DATABASE_URL = os.environ['DatabaseURL']
 DATABASE_NAME = os.environ['DatabaseName']

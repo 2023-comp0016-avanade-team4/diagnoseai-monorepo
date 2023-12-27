@@ -32,7 +32,7 @@ def create_session(
     # This instantiates the session, and cannot be unit tested.
     engine = create_engine(
         f"mssql+pyodbc://{username}:{password}@{server_url}/{database_name}"
-        f"?driver=ODBC+Driver+18+for+SQL+Server"
+        f"?driver=ODBC+Driver+17+for+SQL+Server"
         f"&Encrypt=yes"
         f"&TrustServerCertificate={'yes' if self_signed else 'no'}"
     )

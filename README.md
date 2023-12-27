@@ -134,7 +134,7 @@ chat_history`), you will also need to install `odbc` tools:
 ``` text
 curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc \
 curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list \
-sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18
+sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17
 ```
 
 For other distributions / operating systems, please refer to [this
