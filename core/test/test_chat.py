@@ -19,6 +19,8 @@ os.environ['WebPubSubConnectionString'] = ''
 os.environ['WebPubSubHubName'] = ''
 os.environ['OpenAIKey'] = ''
 os.environ['OpenAIEndpoint'] = ''
+os.environ['CognitiveSearchKey'] = ''
+os.environ['CognitiveSearchEndpoint'] = ''
 
 
 # This import must come after the global patches
@@ -28,7 +30,7 @@ from core.Chat.chat import (ai_client, main, process_message,  # noqa: E402
 from core.utils.chat_message import ChatMessage  # noqa: E402
 from core.utils.web_pub_sub_interfaces import \
     WebPubSubConnectionContext  # pylint: disable=line-too-long # noqa: E402, E501
-from core.utils.web_pub_sub_interfaces import WebPubSubRequest
+from core.utils.web_pub_sub_interfaces import WebPubSubRequest  # noqa: E402
 
 
 class TestChat(unittest.TestCase):

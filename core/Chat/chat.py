@@ -24,6 +24,10 @@ from utils.web_pub_sub_interfaces import WebPubSubRequest
 WPBSS_CONNECTION_STRING = os.environ['WebPubSubConnectionString']
 WPBSS_HUB_NAME = os.environ['WebPubSubHubName']
 
+SEARCH_KEY = os.environ["CognitiveSearchKey"]
+SEARCH_ENDPOINT = os.environ["CognitiveSearchEndpoint"]
+SEARCH_INDEX = 'validation-index'
+
 OPENAI_KEY = os.environ["OpenAIKey"]
 OPENAI_ENDPOINT = os.environ["OpenAIEndpoint"]
 
@@ -32,9 +36,10 @@ OPENAI_ENDPOINT = os.environ["OpenAIEndpoint"]
 logging.basicConfig(level=logging.INFO)
 
 ai_client = AzureOpenAI(
-    azure_endpoint=OPENAI_ENDPOINT,
+    base_url=(f"{OPENAI_ENDPOINT}/openai/deployments/"
+              "validation-testing-model/extensions"),
     api_key=OPENAI_KEY,
-    api_version='2023-05-15'
+    api_version='2023-09-01-preview'
 )
 
 
@@ -80,6 +85,18 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
     logging.info('%s: sending to model', connection_id)
     chat_response = ai_client.chat.completions.create(
         model='validation-testing-model',
+        extra_body={
+            "dataSources": [
+                {
+                    "type": "AzureCognitiveSearch",
+                    "parameters": {
+                        "endpoint": SEARCH_ENDPOINT,
+                        "key": SEARCH_KEY,
+                        "indexName": SEARCH_INDEX,
+                    }
+                }
+            ],
+        },
         messages=[
             {'role': 'system',
              'content':
