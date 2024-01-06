@@ -4,6 +4,7 @@ Contains the chat mesage data class.
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Literal
 
 from dataclasses_json import DataClassJsonMixin, config
 
@@ -19,6 +20,15 @@ class ChatMessage(DataClassJsonMixin):
     message: str
     conversation_id: str = field(metadata=config(field_name="conversationId"))
     sent_at: datetime = field(metadata=config(field_name="sentAt"))
+
+
+@dataclass
+class BidirectionalChatMessage(ChatMessage, DataClassJsonMixin):
+    """
+    The BidirectionalChatMessage data class. This represents a message
+    object that differentiate between the bot sender the actual user
+    """
+    sender: Literal['bot', 'user']
 
 
 @dataclass
