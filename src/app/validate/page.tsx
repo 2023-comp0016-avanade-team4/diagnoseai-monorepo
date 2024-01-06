@@ -2,6 +2,7 @@
 import { Button } from "@nextui-org/react"
 import { useEffect, useRef, useState } from 'react'
 import ImageCarousel from "../components/ImageCarousel"
+import Chat from "../components/Chat";
 
 const Validate = () => {
   const fillerDivRef = useRef<HTMLDivElement>(null)
@@ -70,7 +71,7 @@ const Validate = () => {
         <div className="p-4 bg-gray-300 h-full flex flex-col">
           <h2 className="py-2 text-xl text-center font-extrabold">Chat</h2>
           <div className="flex-1">
-            <p>Ideally the chat should go here, I will think about it</p>
+            <Chat />
           </div>
         </div>
       </div>
