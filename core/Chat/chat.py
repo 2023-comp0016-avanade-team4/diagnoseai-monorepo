@@ -31,7 +31,6 @@ WPBSS_HUB_NAME = os.environ['WebPubSubHubName']
 
 SEARCH_KEY = os.environ["CognitiveSearchKey"]
 SEARCH_ENDPOINT = os.environ["CognitiveSearchEndpoint"]
-SEARCH_INDEX = 'validation-index'
 
 OPENAI_KEY = os.environ["OpenAIKey"]
 OPENAI_ENDPOINT = os.environ["OpenAIEndpoint"]
@@ -144,7 +143,7 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
                     "parameters": {
                         "endpoint": SEARCH_ENDPOINT,
                         "key": SEARCH_KEY,
-                        "indexName": SEARCH_INDEX,
+                        "indexName": message.index,
                     }
                 }
             ],

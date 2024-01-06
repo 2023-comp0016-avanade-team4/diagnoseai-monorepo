@@ -82,7 +82,9 @@ class TestChat(unittest.TestCase):
     def __create_mock_chat_completion(
             self,
             message: Optional[str],
-            has_choices: bool) -> Tuple[MagicMock, ChatMessage]:
+            has_choices: bool,
+            index_name: Optional[str]
+    ) -> Tuple[MagicMock, ChatMessage]:
         mocked_chat_completion = create_autospec(ChatCompletion)
         if has_choices:
             mocked_completion_message = create_autospec(ChatCompletionMessage)
@@ -97,14 +99,17 @@ class TestChat(unittest.TestCase):
         mock_create = MagicMock(return_value=mocked_chat_completion)
         # This is justified, because ai_client will be mocked by aoi_patch
         ai_client.chat.completions.create = mock_create  # type: ignore[method-assign] # noqa: E501
+        if index_name is not None:
+            return mock_create, ChatMessage('blah', '123', datetime.now(),
+                                            index_name)
         return mock_create, ChatMessage('blah', '123', datetime.now())
 
-    def test_process_message_happy(self):
+    def test_process_message_happy_no_index(self):
         """
-        Message is sent to the chat model cleanly
+        Message is sent to the chat model cleanly. The default index is used
         """
         mocked_create, message = self.__create_mock_chat_completion(
-            'hi', True)
+            'hi', True, None)
 
         with patch('core.Chat.chat.ws_send_message') as m:
             with patch('core.Chat.chat.shadow_msg_to_db') as shadow:
@@ -120,6 +125,31 @@ class TestChat(unittest.TestCase):
 
             self.assertIn('hi', m.call_args[0][0])
             self.assertEqual(m.call_args[0][1], '123')
+            self.assertEqual(ai_client.chat.completions.create
+                             .call_args_list[0]
+                             .kwargs['extra_body']['dataSources'][0]
+                             ['parameters']['indexName'], 'validation-index')
+
+        # reset for other tests to use
+        mocked_create.reset_mock()
+
+    def test_process_message_happy_with_index(self):
+        """
+        Message is sent to the chat model cleanly. The default index is used
+        """
+        mocked_create, message = self.__create_mock_chat_completion(
+            'hi', True, 'other-index')
+
+        with patch('core.Chat.chat.ws_send_message') as m:
+            process_message(message, '123')
+            m.assert_called_once()
+
+            self.assertIn('hi', m.call_args[0][0])
+            self.assertEqual(m.call_args[0][1], '123')
+            self.assertEqual(ai_client.chat.completions.create
+                             .call_args_list[0]
+                             .kwargs['extra_body']['dataSources'][0]
+                             ['parameters']['indexName'], 'other-index')
 
         # reset for other tests to use
         mocked_create.reset_mock()
@@ -129,7 +159,7 @@ class TestChat(unittest.TestCase):
         No response from chat model, should respond with errors
         """
         mocked_create, message = self.__create_mock_chat_completion(
-            'hi', False)
+            'hi', False, None)
 
         with patch('core.Chat.chat.ws_log_and_send_error') as m:
             process_message(message, '123')
@@ -142,7 +172,7 @@ class TestChat(unittest.TestCase):
         No message content, should respond with errors
         """
         mocked_create, message = self.__create_mock_chat_completion(
-            'hi', False)
+            'hi', False, None)
 
         with patch('core.Chat.chat.ws_log_and_send_error') as m:
             process_message(message, '123')
