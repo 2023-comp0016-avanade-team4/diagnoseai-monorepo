@@ -21,6 +21,9 @@ const Validate = () => {
   // HACK (?): Not sure if this counts as a hack, since this was the only way I had to do this.,
   // Handles the resizing of the image carousel
   useEffect(() => {
+    // TODO: whoever is doing the backend, please check that all the
+    // validation data is present before proceeding
+
     const handleResize = () => {
       setDivHeight(0)
       setDivWidth(0)
