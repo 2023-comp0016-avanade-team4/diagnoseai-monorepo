@@ -24,7 +24,7 @@ async function handler(req, res) {
         }
         const blobName = uuidv1() + files.file[0].originalFilename;
         const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-        blockBlobClient.uploadFile(files.file[0].filepath).then((response) => {
+        blockBlobClient.uploadFile(files.file[0].filepath).then((_) => {
             res.status(200).json({ message: "File uploaded successfully" 
         });
         }).catch((error) => {
