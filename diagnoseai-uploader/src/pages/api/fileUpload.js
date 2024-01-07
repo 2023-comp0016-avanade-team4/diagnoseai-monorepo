@@ -1,4 +1,3 @@
-const { DefaultAzureCredential } = require('@azure/identity');
 const { BlobServiceClient } = require("@azure/storage-blob");
 const { v1: uuidv1 } = require("uuid");
 const formidable = require('formidable');
