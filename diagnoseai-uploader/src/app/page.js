@@ -11,7 +11,6 @@ export default function Home() {
             method: "POST",
             body: data,
         });
-        console.log(res);
         const json = res.json().then((data) => {return data}).catch((err) => console.log(err));
     }
   return (
