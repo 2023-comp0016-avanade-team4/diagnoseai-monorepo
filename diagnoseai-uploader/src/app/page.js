@@ -5,8 +5,6 @@ import FormContainer from "./components/FormContainer";
 
 export default function Home() {
     async function onSubmit(event) {
-        console.log("onSubmit");
-        console.log(event);
         event.preventDefault();
         const data = new FormData(event.target);
         const res = await fetch("/api/fileUpload", {
