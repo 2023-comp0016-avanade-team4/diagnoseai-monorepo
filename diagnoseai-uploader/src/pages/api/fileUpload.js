@@ -17,7 +17,7 @@ async function handler(req, res) {
   //If the request is not a POST request, return a 405 'Method Not Allowed'
   if (req.method == 'POST') {
     const form = new formidable.IncomingForm();
-    form.parse(req, async (error, fields, files) =>{
+    form.parse(req, async (error, _, files) =>{
       try {
         if (error) {
           throw error;
