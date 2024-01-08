@@ -99,9 +99,23 @@ def handle_post(req: func.HttpRequest) -> func.HttpResponse:
     conversation_id = req.params['conversation_id']
     body = req.get_body()
 
-    if not body or \
-       len(body) == 0 or \
-       not puremagic.from_string(body).startswith('image'):
+    if len(body) > 1024 * 1024 * 10:
+        logging.info('Request\'s body is too large')
+        return func.HttpResponse(
+            body="image too large",
+            status_code=400,
+        )
+
+    if not body or len(body) == 0:
+        logging.info('Request\'s body is zero')
+        return func.HttpResponse(
+            body="no body",
+            status_code=400,
+        )
+
+    magic_detection = puremagic.magic_string(body)
+    if len(magic_detection) == 0 or \
+       not magic_detection[0].mime_type.startswith('image'):
         logging.info('Request\'s body is unrecognized')
         return func.HttpResponse(
             body="unsupported file type",

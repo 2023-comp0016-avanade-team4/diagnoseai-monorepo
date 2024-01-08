@@ -28,6 +28,9 @@ class TestChatImg(unittest.TestCase):
     """
     Tests the Chat Image API
     """
+    def tearDown(self):
+        bc_instance_mock.reset_mock()
+
     def test_main_post(self):
         """
         Main redirects POST requests to the handler
@@ -75,22 +78,40 @@ class TestChatImg(unittest.TestCase):
                 params={'conversation_id': '123'},
                 body=b''))
         self.assertEqual(response.status_code, 400)
-        self.assertIn('unsupported', response.get_body().decode())
+        self.assertIn('no body', response.get_body().decode())
 
     def test_handle_post_body_not_image(self):
         """
         If there is a conversation ID, but the body is not an image,
         handle_post should return 400
         """
+        magic_string_mock = MagicMock()
+        magic_string_mock.mime_type = 'text/plain'
         with patch(
-                'puremagic.from_string',
-                return_value='text/plain'
+                'puremagic.magic_string',
+                return_value=[magic_string_mock]
         ):
             response = handle_post(
                 func.HttpRequest(
                     'POST', "/api/chat_image",
                     params={'conversation_id': '123'},
-                    body=b''))
+                    body=b'stuff'))
+            self.assertEqual(response.status_code, 400)
+            self.assertIn('unsupported', response.get_body().decode())
+
+    def test_handle_post_puremagic_fail(self):
+        """
+        If puremagic can't detect what the body is
+        """
+        with patch(
+                'puremagic.magic_string',
+                return_value=[]
+        ):
+            response = handle_post(
+                func.HttpRequest(
+                    'POST', "/api/chat_image",
+                    params={'conversation_id': '123'},
+                    body=b'stuff'))
             self.assertEqual(response.status_code, 400)
             self.assertIn('unsupported', response.get_body().decode())
 
@@ -99,9 +120,11 @@ class TestChatImg(unittest.TestCase):
         If there is both a conversation ID and body, but the image
         cannot be compressed, return a 500
         """
+        magic_string_mock = MagicMock()
+        magic_string_mock.mime_type = 'image/png'
         with patch(
-                'puremagic.from_string',
-                return_value='image/png'
+                'puremagic.magic_string',
+                return_value=[magic_string_mock]
         ), patch(
             'core.chat_img.api.compress_image',
             side_effect=OSError
@@ -113,19 +136,40 @@ class TestChatImg(unittest.TestCase):
                     body=b'something'))
             self.assertEqual(response.status_code, 500)
 
+    def test_handle_post_body_too_large(self):
+        """
+        If there is both a conversation ID and body, but the image
+        cannot be compressed, return a 500
+        """
+        magic_string_mock = MagicMock()
+        magic_string_mock.mime_type = 'image/png'
+        with patch(
+                'puremagic.magic_string',
+                return_value=[magic_string_mock]
+        ):
+            response = handle_post(
+                func.HttpRequest(
+                    'POST', "/api/chat_image",
+                    params={'conversation_id': '123'},
+                    body=b'x' * 1024 * 1024 * 11))
+            self.assertEqual(response.status_code, 400)
+            self.assertIn('too large', response.get_body().decode())
+
     def test_handle_post_happy_flow(self):
         """
         Conversation ID specified, body specified, image can be compressed.
         Ensures that shadow_to_db is called
         """
+        magic_string_mock = MagicMock()
+        magic_string_mock.mime_type = 'image/png'
         with patch(
                 'core.chat_img.api.compress_image',
                 return_value=b'compressed'
         ) as m, patch(
             'core.chat_img.api.shadow_to_db'
         ) as shadow, patch(
-            'puremagic.from_string',
-            return_value='image/png'
+            'puremagic.magic_string',
+            return_value=[magic_string_mock]
         ):
             response = handle_post(
                 func.HttpRequest(
@@ -157,6 +201,3 @@ class TestChatImg(unittest.TestCase):
         bc_instance_mock.get_blob_client.return_value = blob_client_mock
         save_to_blob('123', b'compressed')
         blob_client_mock.upload_blob.assert_called_once_with(b'compressed')
-
-    def tearDown(self):
-        bc_instance_mock.reset_mock()

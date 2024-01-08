@@ -41,6 +41,8 @@ Create a JSON file called `core/local.settings.json`.
     "DatabaseUsername": "",
     "DatabasePassword": "",
     "DatabaseSelfSigned": true,
+    "ImageBlobConnectionString": "",
+    "ImageBlobContainer": "",
   }
 }
 ```
