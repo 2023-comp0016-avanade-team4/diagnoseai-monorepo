@@ -8,13 +8,12 @@ here, or in chat_history. Once confirmed, please remove this TODO.
 
 import logging
 import os
-from io import BytesIO
 from uuid import uuid4
 
 import azure.functions as func  # type: ignore[import-untyped]
 import puremagic  # type: ignore[import-untyped]
 from azure.storage.blob import BlobServiceClient
-from PIL import Image
+from utils.image_utils import compress_image
 
 IMAGE_BLOB_CONNECTION_STRING = os.environ["ImageBlobConnectionString"]
 IMAGE_BLOB_CONTAINER = os.environ["ImageBlobContainer"]
@@ -23,25 +22,6 @@ blob_service_client = BlobServiceClient.from_connection_string(
     IMAGE_BLOB_CONNECTION_STRING)
 
 app = func.FunctionApp()
-
-
-def compress_image(content: bytes) -> bytes:
-    """
-    Calls a library to compress the content.
-
-    Args:
-        content (bytes): Content to compress
-
-    Returns:
-        bytes: The compressed image
-    """
-    # doing it this way because we want PIL to infer the image, and also
-    # automatically compress the image when saving
-    img_stream = BytesIO(content)
-    out_stream = BytesIO()
-    img = Image.open(img_stream)
-    img.save(out_stream, format='JPEG')
-    return out_stream.getvalue()
 
 
 def save_to_blob(filename: str, content: bytes):
@@ -103,6 +83,12 @@ def shadow_to_db(conversation_id: str, content: bytes):
 def handle_post(req: func.HttpRequest) -> func.HttpResponse:
     """
     Handles the POST request.
+
+    Args:
+        req (func.HttpRequest): The request passed verbatim
+
+    Return:
+        func.HttpResponse: The response after processing the message
     """
     if 'conversation_id' not in req.params:
         logging.info('Request does not contain conversation ID')
@@ -113,7 +99,9 @@ def handle_post(req: func.HttpRequest) -> func.HttpResponse:
     conversation_id = req.params['conversation_id']
     body = req.get_body()
 
-    if not body and not puremagic.from_string(body).startswith('image'):
+    if not body or \
+       len(body) == 0 or \
+       not puremagic.from_string(body).startswith('image'):
         logging.info('Request\'s body is unrecognized')
         return func.HttpResponse(
             body="unsupported file type",
@@ -131,13 +119,22 @@ def handle_post(req: func.HttpRequest) -> func.HttpResponse:
     # TODO: call Aadhik's function to do magical image inference
     shadow_to_db(conversation_id, compressed)
 
-    logging.error('Server error')
+    logging.info('Request completed')
     return func.HttpResponse(
-        status_code=500,
+        status_code=200,
     )
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
+    """
+    Entrypoint.
+
+    Args:
+        req (func.HttpRequest): The HTTP request into this method
+
+    Return:
+        func.HttpResponse: The response to the request
+    """
     logging.info('Chat Image called with %s', req.method)
     if req.method == 'POST':
         return handle_post(req)

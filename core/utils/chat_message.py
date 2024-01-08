@@ -29,7 +29,7 @@ class BidirectionalChatMessage(ChatMessage, DataClassJsonMixin):
     The BidirectionalChatMessage data class. This represents a message
     object that differentiate between the bot sender the actual user
     """
-    sender: Literal['bot', 'user']
+    sender: Literal['bot', 'user'] = 'bot'
 
 
 @dataclass
