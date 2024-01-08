@@ -1,7 +1,22 @@
-import Property1Default1 from "../components/Property1Default1";
-import FormContainer from "../components/FormContainer";
+"use client";
+import Property1Default1 from "./components/Property1Default1";
+import FormContainer from "./components/FormContainer";
 
-const Upload = () => {
+export default function Home() {
+  async function onSubmit(event) {
+    event.preventDefault();
+    const data = new FormData(event.target);
+    const res = await fetch("/api/fileUpload", {
+      method: "POST",
+      body: data,
+    });
+    const json = res
+      .json()
+      .then((data) => {
+        return data;
+      })
+      .catch((err) => console.log(err));
+  }
   return (
     <div className="relative bg-gray-100 w-full flex flex-col items-start justify-start gap-[7px] text-left text-11xl text-black font-crete-round">
       <div className="self-stretch bg-steelblue shadow-[0px_4px_4px_rgba(0,_0,_0,_0.25)] h-[66.6px] overflow-hidden shrink-0 flex flex-col items-start justify-start py-3.5 px-[37px] box-border">
@@ -32,6 +47,10 @@ const Upload = () => {
               Drag and drop or choose file to upload your files.
             </p>
             <p className="m-0">All pdf, docx, csv, xlsx types are supported</p>
+            <form onSubmit={onSubmit}>
+              <input type="file" name="file" />
+              <button type="submit">Submit</button>
+            </form>
           </div>
         </div>
         {/* <div className="absolute top-[0px] left-[0px] bg-white box-border w-52 h-[772px] border-[1px] border-solid border-whitesmoke-200" />
@@ -50,7 +69,10 @@ const Upload = () => {
         <div className="absolute top-[0px] left-[0px] w-52 h-[846px] overflow-hidden flex flex-col items-center justify-end">
           <div className="relative bg-white box-border w-52 h-[772px] border-[1px] border-solid border-whitesmoke-200" />
         </div>
-        <FormContainer imageId="/check-circle.svg" actionButtonText="Validate" />
+        <FormContainer
+          imageId="/check-circle.svg"
+          actionButtonText="Validate"
+        />
         <FormContainer
           imageId="/upload.svg"
           actionButtonText="Upload"
@@ -66,6 +88,4 @@ const Upload = () => {
       </div>
     </div>
   );
-};
-
-export default Upload;
+}
