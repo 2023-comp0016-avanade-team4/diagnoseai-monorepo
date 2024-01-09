@@ -24,6 +24,32 @@ from core.chat_img.api import (main, save_to_blob,  # noqa: E402
                                shadow_to_db, handle_post)
 
 
+# This snippet transforms file bytes into a multipart form data
+def encode_multipart_formdata(file_data: bytes) -> bytes:
+    """
+    Manually crafts the multipart form data for a file
+
+    Args:
+        file_data (bytes): File data to upload
+
+    Returns:
+        bytes: Multipart form data (put into body)
+    """
+    boundary = b'?boundary?'
+    crlf = b'\r\n'
+    lines = []
+    lines.append(b'--' + boundary)
+    lines.append(
+        b'Content-Disposition: form-data; name="image"; filename="image.png"')
+    lines.append(b'Content-Type: image/png')
+    lines.append(b'')
+    lines.append(file_data)
+    lines.append(b'--' + boundary + b'--')
+    lines.append(b'')
+    body = crlf.join(lines)
+    return body
+
+
 class TestChatImg(unittest.TestCase):
     """
     Tests the Chat Image API
@@ -76,7 +102,9 @@ class TestChatImg(unittest.TestCase):
             func.HttpRequest(
                 'POST', "/api/chat_image",
                 params={'conversation_id': '123'},
-                body=b''))
+                headers={'Content-Type':
+                         'multipart/form-data; boundary=?boundary?'},
+                body=encode_multipart_formdata(b'')))
         self.assertEqual(response.status_code, 400)
         self.assertIn('no body', response.get_body().decode())
 
@@ -95,7 +123,9 @@ class TestChatImg(unittest.TestCase):
                 func.HttpRequest(
                     'POST', "/api/chat_image",
                     params={'conversation_id': '123'},
-                    body=b'stuff'))
+                    headers={'Content-Type':
+                             'multipart/form-data; boundary=?boundary?'},
+                    body=encode_multipart_formdata(b'xdx')))
             self.assertEqual(response.status_code, 400)
             self.assertIn('unsupported', response.get_body().decode())
 
@@ -111,7 +141,9 @@ class TestChatImg(unittest.TestCase):
                 func.HttpRequest(
                     'POST', "/api/chat_image",
                     params={'conversation_id': '123'},
-                    body=b'stuff'))
+                    headers={'Content-Type':
+                             'multipart/form-data; boundary=?boundary?'},
+                    body=encode_multipart_formdata(b'stuff')))
             self.assertEqual(response.status_code, 400)
             self.assertIn('unsupported', response.get_body().decode())
 
@@ -133,7 +165,9 @@ class TestChatImg(unittest.TestCase):
                 func.HttpRequest(
                     'POST', "/api/chat_image",
                     params={'conversation_id': '123'},
-                    body=b'something'))
+                    headers={'Content-Type':
+                             'multipart/form-data; boundary=?boundary?'},
+                    body=encode_multipart_formdata(b'something')))
             self.assertEqual(response.status_code, 500)
 
     def test_handle_post_body_too_large(self):
@@ -151,7 +185,9 @@ class TestChatImg(unittest.TestCase):
                 func.HttpRequest(
                     'POST', "/api/chat_image",
                     params={'conversation_id': '123'},
-                    body=b'x' * 1024 * 1024 * 11))
+                    headers={'Content-Type':
+                             'multipart/form-data; boundary=?boundary?'},
+                    body=encode_multipart_formdata(b'x' * 1024 * 1024 * 11)))
             self.assertEqual(response.status_code, 400)
             self.assertIn('too large', response.get_body().decode())
 
@@ -175,7 +211,9 @@ class TestChatImg(unittest.TestCase):
                 func.HttpRequest(
                     'POST', "/api/chat_image",
                     params={'conversation_id': '123'},
-                    body=b'something'))
+                    headers={'Content-Type':
+                             'multipart/form-data; boundary=?boundary?'},
+                    body=encode_multipart_formdata(b'something')))
             self.assertEqual(response.status_code, 200)
             shadow.assert_called_once()
             m.assert_called_once()

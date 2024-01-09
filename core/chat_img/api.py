@@ -8,6 +8,7 @@ here, or in chat_history. Once confirmed, please remove this TODO.
 
 import logging
 import os
+from tempfile import SpooledTemporaryFile
 from uuid import uuid4
 
 import azure.functions as func  # type: ignore[import-untyped]
@@ -81,6 +82,7 @@ def shadow_to_db(conversation_id: str, content: bytes):
 
 
 def handle_post(req: func.HttpRequest) -> func.HttpResponse:
+    # pylint: disable=too-many-return-statements
     """
     Handles the POST request.
 
@@ -97,16 +99,26 @@ def handle_post(req: func.HttpRequest) -> func.HttpResponse:
         )
 
     conversation_id = req.params['conversation_id']
-    body = req.get_body()
 
-    if len(body) > 1024 * 1024 * 10:
+    if 'image' not in req.files:
+        logging.info('Request does not have image form data')
+        return func.HttpResponse(
+            body="no data",
+            status_code=400,
+        )
+
+    if len(req.get_body()) > 1024 * 1024 * 10:
         logging.info('Request\'s body is too large')
         return func.HttpResponse(
             body="image too large",
             status_code=400,
         )
 
-    if not body or len(body) == 0:
+    file: SpooledTemporaryFile
+    file = req.files['image'].stream
+    body = file.read()
+
+    if len(body) == 0:
         logging.info('Request\'s body is zero')
         return func.HttpResponse(
             body="no body",
