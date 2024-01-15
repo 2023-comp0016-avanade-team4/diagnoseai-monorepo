@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import useSound from 'use-sound';
 import { useWebSocket } from '@/contexts/WebSocketContext';
+import uploadImageIcon from '../../assets/upload-image-icon.svg';
 
 export const NewMessageForm = () => {
   const [play] = useSound('sent.wav');
@@ -70,6 +72,23 @@ export const NewMessageForm = () => {
       }}
       className="flex items-center space-x-3"
     >
+      <style jsx>{` 
+          .image-upload>input {
+            display: none;
+          }
+          `}</style>
+      <div className="image-upload">
+        <label htmlFor="file-input">
+          <Image src={uploadImageIcon} alt="upload image" className="w-6 h-6" />
+        </label>
+          <input 
+            id="file-input"
+            name="image"
+            type="file"
+            accept=".png, .jpg, .jpeg"
+          />
+      </div> 
+
       <input
         autoFocus
         id="message"
