@@ -4,6 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FileUploader } from "react-drag-drop-files";
 import { Skeleton, Button } from "@nextui-org/react";
+import { useDispatch } from 'react-redux';
+import { setUUID } from '../../redux/uuidReducer'; // Adjust the import path as needed
+
 
 const fileTypes = ["PDF", "DOCX"];
 
@@ -15,6 +18,8 @@ export const Uploader = () => {
   const handleChange = (file: File) => {
     setFile(file);
   }
+
+  const dispatch = useDispatch();
 
   const uploadBtnClicked = async () => {
     setIsUploading((_) => true);
@@ -37,6 +42,7 @@ export const Uploader = () => {
       alert('cannot upload file');
       setIsUploading((_) => false);
     } else {
+      dispatch(setUUID(data.uuid));
       router.push('/uploadsuccess');
     }
   }

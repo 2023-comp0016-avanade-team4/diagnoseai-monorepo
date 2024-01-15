@@ -4,8 +4,6 @@ const { v1: uuidv1 } = require("uuid");
 const formidable = require('formidable');
 require("dotenv").config();
 
-const index_uuid = uuidv1();
-
 async function handler(req, res) {
   console.log("Aadhik, the console log here doesn't work");
   //If the request is not a POST request, return a 405 'Method Not Allowed';
@@ -24,6 +22,7 @@ async function handler(req, res) {
           AZURE_STORAGE_CONNECTION_STRING
         );
         const containerClient = blobServiceClient.getContainerClient("verification");
+        const index_uuid = uuidv1();
         const blobName = index_uuid + files.file[0].originalFilename;
         const blockBlobClient = containerClient.getBlockBlobClient(blobName);
         blockBlobClient.uploadFile(files.file[0].filepath).then((response) => {
