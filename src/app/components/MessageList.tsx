@@ -1,25 +1,29 @@
-import React, { useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { useInView } from "react-intersection-observer";
 
 import MessageComponent from './MessageComponent';
+import { WebSocketContext } from '../contexts/WebSocketContext';
+
 
 const MessageList = () => {
   const [scrollRef, inView, entry] = useInView({
     trackVisibility: true,
     delay: 1000,
   });
-  const messages = [{
-    id: '123',
-    username: 'some_user',
-    body: 'some message',
-    createdAt: '2024-01-06T18:40:30.781Z'
-  },
-  {
-    id: '456',
-    username: 'bot',
-    body: 'some other message',
-    createdAt: '2024-01-06T18:40:30.781Z'
-  }];
+  // const messages = [{
+  //   id: '123',
+  //   username: 'some_user',
+  //   body: 'some message',
+  //   createdAt: '2024-01-06T18:40:30.781Z'
+  // },
+  // {
+  //   id: '456',
+  //   username: 'bot',
+  //   body: 'some other message',
+  //   createdAt: '2024-01-06T18:40:30.781Z'
+  // }];
+  const { messages } = useContext(WebSocketContext)!;
+
 
   useEffect(() => {
     if (entry?.target) {
