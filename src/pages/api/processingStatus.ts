@@ -1,6 +1,11 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { SearchClient, SearchIndexClient, SearchIndexerClient, AzureKeyCredential } from '@azure/search-documents';
-import { indexClient, checkSearchIndexMiddleware } from './cognitiveUtils';
+import type { NextApiRequest, NextApiResponse } from "next";
+import {
+  SearchClient,
+  SearchIndexClient,
+  SearchIndexerClient,
+  AzureKeyCredential,
+} from "@azure/search-documents";
+import { indexClient, checkSearchIndexMiddleware } from "./cognitiveUtils";
 
 async function isIndexReady(searchIndex: string): Promise<boolean> {
   /**
@@ -12,8 +17,10 @@ async function isIndexReady(searchIndex: string): Promise<boolean> {
   return index.documentCount > 0;
 }
 
-export default checkSearchIndexMiddleware(async (req: NextApiRequest, res: NextApiResponse, searchIndex: string) => {
-  res.status(200).json({
-    ready: await isIndexReady(searchIndex)
-  });
-})
+export default checkSearchIndexMiddleware(
+  async (req: NextApiRequest, res: NextApiResponse, searchIndex: string) => {
+    res.status(200).json({
+      ready: await isIndexReady(searchIndex),
+    });
+  }
+);
