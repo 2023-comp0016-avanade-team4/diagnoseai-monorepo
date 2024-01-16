@@ -1,4 +1,3 @@
-const { DefaultAzureCredential } = require('@azure/identity');
 const { BlobServiceClient } = require("@azure/storage-blob");
 const { v1: uuidv1 } = require("uuid");
 const formidable = require('formidable');
@@ -23,10 +22,9 @@ async function handler(req, res) {
         );
         const containerClient = blobServiceClient.getContainerClient("verification");
         const index_uuid = uuidv1();
-        const blobName = index_uuid + files.file[0].originalFilename;
-        const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+        const blockBlobClient = containerClient.getBlockBlobClient(index_uuid);
         blockBlobClient.uploadFile(files.file[0].filepath).then((response) => {
-          console.log(`Upload block blob ${blobName} successfully`);
+          console.log(`Upload block blob ${index_uuid} successfully`);
           res.status(200).json({ message: "File uploaded successfully", uuid: index_uuid });
         }).catch((error) => {
           console.log("catch inside blockBlobClient.uploadFile")

@@ -10,20 +10,8 @@ const MessageList = () => {
     trackVisibility: true,
     delay: 1000,
   });
-  // const messages = [{
-  //   id: '123',
-  //   username: 'some_user',
-  //   body: 'some message',
-  //   createdAt: '2024-01-06T18:40:30.781Z'
-  // },
-  // {
-  //   id: '456',
-  //   username: 'bot',
-  //   body: 'some other message',
-  //   createdAt: '2024-01-06T18:40:30.781Z'
-  // }];
-  const { messages } = useContext(WebSocketContext)!;
 
+  const { messages } = useContext(WebSocketContext)!;
 
   useEffect(() => {
     if (entry?.target) {

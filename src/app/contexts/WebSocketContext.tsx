@@ -4,10 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import axios from 'axios';
 import { Message } from "../components/MessageComponent";
 import { useSelector } from 'react-redux';
-import { RootState } from '../../redux/stateTypes'; // Adjust the path as needed
-
-// import { index_uuid } from '../../pages/api/fileUpload';
-
+import { RootState } from '../../redux/stateTypes';
 
 
 type WebSocketContextState = {
@@ -15,7 +12,6 @@ type WebSocketContextState = {
   messages: Message[];
   addMessage: (message: Message) => void;
   webSocket: WebSocket | null;
-  // uuid: string;
 };
 
 export const WebSocketContext = createContext<WebSocketContextState>({
@@ -23,7 +19,6 @@ export const WebSocketContext = createContext<WebSocketContextState>({
   messages: [],
   addMessage: () => {},
   webSocket: null,
-  // uuid: ""
 });
 
 type WebSocketProviderProps = {
@@ -97,7 +92,6 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     messages,
     addMessage,
     webSocket, // Provide the WebSocket instance in context
-    uuid: uuid
   };
 
 

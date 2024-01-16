@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import useSound from 'use-sound';
 import { useWebSocket } from "../contexts/WebSocketContext";
 import { useSelector } from 'react-redux';
-import { RootState } from '../../redux/stateTypes'; // Adjust the path as needed
+import { RootState } from '../../redux/stateTypes';
 
 
 export const NewMessageForm = () => {
@@ -14,7 +14,6 @@ export const NewMessageForm = () => {
 
   useEffect(() => {
     const handleIncomingMessages = (event: MessageEvent) => {
-      console.log("event.data", event.data);
       try {
         const messageData = JSON.parse(event.data);
         const textResponse = JSON.parse(messageData).body;

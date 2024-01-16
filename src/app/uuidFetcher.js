@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
 import axios from 'axios';
 import { useDispatch } from 'react-redux';
-import { setUUID } from '../redux/uuidReducer'; // Adjust the import path as needed
+import { setUUID } from '../redux/uuidReducer';
 
 const UUIDFetcher = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    axios.post('/api/fileUpload') // Adjust the API endpoint as needed
+    axios.post('/api/fileUpload')
       .then(response => {
         if (response.status === 200) {
           dispatch(setUUID(response.data.uuid));
