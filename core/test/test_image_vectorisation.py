@@ -3,28 +3,28 @@ import unittest
 from unittest.mock import Mock, MagicMock, patch
 
 #Globals patching 
-aoi_patch = patch('openai.AzureOpenAI').start()
 aoie_patch = patch('langchain.embeddings.AzureOpenAIEmbeddings').start()
 as_patch = patch('langchain.vectorstores.azuresearch.AzureSearch').start()
 cts_patch = patch('langchain.text_splitter.CharacterTextSplitter').start()
-post_patch = patch('requests.post').start()
+environ_patch = patch.dict(os.environ, {"CognitiveSearchKey": "mock_key", "CognitiveSearchEndpoint": "mock_endpoint", "OpenAIKey": "mock_key", "OpenAIEndpoint": "mock_endpoint"}).start()
+#post_patch = patch('requests.post').start()
 
-loads_patch = patch('json.loads').start()
+#loads_patch = patch('json.loads').start()
 
-from core.imageVectorisation.__init__ import vectoriseImage
+from core.utils.vectorise_text import vectoriseImageSummary
 
-class TestImageVectorisation(unittest.TestCase):
 
-    def test_vectoriseImage(self):
-        image_url = ""
+
+class TestImageSummaryVectorisation(unittest.TestCase):
+
+    def test_vectoriseImageSummary(self):
+        imageSummary = ""
         vectorIndex = "" 
-        mock_response = { 'text' : "{'choices': [{'message': {'content': 'mock_content'}}]}"}
-        requests.post.return_value = Mock(**mock_response)
-        vectoriseImage(image_url, vectorIndex)
-        aoi_patch.assert_called()
+        #mock_response = { 'text' : "{'choices': [{'message': {'content': 'mock_content'}}]}"}
+        #requests.post.return_value = Mock(**mock_response)
+        #vectoriseImage(image_url, vectorIndex)
+        vectoriseImageSummary(imageSummary, vectorIndex)
         aoie_patch.assert_called()
         as_patch.assert_called()
         cts_patch.assert_called()
-        post_patch.assert_called()
-        loads_patch.assert_called()
 
