@@ -3,7 +3,6 @@ import { Button } from "@nextui-org/react"
 import { useEffect, useRef, useState } from 'react'
 import ImageCarousel from "../components/ImageCarousel"
 import Chat from "../components/Chat";
-import UUIDFetcher from '../UUIDFetcher'; // Adjust the import path as needed
 
 
 const Validate = () => {
@@ -49,7 +48,6 @@ const Validate = () => {
 
   return (
     <div className="flex h-full max-h-full">
-      <UUIDFetcher /> {}
       <div className="flex-1 max-h-full">
         <div className="p-4 bg-gray-200 h-full flex">
           <div className="grid grid-cols-1 grid-rows-[auto,1fr,1fr,auto] w-full max-h-full">
