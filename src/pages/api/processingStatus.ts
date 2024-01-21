@@ -6,6 +6,7 @@ import {
   AzureKeyCredential,
 } from "@azure/search-documents";
 import { indexClient, checkSearchIndexMiddleware } from "./cognitiveUtils";
+import { authGuard } from "./authGuard";
 
 async function isIndexReady(searchIndex: string): Promise<boolean> {
   /**
@@ -17,10 +18,12 @@ async function isIndexReady(searchIndex: string): Promise<boolean> {
   return index.documentCount > 0;
 }
 
-export default checkSearchIndexMiddleware(
-  async (req: NextApiRequest, res: NextApiResponse, searchIndex: string) => {
-    res.status(200).json({
-      ready: await isIndexReady(searchIndex),
-    });
-  }
-);
+async function handler(req: NextApiRequest, res: NextApiResponse, searchIndex: string) {
+  res.status(200).json({
+    ready: await isIndexReady(searchIndex),
+  });
+}
+
+export default authGuard(checkSearchIndexMiddleware(
+  handler
+));

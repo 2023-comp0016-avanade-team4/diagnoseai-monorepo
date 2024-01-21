@@ -1,30 +1,35 @@
-const { DefaultAzureCredential } = require('@azure/identity');
-const { BlobServiceClient } = require("@azure/storage-blob");
-const { v1: uuidv1 } = require("uuid");
-const formidable = require('formidable');
+import type { NextApiRequest, NextApiResponse } from "next";
+import { BlobServiceClient } from "@azure/storage-blob";
+import { v1 as uuidv1 } from "uuid";
+import formidable from 'formidable';
+import { authGuard } from './authGuard';
+
 require("dotenv").config();
 
-async function handler(req, res) {
-  console.log("Aadhik, the console log here doesn't work");
-  //If the request is not a POST request, return a 405 'Method Not Allowed';
+async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // If the request is not a POST request, return a 405 'Method Not Allowed';
   if (req.method == 'POST') {
-    const form = new formidable.IncomingForm();
+    const form = formidable({});
     form.parse(req, async (error, fields, files) => {
       try {
         if (error) {
           throw error;
         }
         const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING;
+        const AZURE_STORAGE_CONTAINER_NAME = process.env.AZURE_STORAGE_CONTAINER_NAME;
         if (!AZURE_STORAGE_CONNECTION_STRING) {
           throw Error('Azure Storage Connection string not found');
+        }
+        if (!AZURE_STORAGE_CONTAINER_NAME) {
+          throw Error('Azure Storage Container name not found');
         }
         const blobServiceClient = BlobServiceClient.fromConnectionString(
           AZURE_STORAGE_CONNECTION_STRING
         );
-        const containerClient = blobServiceClient.getContainerClient("validation-documents");
-        const blobName = uuidv1() + files.file[0].originalFilename;
+        const containerClient = blobServiceClient.getContainerClient(AZURE_STORAGE_CONTAINER_NAME);
+        const blobName = uuidv1();
         const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-        blockBlobClient.uploadFile(files.file[0].filepath).then((response) => {
+        blockBlobClient.uploadFile(files.file[0].filepath).then((_response) => {
           console.log(`Upload block blob ${blobName} successfully`);
           res.status(200).json({ message: "File uploaded successfully" });
         }).catch((error) => {
@@ -57,4 +62,4 @@ export const config = {
   },
 }
 
-export default handler;
+export default authGuard(handler);
