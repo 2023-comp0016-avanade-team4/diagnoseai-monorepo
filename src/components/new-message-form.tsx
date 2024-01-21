@@ -3,6 +3,7 @@ import Image from 'next/image';
 import useSound from 'use-sound';
 import { useWebSocket } from '@/contexts/WebSocketContext';
 import uploadImageIcon from '../../assets/upload-image-icon.svg';
+import styles from './new-message-form.module.css';
 
 export const NewMessageForm = () => {
   const [play] = useSound('sent.wav');
@@ -72,12 +73,7 @@ export const NewMessageForm = () => {
       }}
       className="flex items-center space-x-3"
     >
-      <style jsx>{` 
-          .image-upload>input {
-            display: none;
-          }
-          `}</style>
-      <div className="image-upload">
+      <div className={styles.imageUpload}>
         <label htmlFor="file-input">
           <Image src={uploadImageIcon} alt="upload image" className="w-6 h-6" />
         </label>
