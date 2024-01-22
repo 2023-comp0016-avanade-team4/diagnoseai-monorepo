@@ -13,6 +13,7 @@
     "@azure/identity": "^4.0.0",
     "@azure/storage-blob": "^12.17.0",
     "@nextui-org/react": "^2.2.9",
+    "@reduxjs/toolkit": "^2.0.1",
     "axios": "^1.6.5",
     "dotenv": "^16.3.1",
     "formidable": "^3.5.1",
