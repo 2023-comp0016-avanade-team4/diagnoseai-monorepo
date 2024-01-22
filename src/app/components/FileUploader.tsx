@@ -1,12 +1,11 @@
-"use client"
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { FileUploader } from "react-drag-drop-files";
 import { Skeleton, Button } from "@nextui-org/react";
-import { useDispatch } from 'react-redux';
-import { setUUID } from '../../redux/uuidReducer'; // Adjust the import path as needed
-
+import { useAppDispatch } from "../../redux/hook";
+import { setUUID } from "../../redux/uuidReducer"; // Adjust the import path as needed
 
 const fileTypes = ["PDF", "DOCX"];
 
@@ -17,40 +16,40 @@ export const Uploader = () => {
   const router = useRouter();
   const handleChange = (file: File) => {
     setFile(file);
-  }
+  };
 
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const uploadBtnClicked = async () => {
     setIsUploading((_) => true);
     if (file === undefined) {
       // TODO: Eventually, we should have a toast within the website
       // to show errors instead of using the alert box
-      alert('please choose a file')
+      alert("please choose a file");
       return;
     }
 
     const formData = new FormData();
-    formData.append('file', file);
-    const response = await fetch('/api/fileUpload', {
-      method: 'POST',
-      body: formData
-    })
+    formData.append("file", file);
+    const response = await fetch("/api/fileUpload", {
+      method: "POST",
+      body: formData,
+    });
 
     const data = await response.json();
     if (data.error) {
-      alert('cannot upload file');
+      alert("cannot upload file");
       setIsUploading((_) => false);
     } else {
       dispatch(setUUID(data.uuid));
-      router.push('/uploadsuccess');
+      router.push("/uploadsuccess");
     }
-  }
+  };
 
   useEffect(() => {
     // useEffect only runs on mount, so this hook essentially ensures
     // that FileUploder has fully loaded (it takes a while)
-    setIsLoaded(_ => true);
+    setIsLoaded((_) => true);
   }, []);
 
   // HACK: The FileUploader component doesn't let us change the
@@ -63,22 +62,30 @@ export const Uploader = () => {
         successSpan.textContent = `Selected file: ${file?.name}`;
       }
     }
-  })
+  });
 
   return (
-    <Skeleton className="w-full h-full rounded-md box-border border-solid border-whitesmoke-300 file-uploader mr-5 flex-1" isLoaded={isLoaded && !isUploading}>
+    <Skeleton
+      className="w-full h-full rounded-md box-border border-solid border-whitesmoke-300 file-uploader mr-5 flex-1"
+      isLoaded={isLoaded && !isUploading}
+    >
       <FileUploader
         handleChange={handleChange}
         name="file"
         types={fileTypes}
         disabled={isUploading}
-        required={true} />
-      <Button className="my-10 max-w-xs flex-0" color="primary" disabled={!file || isUploading} onClick={uploadBtnClicked}>
+        required={true}
+      />
+      <Button
+        className="my-10 max-w-xs flex-0"
+        color="primary"
+        disabled={!file || isUploading}
+        onClick={uploadBtnClicked}
+      >
         Confirm Upload
       </Button>
-
     </Skeleton>
-  )
-}
+  );
+};
 
 export default Uploader;

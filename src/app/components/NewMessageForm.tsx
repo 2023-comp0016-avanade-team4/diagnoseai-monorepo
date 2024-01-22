@@ -1,16 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import useSound from 'use-sound';
+import React, { useState, useEffect } from "react";
+import useSound from "use-sound";
 import { useWebSocket } from "../contexts/WebSocketContext";
-import { useSelector } from 'react-redux';
-import { RootState } from '../../redux/stateTypes';
-
+import { useAppSelector } from "../../redux/hook";
 
 export const NewMessageForm = () => {
-  const [play] = useSound('sent.wav');
-  const [body, setBody] = useState('');
+  const [play] = useSound("sent.wav");
+  const [body, setBody] = useState("");
   const { addMessage, webSocket } = useWebSocket(); // Get WebSocket from context
-  const uuid = useSelector((state: RootState) => state.uuid.value);
-
+  const uuid = useAppSelector((state) => state.uuid.value);
 
   useEffect(() => {
     const handleIncomingMessages = (event: MessageEvent) => {
@@ -22,7 +19,7 @@ export const NewMessageForm = () => {
           id: "2",
           username: "bot",
           body: textResponse,
-          createdAt: "1"
+          createdAt: "1",
         };
         addMessage(responseMessage);
       } catch (error) {
@@ -45,7 +42,7 @@ export const NewMessageForm = () => {
         conversationId: "1",
         message: body,
         sentAt: 1,
-        index: uuid
+        index: uuid,
       };
       console.log("message", message);
 
@@ -54,15 +51,14 @@ export const NewMessageForm = () => {
         id: "1",
         username: "some_user",
         body: body,
-        createdAt: "1"
+        createdAt: "1",
       });
 
       play();
     } else {
-      console.error('WebSocket is not connected.');
+      console.error("WebSocket is not connected.");
     }
   };
-
 
   return (
     <form
@@ -70,7 +66,7 @@ export const NewMessageForm = () => {
         e.preventDefault();
         if (body) {
           addNewMessage(body);
-          setBody('');
+          setBody("");
         }
       }}
       className="flex items-center space-x-3"
@@ -91,7 +87,7 @@ export const NewMessageForm = () => {
       >
         Send
       </button>
-    </form >
+    </form>
   );
 };
 
