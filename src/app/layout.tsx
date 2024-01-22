@@ -1,5 +1,3 @@
-import React from "react";
-
 import { Inter } from "next/font/google";
 import { Metadata } from "next";
 import { Providers } from "./providers";
