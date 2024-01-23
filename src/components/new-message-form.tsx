@@ -145,6 +145,7 @@ export const NewMessageForm = () => {
         </label>
         <input
           id="file-input"
+          data-testid="file-input"
           name="image"
           type="file"
           accept=".png, .jpg, .jpeg"
