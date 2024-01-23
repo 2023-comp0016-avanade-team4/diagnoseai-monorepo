@@ -4,6 +4,7 @@ Contains the chat mesage data class.
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Optional
 
 from dataclasses_json import DataClassJsonMixin, config
 
@@ -19,6 +20,7 @@ class ChatMessage(DataClassJsonMixin):
     message: str
     conversation_id: str = field(metadata=config(field_name="conversationId"))
     sent_at: datetime = field(metadata=config(field_name="sentAt"))
+    authToken: Optional[str] = field(metadata=config(field_name="authToken"))
 
 
 @dataclass

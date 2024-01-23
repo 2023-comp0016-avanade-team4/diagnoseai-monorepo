@@ -18,6 +18,7 @@ from openai import AzureOpenAI
 from utils.chat_message import (ChatMessage, ResponseChatMessage,
                                 ResponseErrorMessage)
 from utils.web_pub_sub_interfaces import WebPubSubRequest
+from utils.verify_token import verify_token
 
 # Load required variables from the environment
 
@@ -77,6 +78,14 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
                                input
         connection_id (str): The conneciton ID of the websocket in question
     """
+    
+    if not verify_token(message.authToken):
+        ws_log_and_send_error(
+            ('Invalid token.'
+             f' for debugging purposes, you were {connection_id}'),
+            connection_id)
+        return
+
     logging.info('%s: sending to model', connection_id)
     chat_response = ai_client.chat.completions.create(
         model='validation-testing-model',
