@@ -11,7 +11,6 @@ def verify_token(token):
     try:
         headers = jwt.get_unverified_header(token)
         decoded = jwt.decode(token, key = SECRET_KEY,  algorithms = headers['alg']) # Automatically checks for expiration
-        print(decoded, azp_list)
         if decoded['azp'] in azp_list:
             return True
         else:
