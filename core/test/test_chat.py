@@ -21,7 +21,7 @@ os.environ['WebPubSubConnectionString'] = ''
 os.environ['WebPubSubHubName'] = ''
 os.environ['OpenAIKey'] = ''
 os.environ['OpenAIEndpoint'] = ''
-os.environ['CLERK_SECRET_KEY'] = 'test'
+os.environ['CLERK_PUBLIC_KEY'] = 'test'
 os.environ['CLERK_AZP_LIST'] = 'test'
 
 
@@ -39,6 +39,7 @@ from core.utils.chat_message import ChatMessage  # noqa: E402
 from core.utils.web_pub_sub_interfaces import \
     WebPubSubConnectionContext  # pylint: disable=line-too-long # noqa: E402, E501
 from core.utils.web_pub_sub_interfaces import WebPubSubRequest
+from core.utils.verify_token import verify_token
 
 
 class TestChat(unittest.TestCase):
@@ -47,7 +48,7 @@ class TestChat(unittest.TestCase):
     """
     def test_main_happy(self):
         """Parses the expected ChatMessage from input"""
-        cm = ChatMessage('hello', '123', datetime.now(), "mock_token")
+        cm = ChatMessage('hello', '123', "mock_token", datetime.now())
         req = WebPubSubRequest(cm.to_json(),
                                WebPubSubConnectionContext('456'))
         with patch('core.Chat.chat.process_message') as m:

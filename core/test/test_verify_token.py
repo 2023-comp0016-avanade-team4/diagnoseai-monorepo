@@ -28,7 +28,7 @@ jwt_guh_patch.return_value = {'alg': 'HS256'}
 jwt_decode_patch = patch('jwt.decode').start()
 
 #Environment patching
-os.environ['CLERK_SECRET_KEY'] = KEY
+os.environ['CLERK_PUBLIC_KEY'] = KEY
 os.environ['CLERK_AZP_LIST'] = 'test'
 
 

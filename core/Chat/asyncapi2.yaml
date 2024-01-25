@@ -65,6 +65,9 @@ components:
           description: The body of the chat message
         sentAt:
           $ref: '#/components/schemas/sentAt'
+        auth_token:
+          type: string
+          description: The authentication token to identify the sender
     responseMessagePayload:
       type: object
       properties:
