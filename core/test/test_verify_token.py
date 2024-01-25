@@ -45,7 +45,8 @@ class TestVerifyToken(unittest.TestCase):
         jwt_decode_patch.side_effect = Exception
         self.assertEqual(verify_token(token), False)
         jwt_guh_patch.assert_called()
-        jwt_decode_patch.assert_called_with(token, key = key, algorithms='HS256')
+        jwt_decode_patch.assert_called_with(token, key = key,
+            algorithms='HS256')
 
 
     
