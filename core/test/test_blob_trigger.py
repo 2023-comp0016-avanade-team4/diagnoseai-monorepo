@@ -3,7 +3,7 @@ import os
 import unittest
 from unittest.mock import patch, Mock
 
-#Globals patching
+# Globals patching
 
 
 dac_patch = patch('azure.ai.formrecognizer.DocumentAnalysisClient').start()
