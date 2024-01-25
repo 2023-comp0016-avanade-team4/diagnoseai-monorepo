@@ -79,7 +79,7 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
         connection_id (str): The conneciton ID of the websocket in question
     """
     
-    if not verify_token(message.authToken):
+    if not verify_token(message.auth_token):
         ws_log_and_send_error(
             ('Invalid token.'
              f' for debugging purposes, you were {connection_id}'),
