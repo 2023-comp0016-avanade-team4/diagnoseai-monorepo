@@ -1,8 +1,9 @@
-import os 
+""" Tests the blob trigger function """
+import os
 import unittest
 from unittest.mock import patch
 
-#Globals patching
+# Globals patching
 
 
 dac_patch = patch('azure.ai.formrecognizer.DocumentAnalysisClient').start()
@@ -12,14 +13,15 @@ aoie_patch = patch('langchain.embeddings.AzureOpenAIEmbeddings').start()
 as_patch = patch('langchain.vectorstores.azuresearch.AzureSearch').start()
 is_patch = patch('azure.functions.InputStream').start()
 
-#Environment patching
+# Environment patching
 
 environ_patch = patch.dict(os.environ, {"CognitiveSearchKey": "mock_key", "CognitiveSearchEndpoint": "mock_endpoint", "OpenAIKey": "mock_key", "OpenAIEndpoint": "mock_endpoint", "DocumentEndpoint" : "mock_endpoint", "DocumentKey" : "mock_key"}).start()
 
 from core.fileUploadTrigger import main
 
-class TestFileUploadTrigger(unittest.TestCase):
 
+class TestFileUploadTrigger(unittest.TestCase):
+    """ Class to test file upload trigger """
     def testMain(self):
         main(is_patch)
         dac_patch.assert_called()

@@ -1,8 +1,11 @@
+"""
+Triggers upon an upload to the verification document storage
+"""
 import logging
 import os
 
 from azure.functions import InputStream
-from azure.ai.formrecognizer import DocumentAnalysisClient 
+from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.core.credentials import AzureKeyCredential
 from langchain.document_loaders.blob_loaders import Blob
 from langchain.document_loaders.pdf import DocumentIntelligenceParser
@@ -37,10 +40,13 @@ embeddings = AzureOpenAIEmbeddings(
 
 
 def main(myblob: InputStream):
-    logging.info(f"Python blob trigger function processed blob \n"
-                 f"Name: {myblob.name}\n"
-                 f"Blob Size: {myblob.length} bytes")
-    
+    """
+    Entrypoint to process blob storage event
+    """
+    logging.info("Python blob trigger function processed blob \n"
+                 "Name: %s\n"
+                 "Blob Size: %d bytes", myblob.name, myblob.length)
+
     SEARCH_INDEX = myblob.name.split('/')[-1]
 
     logging.info(f"Index name: {SEARCH_INDEX} \n")
