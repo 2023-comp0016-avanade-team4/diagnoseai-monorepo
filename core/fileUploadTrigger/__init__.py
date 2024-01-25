@@ -2,7 +2,7 @@ import logging
 import os
 
 from azure.functions import InputStream
-from azure.ai.formrecognizer import DocumentAnalysisClient 
+from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.core.credentials import AzureKeyCredential
 from langchain.document_loaders.blob_loaders import Blob
 from langchain.document_loaders.pdf import DocumentIntelligenceParser
