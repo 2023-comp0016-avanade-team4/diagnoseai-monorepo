@@ -25,7 +25,7 @@ os.environ['CLERK_SECRET_KEY'] = 'test'
 os.environ['CLERK_AZP_LIST'] = 'test'
 
 
-#patching the verify_token function
+# patching the verify_token function
 
 vjwt_patch = patch('utils.verify_token.verify_token').start()
 vjwt_patch.return_value = True
@@ -98,7 +98,8 @@ class TestChat(unittest.TestCase):
         mock_create = MagicMock(return_value=mocked_chat_completion)
         # This is justified, because ai_client will be mocked by aoi_patch
         ai_client.chat.completions.create = mock_create  # type: ignore[method-assign] # noqa: E501
-        return mock_create, ChatMessage('blah', '123', datetime.now(), "mock_token")
+        return mock_create, ChatMessage(
+            'blah', '123', datetime.now(), "mock_token")
 
     def test_process_message_happy(self):
         """

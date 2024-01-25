@@ -20,7 +20,7 @@ class ChatMessage(DataClassJsonMixin):
     message: str
     conversation_id: str = field(metadata=config(field_name="conversationId"))
     sent_at: datetime = field(metadata=config(field_name="sentAt"))
-    authToken: Optional[str] = field(metadata=config(field_name="authToken"))
+    auth_token: Optional[str] = field(metadata=config(field_name="authToken"))
 
 
 @dataclass
