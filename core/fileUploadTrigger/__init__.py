@@ -43,9 +43,9 @@ def main(myblob: InputStream):
 """
 Entrypoint to process blob storage event
 """
-    logging.info(f"Python blob trigger function processed blob \n"
-                 f"Name: {myblob.name}\n"
-                 f"Blob Size: {myblob.length} bytes")
+    logging.info("Python blob trigger function processed blob \n"
+                 "Name: %s\n"
+                 "Blob Size: %d bytes", myblob.name, myblob.length)
     SEARCH_INDEX = myblob.name[myblob.name.find('/') + 1:53]
 
     logging.info(f"Index name: {SEARCH_INDEX} \n")
