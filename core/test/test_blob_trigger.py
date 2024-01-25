@@ -1,6 +1,6 @@
 import os 
 import unittest
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 
 #Globals patching
 

@@ -41,7 +41,7 @@ def main(myblob: InputStream):
                  f"Name: {myblob.name}\n"
                  f"Blob Size: {myblob.length} bytes")
     
-    SEARCH_INDEX = myblob.name[myblob.name.find('/') + 1:53]
+    SEARCH_INDEX = myblob.name.split('/')[-1]
 
     logging.info(f"Index name: {SEARCH_INDEX} \n")
 
