@@ -17,4 +17,3 @@ def verify_token(token):
             return False
     except:
         return False
-
