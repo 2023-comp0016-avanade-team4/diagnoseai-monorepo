@@ -21,7 +21,7 @@ os.environ['WebPubSubConnectionString'] = ''
 os.environ['WebPubSubHubName'] = ''
 os.environ['OpenAIKey'] = ''
 os.environ['OpenAIEndpoint'] = ''
-os.environ['CLERK_SECRET_KEY'] = 'test' 
+os.environ['CLERK_SECRET_KEY'] = 'test'
 os.environ['CLERK_AZP_LIST'] = 'test'
 
 
