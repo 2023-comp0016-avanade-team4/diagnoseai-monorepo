@@ -19,8 +19,9 @@ environ_patch = patch.dict(os.environ, {"CognitiveSearchKey": "mock_key", "Cogni
 
 from core.fileUploadTrigger import main
 
-class TestFileUploadTrigger(unittest.TestCase):
 
+class TestFileUploadTrigger(unittest.TestCase):
+    """ Class to test file upload trigger """
     def testMain(self):
         main(is_patch)
         dac_patch.assert_called()
