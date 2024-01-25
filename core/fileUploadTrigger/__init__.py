@@ -1,3 +1,6 @@
+"""
+Triggers upon an upload to the verification document storage
+"""
 import logging
 import os
 
