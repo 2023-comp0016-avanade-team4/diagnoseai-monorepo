@@ -13,7 +13,7 @@ aoie_patch = patch('langchain.embeddings.AzureOpenAIEmbeddings').start()
 as_patch = patch('langchain.vectorstores.azuresearch.AzureSearch').start()
 is_patch = patch('azure.functions.InputStream').start()
 
-#Environment patching
+# Environment patching
 
 environ_patch = patch.dict(os.environ, {"CognitiveSearchKey": "mock_key", "CognitiveSearchEndpoint": "mock_endpoint", "OpenAIKey": "mock_key", "OpenAIEndpoint": "mock_endpoint", "DocumentEndpoint" : "mock_endpoint", "DocumentKey" : "mock_key"}).start()
 
