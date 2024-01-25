@@ -25,7 +25,7 @@ os.environ['CLERK_SECRET_KEY'] = 'test'
 os.environ['CLERK_AZP_LIST'] = 'test'
 
 
-#patching the verify_token function
+# patching the verify_token function
 
 vjwt_patch = patch('utils.verify_token.verify_token').start()
 vjwt_patch.return_value = True
