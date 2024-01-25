@@ -50,7 +50,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             '', status_code=401
         )
 
-
     logging.info('Chat Connection called with %s', req.method)
     try:
         serialized = ChatConnectionRequest.from_json(req.get_body())
