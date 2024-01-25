@@ -1,4 +1,5 @@
-import os 
+""" Tests the blob trigger function """
+import os
 import unittest
 from unittest.mock import patch, Mock
 
