@@ -16,6 +16,11 @@ aoi_patch = patch('openai.AzureOpenAI') \
     .start()
 db_session_patch = patch('utils.db.create_session') \
     .start()
+bsc_patch = patch(
+    'azure.storage.blob.BlobServiceClient.from_connection_string') \
+    .start()
+image_summary_patch = patch('utils.image_summary.ImageSummary')
+image_summary_patch.start()
 
 os.environ['WebPubSubConnectionString'] = ''
 os.environ['WebPubSubHubName'] = ''
@@ -27,13 +32,18 @@ os.environ['DatabaseURL'] = ''
 os.environ['DatabaseName'] = ''
 os.environ['DatabaseUsername'] = ''
 os.environ['DatabasePassword'] = ''
+os.environ['ImageBlobConnectionString'] = ''
+os.environ['ImageBlobContainer'] = ''
+os.environ['GPT4V_API_BASE'] = ''
+os.environ['GPT4V_API_KEY'] = ''
+os.environ['GPT4V_DEPLOYMENT_NAME'] = ''
 
 
 # This import must come after the global patches
 # pylint: disable=wrong-import-position
 from core.Chat.chat import (ai_client, main, process_message,  # noqa: E402
                             ws_log_and_send_error, ws_send_message,
-                            shadow_msg_to_db)
+                            shadow_msg_to_db, image_summary)
 from core.utils.chat_message import ChatMessage  # noqa: E402
 from core.utils.web_pub_sub_interfaces import \
     WebPubSubConnectionContext  # pylint: disable=line-too-long # noqa: E402, E501
@@ -44,6 +54,12 @@ class TestChat(unittest.TestCase):
     """
     Tests the Chat WebSocket API
     """
+    def setUp(self):
+        image_summary_patch.start()
+
+    def tearDown(self):
+        image_summary_patch.stop()
+
     def test_main_happy(self):
         """Parses the expected ChatMessage from input"""
         cm = ChatMessage('hello', '123', datetime.now())
@@ -83,7 +99,8 @@ class TestChat(unittest.TestCase):
             self,
             message: Optional[str],
             has_choices: bool,
-            index_name: Optional[str]
+            index_name: Optional[str],
+            is_image: bool = False
     ) -> Tuple[MagicMock, ChatMessage]:
         mocked_chat_completion = create_autospec(ChatCompletion)
         if has_choices:
@@ -101,8 +118,9 @@ class TestChat(unittest.TestCase):
         ai_client.chat.completions.create = mock_create  # type: ignore[method-assign] # noqa: E501
         if index_name is not None:
             return mock_create, ChatMessage('blah', '123', datetime.now(),
-                                            index_name)
-        return mock_create, ChatMessage('blah', '123', datetime.now())
+                                            is_image, index_name)
+        return mock_create, ChatMessage('blah', '123', datetime.now(),
+                                        is_image)
 
     def test_process_message_happy_no_index(self):
         """
@@ -118,7 +136,8 @@ class TestChat(unittest.TestCase):
                 self.assertEqual(shadow.call_count, 2)
 
                 # 'blah' is from the user, 'hi' is from the bot
-                expected_calls = (('123', 'blah', False), ('123', 'hi', True))
+                expected_calls = (('123', 'blah', False, False),
+                                  ('123', 'hi', True, False))
                 self.assertEqual(
                     tuple(map(lambda x: x.args, shadow.call_args_list)),
                     expected_calls)
@@ -152,6 +171,94 @@ class TestChat(unittest.TestCase):
                              ['parameters']['indexName'], 'other-index')
 
         # reset for other tests to use
+        mocked_create.reset_mock()
+
+    def test_process_message_happy_image(self):
+        """
+        Message is sent to the chat model cleanly. The default index is used.
+        We're testing to see if image endpoints are called correctly here
+        """
+        mocked_create, message = self.__create_mock_chat_completion(
+            'hi', True, 'other-index', True)
+        message.message = 'data:/image/png;base64,Y2x1ZWxlc3M='
+        with patch('core.Chat.chat.ws_send_message') as m, \
+             patch('core.Chat.chat.compress_image') as n, \
+             patch('core.Chat.chat.save_to_blob') as s, \
+             patch('core.Chat.chat.is_url_encoded_image') as v, \
+             patch('core.Chat.chat.shadow_msg_to_db') as shadow:
+            n.return_value = b'compressed'
+            v.return_value = True
+            image_summary.get_image_summary.return_value = 'summary'
+
+            process_message(message, '123')
+            m.assert_called_once()
+            n.assert_called_once()
+            s.assert_called_once()
+            image_summary.get_image_summary.assert_called_once()
+            shadow.assert_called()
+            self.assertTrue(not shadow.call_args_list[0][0][2])
+            self.assertEqual(shadow.call_args_list[1][0][1], 'summary')
+            self.assertTrue(shadow.call_args_list[1][0][2])
+
+        # reset for other tests to use
+        mocked_create.reset_mock()
+        image_summary.reset_mock()
+
+    def test_process_message_sad_image_1(self):
+        """
+        Image not actually an image
+        """
+        mocked_create, message = self.__create_mock_chat_completion(
+            'hi', True, 'other-index', True)
+        message.message = 'data:/image/png;base64,Y2x1ZWxlc3M='
+        with patch('core.Chat.chat.ws_send_message'), \
+             patch('core.Chat.chat.compress_image') as n, \
+             self.assertRaisesRegex(RuntimeError, 'not a URL encoded'):
+            n.return_value = b'compressed'
+            process_message(message, '123')
+
+        # reset for other tests to use
+        mocked_create.reset_mock()
+
+    def test_process_message_sad_image_2(self):
+        """
+        Image cannot be compressed
+        """
+        mocked_create, message = self.__create_mock_chat_completion(
+            'hi', True, 'other-index', True)
+        message.message = 'data:/image/png;base64,Y2x1ZWxlc3M='
+        with patch('core.Chat.chat.ws_send_message'), \
+             patch('core.Chat.chat.compress_image') as n, \
+             patch('core.Chat.chat.is_url_encoded_image') as v, \
+             self.assertRaises(OSError):
+            v.return_value = True
+            n.side_effect = OSError('trigger error')
+            process_message(message, '123')
+
+        # reset for other tests to use
+        mocked_create.reset_mock()
+
+    def test_process_message_sad_image_3(self):
+        """
+        Image cannot be summarized
+        """
+        mocked_create, message = self.__create_mock_chat_completion(
+            'hi', True, 'other-index', True)
+        message.message = 'data:/image/png;base64,Y2x1ZWxlc3M='
+        with patch('core.Chat.chat.ws_send_message'), \
+             patch('core.Chat.chat.compress_image') as n, \
+             patch('core.Chat.chat.save_to_blob'), \
+             patch('core.Chat.chat.is_url_encoded_image') as v, \
+             patch('core.Chat.chat.shadow_msg_to_db'), \
+             self.assertRaises(RuntimeError):
+            image_summary.get_image_summary.side_effect = RuntimeError(
+                "some error")
+            v.return_value = True
+            n.return_value = b'compressed'
+            process_message(message, '123')
+
+        # reset for other tests to use
+        image_summary.reset_mock()
         mocked_create.reset_mock()
 
     def test_process_message_sad_1(self):
@@ -211,5 +318,5 @@ class TestChat(unittest.TestCase):
         # It doesn't matter what arguments are passed to it; the
         # virtue of it being called is enough
         with patch('core.Chat.chat.ChatMessageDAO.save_message') as m:
-            shadow_msg_to_db('123', 'blah', True)
+            shadow_msg_to_db('123', 'blah', True, False)
             m.assert_called_once()

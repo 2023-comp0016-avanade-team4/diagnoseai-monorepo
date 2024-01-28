@@ -14,7 +14,7 @@ tiktoken==0.5.1
 puremagic==1.15
 pillow==10.2.0
 
-dataclasses-json==0.6.2
+dataclasses-json==0.6.3
 azure-messaging-webpubsubservice==1.0.1
 pyodbc==5.0.1
 SQLAlchemy==2.0.23

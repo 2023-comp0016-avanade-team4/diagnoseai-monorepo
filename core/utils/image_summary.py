@@ -2,8 +2,8 @@
 Module to get image summary from GPT-4 Vision
 """
 import json
-import requests
 import logging
+import requests
 
 
 class ImageSummary:

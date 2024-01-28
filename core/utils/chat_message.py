@@ -20,6 +20,8 @@ class ChatMessage(DataClassJsonMixin):
     message: str
     conversation_id: str = field(metadata=config(field_name="conversationId"))
     sent_at: datetime = field(metadata=config(field_name="sentAt"))
+    is_image: bool = field(
+        default=False, metadata=config(field_name="isImage"))
     index: str = field(default='validation-index')
 
 

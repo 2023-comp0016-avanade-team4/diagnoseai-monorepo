@@ -39,22 +39,30 @@ class ChatMessageModel(Base):
     conversation_id: Mapped[str] = mapped_column(default=uuid4)
     message: Mapped[str] = mapped_column()
     sent_at: Mapped[datetime] = mapped_column()
+    is_image: Mapped[bool] = mapped_column(default=False)
     sender: Column = Column(Enum(SenderTypes))
+
+    # If image, additional context is the text interpretation of the image
+    additional_context: Mapped[str] = mapped_column(default='')
 
     @staticmethod
     def from_bidirectional_chat_message(
-            message: BidirectionalChatMessage) -> 'ChatMessageModel':
+            message: BidirectionalChatMessage,
+            additional_context='') -> 'ChatMessageModel':
         """
         Converts a bidirectional chat message into a ChatMessageDTO.
 
         Args:
             message (BidirectionalChatMessage): The message to convert
+            additional_context (str): Additional context to save
         """
         return ChatMessageModel(
             conversation_id=message.conversation_id,
             message=message.message,
             sent_at=message.sent_at,
-            sender=SenderTypes(message.sender)
+            is_image=message.is_image,
+            sender=SenderTypes(message.sender),
+            additional_context=additional_context
         )
 
     @staticmethod
@@ -77,6 +85,7 @@ class ChatMessageModel(Base):
             conversation_id=message.conversation_id,
             message=message.message,
             sent_at=message.sent_at,
+            is_image=message.is_image,
             # casted because message.sender (is a str) should
             # become either bot or user
             sender=cast(Literal['bot', 'user'], message.sender)
