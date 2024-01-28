@@ -49,7 +49,7 @@ def main(myblob: InputStream):
 
     SEARCH_INDEX = myblob.name.split('/')[-1]
 
-    logging.info(f"Index name: {SEARCH_INDEX} \n")
+    logging.info(f"Index name: %s \n", SEARCH_INDEX)
 
     loader = DocumentIntelligenceParser(client=document_client,
                                         model='prebuilt-document')
