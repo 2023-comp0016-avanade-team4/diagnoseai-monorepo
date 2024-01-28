@@ -1,6 +1,5 @@
 """
-API entrypoint. Eventually, as more endpoints are added, they should
-be separated into their own files.
+ChatConnection API endpoint.
 """
 
 import logging

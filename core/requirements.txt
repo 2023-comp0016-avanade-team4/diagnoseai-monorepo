@@ -13,3 +13,5 @@ tiktoken==0.5.1
 
 dataclasses-json==0.6.2
 azure-messaging-webpubsubservice==1.0.1
+pyodbc==5.0.1
+SQLAlchemy==2.0.23

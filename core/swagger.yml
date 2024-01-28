@@ -24,11 +24,49 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ChatConnectionResponse'
+        '500':
+          description: 'Failure. Likely a JSON parsing issue'
+      security:
+        - api_key: []
+  /chat_history:
+    get:
+      summary: Gets the chat history for a given conversation ID
+      description: Gets the chat history for a given conversation ID (todo, this should eventually be authenticated as well)
+      parameters:
+        - name: conversation_id
+          in: query
+          description: ID of the conversation
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Success'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatHistoryResponse'
       security:
         - api_key: []
 
 components:
   schemas:
+    Message:
+      type: object
+      properties:
+        conversationId:
+          type: string
+          description: Conversation ID
+        message:
+          type: string
+          description: The text within the message
+        sender:
+          enum: ["bot", "user"]
+          description: The sender of this message
+        sentAt:
+          type: number
+          format: date-time
+          description: UNIX Timestamp for dat and time when the message was sent.
     ChatConnectionRequest:
       type: object
       properties:
@@ -44,6 +82,12 @@ components:
         ttl:
           type: integer
           description: The time to live for the WebSocket URL in minutes. Ideally, when WebSocket requesting moves to another endpoint, the client will re-request a new websocket URL
+    ChatHistoryResponse:
+      type: array
+      items:
+          $ref: '#/components/schemas/Message'
+
+
   securitySchemes:
     api_key:
       type: apiKey
