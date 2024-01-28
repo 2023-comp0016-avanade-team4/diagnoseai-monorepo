@@ -11,8 +11,6 @@ from unittest.mock import MagicMock, PropertyMock, create_autospec, patch
 from openai.types.chat.chat_completion import (ChatCompletion,
                                                ChatCompletionMessage, Choice)
 
-
-
 # Globals patching
 aoi_patch = patch('openai.AzureOpenAI') \
     .start()
@@ -39,7 +37,6 @@ from core.utils.chat_message import ChatMessage  # noqa: E402
 from core.utils.web_pub_sub_interfaces import \
     WebPubSubConnectionContext  # pylint: disable=line-too-long # noqa: E402, E501
 from core.utils.web_pub_sub_interfaces import WebPubSubRequest
-from core.utils.verify_token import verify_token
 
 
 class TestChat(unittest.TestCase):
