@@ -68,6 +68,10 @@ components:
         auth_token:
           type: string
           description: The authentication token to identify the sender
+        index:
+          type: string
+          description: "A data source index. (validation-* prefixes are validation indexes, while production-* are production indexes) TODO: This changes often, and hence should not be documented at this point. Once things are more firm, we can try to solidify the index."
+          default: validation-index
     responseMessagePayload:
       type: object
       properties:

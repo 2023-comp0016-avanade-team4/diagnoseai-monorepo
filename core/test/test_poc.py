@@ -29,7 +29,7 @@ os.environ["CognitiveSearchEndpoint"] = ''
 
 # This import must come after the global patches
 # pylint: disable=wrong-import-position
-from core.ProofOfConcept.poc import analyzer, document_client  # noqa: E402
+from core.ProofOfConcept.poc import main, document_client  # noqa: E402
 
 
 class TestProofOfConcept(unittest.TestCase):
@@ -41,7 +41,9 @@ class TestProofOfConcept(unittest.TestCase):
         Invokes a false blob trigger
         """
         fake_input_stream = MagicMock()
-        analyzer.build().get_user_function()(fake_input_stream)
+        # TODO: Preserved for our eventual transition to V2
+        # main.build().get_user_function()(fake_input_stream)
+        main(fake_input_stream)
         dip_patch.assert_called_once_with(client=document_client,
                                           model='prebuilt-document')
         as_patch.assert_called_once()
