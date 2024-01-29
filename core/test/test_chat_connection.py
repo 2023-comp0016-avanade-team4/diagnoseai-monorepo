@@ -7,6 +7,13 @@ from unittest.mock import create_autospec, patch
 
 from azure.functions import HttpRequest
 
+
+#patching the verify_token function
+
+vjwt_patch = patch('utils.verify_token.verify_token')
+mock_vjwt = vjwt_patch.start()
+mock_vjwt.return_value = True
+
 # Globals patching
 
 service_patch = \
@@ -15,7 +22,8 @@ service_patch = \
 
 os.environ['WebPubSubConnectionString'] = ''
 os.environ['WebPubSubHubName'] = ''
-
+os.environ['CLERK_SECRET_KEY'] = 'test'
+os.environ['CLERK_AZP_LIST'] = 'test'
 
 # pylint: disable=wrong-import-position
 from core.chat_connection.api import (generate_wss_url,  # noqa: E402, E501
