@@ -48,31 +48,6 @@ paths:
                 $ref: '#/components/schemas/ChatHistoryResponse'
       security:
         - api_key: []
-  /chat_img:
-    post:
-      summary: Uploads and image for the chat model to process
-      description: Also calls the image processing used for validation to parse the image to contextualize the chat model. The chat message response will be sent via websockets, and not through this endpoint.
-      parameters:
-        - name: conversation_id
-          in: query
-          description: ID of the conversation
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                image:
-                  type: string
-                  format: binary
-      responses:
-        '200':
-          description: Image successfully uploaded.
-      security:
-        - api_key: []
 
 components:
   schemas:
