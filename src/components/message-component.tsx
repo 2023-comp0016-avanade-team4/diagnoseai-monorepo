@@ -6,8 +6,9 @@ export type Message = {
   id: string;
   username: string;
   avatar?: string;
-  body: string;
+  message: string;
   createdAt: string;
+  isImage?: boolean;
 };
 
 interface Props {
@@ -55,7 +56,7 @@ export const MessageComponent = ({ message }: Props) => {
           {message.username !== "some_user" && (
             <span className="font-bold">{message.username}:&nbsp;</span>
           )}
-          <span className="max-w-sm" dangerouslySetInnerHTML={createMarkup(message.body)}></span>
+          <span className="max-w-sm" dangerouslySetInnerHTML={createMarkup(message.message)}></span>
         </span>
       </div>
       {/* <p className="text-xs text-white/50">

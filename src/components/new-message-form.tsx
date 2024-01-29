@@ -4,6 +4,8 @@ import useSound from "use-sound";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 import uploadImageIcon from "../../assets/upload-image-icon.svg";
 import useAuthToken from "@/hooks/use-auth-token";
+import { Message } from "./message-component";
+import { v4 as uuidv4 } from "uuid";
 
 export const NewMessageForm = () => {
   const [play] = useSound("sent.wav");
@@ -50,30 +52,23 @@ export const NewMessageForm = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (body) {
-      addNewMessage(body);
+    if (body || selectedFile) {
+      addNewMessage(body, selectedFile);
       setBody("");
-    }
-
-    if (selectedFile) {
-      console.log("Uploading image...");
-      await uploadImage(selectedFile);
       setSelectedFile(null);
-    }
-
-    if (!body && !selectedFile) {
+    } else {
       console.log("No message or image to send");
     }
   };
 
   const addImageMessage = (imageURL: string) => {
     const imageMessage = {
-      id: "unique_id",
+      id: uuidv4(),
       username: "some_user",
       avatar: "https://avatars.githubusercontent.com/u/114498077?v=4",
-      body: `<img src="${imageURL}" alt="uploaded image"/>`,
+      message: `<img src="${imageURL}" alt="uploaded image"/>`,
       createdAt: new Date().toISOString(),
-    };
+    } as Message;
 
     addMessage(imageMessage);
     // URL.revokeObjectURL(imageURL)
@@ -89,9 +84,9 @@ export const NewMessageForm = () => {
           id: "2",
           username: "bot",
           avatar: "https://avatars.githubusercontent.com/u/1856293?v=4",
-          body: textResponse,
+          message: textResponse,
           createdAt: "1",
-        };
+        } as Message;
         addMessage(responseMessage);
       } catch (error) {
         console.error("Error parsing message data:", error);
@@ -107,28 +102,50 @@ export const NewMessageForm = () => {
     }
   }, [addMessage, webSocket]);
 
-  const addNewMessage = (body: string) => {
-    if (webSocket && webSocket.readyState === WebSocket.OPEN) {
-      console.log("token: ", token);
-      const message = {
-        conversationId: "1",
-        message: body,
-        sentAt: 1,
-        authToken: token,
-      };
+  const sendMessageToWS = (message: Message) => {
+    if (!webSocket || webSocket.readyState !== WebSocket.OPEN) {
+      console.error("WebSocket is not ready");
+      return;
+    }
 
-      webSocket.send(JSON.stringify(message));
-      addMessage({
-        id: "1",
-        username: "some_user",
-        avatar: "https://avatars.githubusercontent.com/u/114498077?v=4",
-        body: body,
-        createdAt: "1",
-      });
+    webSocket.send(JSON.stringify(message));
+    addMessage({
+      // HACK: stopgap so that react doesn't complain about duplicate keys
+      id: uuidv4(),
+      username: "some_user",
+      avatar: "https://avatars.githubusercontent.com/u/114498077?v=4",
+      message: body,
+      createdAt: Date.now().toString(),
+    });
 
-      play();
+    play();
+  }
+
+
+  const addNewMessage = (body: string, file: File | null) => {
+    let message = {
+      conversationId: "1",
+      message: body,
+      sentAt: 1,
+      authToken: token,
+    } as Message;
+
+    if (file) {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const dataURL = reader.result as string;
+        console.log(dataURL);
+
+        message = {
+          ...message,
+          message: dataURL,
+          isImage: true,
+        };
+        sendMessageToWS(message);
+      }
     } else {
-      console.error("WebSocket is not connected.");
+      sendMessageToWS(message);
     }
   };
 
