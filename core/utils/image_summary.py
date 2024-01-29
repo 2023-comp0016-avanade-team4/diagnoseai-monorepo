@@ -40,17 +40,17 @@ class ImageSummary:
                         {
                             "type": "text",
                             "text": (
-                                "Given an image with the",
-                                "following features, generate a concise",
-                                "textual summary that captures the",
-                                "key elements and context of the",
-                                "image. Imagine this summary will be",
-                                "used as a data source for an",
-                                "OpenAI embeddings endpoint to",
-                                "enable content-based image",
-                                "retrieval. Please ensure the summary is",
-                                "informative and conveys relevant",
-                                "information about the visual content."
+                                "Given an image with the "
+                                "following features, generate a concise "
+                                "textual summary that captures the "
+                                "key elements and context of the "
+                                "image. Imagine this summary will be "
+                                "used as a data source for an "
+                                "OpenAI embeddings endpoint to "
+                                "enable content-based image "
+                                "retrieval. Please ensure the summary is "
+                                "informative and conveys relevant "
+                                "information about the visual content. "
                             )
                         }
                     ]
