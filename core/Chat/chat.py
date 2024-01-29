@@ -204,10 +204,10 @@ def __process_message_image(message: ChatMessage,
     logging.info('message is a URL encoded image %s', connection_id)
     image = message.message.split(',')[1]
     try:
-        compressed = compress_image(base64.urlsafe_b64decode(image))
+        compressed = compress_image(base64.b64decode(image))
         compressed_object_url = (
             "data:image/jpeg;base64,"
-            f"{base64.urlsafe_b64encode(compressed).decode()}")
+            f"{base64.b64encode(compressed).decode()}")
     except OSError as e:
         ws_log_and_send_error(
             ('message claims to be an image, but cannot be compressed.'
