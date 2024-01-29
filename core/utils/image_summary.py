@@ -73,7 +73,7 @@ class ImageSummary:
         response = requests.post(self.endpoint,
                                  headers=self.headers,
                                  data=json.dumps(data),
-                                 timeout=60)
+                                 timeout=600)
         response = json.loads(response.text)
 
         message = None
