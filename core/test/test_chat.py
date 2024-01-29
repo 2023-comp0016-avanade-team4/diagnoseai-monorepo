@@ -21,6 +21,14 @@ os.environ['WebPubSubConnectionString'] = ''
 os.environ['WebPubSubHubName'] = ''
 os.environ['OpenAIKey'] = ''
 os.environ['OpenAIEndpoint'] = ''
+os.environ['CLERK_PUBLIC_KEY'] = 'test'
+os.environ['CLERK_AZP_LIST'] = 'test'
+
+# patching the verify_token function
+
+vjwt_patch = patch('utils.verify_token.verify_token').start()
+vjwt_patch.return_value = True
+
 os.environ['CognitiveSearchKey'] = ''
 os.environ['CognitiveSearchEndpoint'] = ''
 os.environ['DatabaseURL'] = ''
@@ -35,9 +43,8 @@ from core.Chat.chat import (ai_client, main, process_message,  # noqa: E402
                             ws_log_and_send_error, ws_send_message,
                             shadow_msg_to_db)
 from core.utils.chat_message import ChatMessage  # noqa: E402
-from core.utils.web_pub_sub_interfaces import \
-    WebPubSubConnectionContext  # pylint: disable=line-too-long # noqa: E402, E501
-from core.utils.web_pub_sub_interfaces import WebPubSubRequest  # noqa: E402
+from core.utils.web_pub_sub_interfaces import WebPubSubConnectionContext  # pylint: disable=line-too-long # noqa: E402, E501
+from core.utils.web_pub_sub_interfaces import WebPubSubRequest  # pylint: disable= line-too-long wrong-import-position # noqa: E402, E501
 
 
 class TestChat(unittest.TestCase):
@@ -46,7 +53,7 @@ class TestChat(unittest.TestCase):
     """
     def test_main_happy(self):
         """Parses the expected ChatMessage from input"""
-        cm = ChatMessage('hello', '123', datetime.now())
+        cm = ChatMessage('hello', '123', "mock_token", datetime.now())
         req = WebPubSubRequest(cm.to_json(),
                                WebPubSubConnectionContext('456'))
         with patch('core.Chat.chat.process_message') as m:
@@ -99,10 +106,12 @@ class TestChat(unittest.TestCase):
         mock_create = MagicMock(return_value=mocked_chat_completion)
         # This is justified, because ai_client will be mocked by aoi_patch
         ai_client.chat.completions.create = mock_create  # type: ignore[method-assign] # noqa: E501
+
         if index_name is not None:
             return mock_create, ChatMessage('blah', '123', datetime.now(),
                                             index_name)
-        return mock_create, ChatMessage('blah', '123', datetime.now())
+        return mock_create, ChatMessage(
+            'blah', '123', datetime.now(), "mock_token")
 
     def test_process_message_happy_no_index(self):
         """
