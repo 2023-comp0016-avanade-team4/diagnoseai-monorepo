@@ -1,6 +1,5 @@
 // import { formatRelative, formatDistance, differenceInHours } from "date-fns";
 import Image from "next/image";
-import DOMPurify from 'dompurify';
 
 export type Message = {
   id: string;
@@ -16,19 +15,18 @@ interface Props {
 }
 
 export const MessageComponent = ({ message }: Props) => {
-  const createMarkup = (htmlContent: string) => {
-    return { __html: DOMPurify.sanitize(htmlContent) };
-  };
-
   return (
     <div
-      className={`flex flex-col relative space-x-1 space-y-1 ${message.username === "some_user" ? "text-right" : "text-left"}`}
+      className={`flex flex-col relative space-x-1 space-y-1 ${
+        message.username === "some_user" ? "text-right" : "text-left"
+      }`}
     >
       <div
-        className={`flex relative space-x-1 ${message.username === "some_user"
-          ? "flex-row-reverse space-x-reverse"
-          : "flex-row"
-          }`}
+        className={`flex relative space-x-1 ${
+          message.username === "some_user"
+            ? "flex-row-reverse space-x-reverse"
+            : "flex-row"
+        }`}
       >
         {message?.avatar && (
           <div className="w-12 h-12 overflow-hidden flex-shrink-0 rounded">
@@ -48,15 +46,18 @@ export const MessageComponent = ({ message }: Props) => {
           </div>
         )}
         <span
-          className={`inline-flex rounded space-x-2 items-start p-3 text-white ${message.username === "some_user"
-            ? "bg-[#4a9c6d]"
-            : "bg-[#363739]"
-            } `}
+          className={`inline-flex rounded space-x-2 items-start p-3 text-white ${
+            message.username === "some_user" ? "bg-[#4a9c6d]" : "bg-[#363739]"
+          } `}
         >
           {message.username !== "some_user" && (
             <span className="font-bold">{message.username}:&nbsp;</span>
           )}
-          <span className="max-w-sm" dangerouslySetInnerHTML={createMarkup(message.message)}></span>
+          {message.isImage ? (
+            <Image alt="" src={message.message} width={300} height={0} />
+          ) : (
+            <span className="max-w-sm">{message.message}</span>
+          )}
         </span>
       </div>
       {/* <p className="text-xs text-white/50">

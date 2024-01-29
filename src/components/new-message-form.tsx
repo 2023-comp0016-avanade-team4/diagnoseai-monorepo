@@ -114,13 +114,13 @@ export const NewMessageForm = () => {
       id: uuidv4(),
       username: "some_user",
       avatar: "https://avatars.githubusercontent.com/u/114498077?v=4",
-      message: body,
+      message: message.message,
+      isImage: message.isImage,
       createdAt: Date.now().toString(),
     });
 
     play();
-  }
-
+  };
 
   const addNewMessage = (body: string, file: File | null) => {
     let message = {
@@ -135,7 +135,6 @@ export const NewMessageForm = () => {
       reader.readAsDataURL(file);
       reader.onload = () => {
         const dataURL = reader.result as string;
-        console.log(dataURL);
 
         message = {
           ...message,
@@ -143,7 +142,7 @@ export const NewMessageForm = () => {
           isImage: true,
         };
         sendMessageToWS(message);
-      }
+      };
     } else {
       sendMessageToWS(message);
     }
