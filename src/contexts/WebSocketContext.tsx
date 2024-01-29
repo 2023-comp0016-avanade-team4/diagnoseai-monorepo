@@ -41,24 +41,12 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = JSON.stringify({
-        userId: "123", // Replace with dynamic user ID if necessary
-      });
-
-      const config = {
-        method: "post",
-        url: "https://diagnoseai-core-apis.azure-api.net/core/chat_connection",
-        headers: {
-          // 'Ocp-Apim-Subscription-Key': process.env.OCP_APIM_SUBSCRIPTION_KEY,
-          "Ocp-Apim-Subscription-Key": "14accc73703e44e2b4ed893edd5fb01b",
-          "Content-Type": "application/json",
-          "Auth-Token": token,
-        },
-        data,
+      const data = {
+        token: token,
       };
 
       try {
-        const response = await axios(config);
+        const response = await axios.post("/api/chatConnection", data);
         const wsUrl = response.data.wsUrl; // Extract the wsUrl from the response
         setWsUrl(wsUrl);
       } catch (error) {
