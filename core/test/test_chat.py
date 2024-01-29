@@ -43,9 +43,9 @@ from core.Chat.chat import (ai_client, main, process_message,  # noqa: E402
                             ws_log_and_send_error, ws_send_message,
                             shadow_msg_to_db)
 from core.utils.chat_message import ChatMessage  # noqa: E402
-from core.utils.web_pub_sub_interfaces import \
-    WebPubSubConnectionContext  # pylint: disable=line-too-long # noqa: E402, E501
-from core.utils.web_pub_sub_interfaces import WebPubSubRequest
+from core.utils.web_pub_sub_interfaces import WebPubSubConnectionContext  # pylint: disable=line-too-long # noqa: E402, E501
+from core.utils.web_pub_sub_interfaces import WebPubSubRequest  # pylint: disable= line-too-long wrong-import-position # noqa: E402, E501
+
 
 class TestChat(unittest.TestCase):
     """
