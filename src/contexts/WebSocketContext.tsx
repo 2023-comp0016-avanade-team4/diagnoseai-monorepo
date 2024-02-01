@@ -54,6 +54,19 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       }
     };
 
+    // TODO: Given how gigantic this is, it's time to use a store
+    // just for messages
+    const fetchHistory = async () => {
+      try {
+        const response = await axios.get("/api/chatHistory?conversation_id=1");
+        const history = JSON.parse(response.data) as Message[];
+        setMessages(history);
+      } catch (error) {
+        console.log("Error fetching history:", error);
+      }
+    }
+
+    fetchHistory();
     fetchData();
   }, [token]);
 
