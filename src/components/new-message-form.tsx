@@ -39,9 +39,8 @@ export const NewMessageForm = () => {
         const textResponse = JSON.parse(messageData).body;
 
         const responseMessage = {
-          id: "2",
+          id: uuidv4(),
           username: "bot",
-          avatar: "https://avatars.githubusercontent.com/u/1856293?v=4",
           message: textResponse,
           createdAt: "1",
         } as Message;
@@ -71,7 +70,6 @@ export const NewMessageForm = () => {
       // HACK: stopgap so that react doesn't complain about duplicate keys
       id: uuidv4(),
       username: "some_user",
-      avatar: "https://avatars.githubusercontent.com/u/114498077?v=4",
       message: message.message,
       isImage: message.isImage,
       createdAt: Date.now().toString(),

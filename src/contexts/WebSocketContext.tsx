@@ -8,6 +8,16 @@ import React, {
 import axios from "axios";
 import { Message } from "@/components/message-component";
 import useAuthToken from "@/hooks/use-auth-token";
+import { v4 as uuid4 } from "uuid";
+
+type IntermediateHistoricalMessage = {
+  message: string;
+  conversationId: number;
+  sentAt: number;
+  isImage: boolean;
+  index: string;
+  sender: 'user' | 'bot';
+};
 
 type WebSocketContextState = {
   wsUrl: string | null;
@@ -59,7 +69,15 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     const fetchHistory = async () => {
       try {
         const response = await axios.get("/api/chatHistory?conversation_id=1");
-        const history = JSON.parse(response.data) as Message[];
+        const history = (response.data.messages as
+          IntermediateHistoricalMessage[])
+          .map((message) => ({
+            id: uuid4(),
+            username: message.sender == 'bot' ? 'bot' : 'some_user',
+            message: message.message,
+            createdAt: message.sentAt.toString(),
+            isImage: message.isImage,
+          } as Message));
         setMessages(history);
       } catch (error) {
         console.log("Error fetching history:", error);

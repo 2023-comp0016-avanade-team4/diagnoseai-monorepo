@@ -13,12 +13,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: 'Not authenticated' });
   }
 
-  const data = JSON.stringify({
-    conversation_id: req.query.conversation_id,
-  });
-
   const config = {
-    method: "post",
+    method: "get",
     url: `${process.env.CHAT_HISTORY_URL}?conversation_id=${req.query.conversation_id}`,
     headers: {
       "Ocp-Apim-Subscription-Key": process.env.OCP_APIM_SUBSCRIPTION_KEY,
