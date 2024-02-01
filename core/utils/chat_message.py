@@ -4,6 +4,7 @@ Contains the chat mesage data class.
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Optional
 from typing import Literal
 
 from dataclasses_json import DataClassJsonMixin, config
@@ -19,6 +20,7 @@ class ChatMessage(DataClassJsonMixin):
     """
     message: str
     conversation_id: str = field(metadata=config(field_name="conversationId"))
+    auth_token: Optional[str] = field(metadata=config(field_name="authToken"))
     sent_at: datetime = field(metadata=config(field_name="sentAt"))
     is_image: bool = field(
         default=False, metadata=config(field_name="isImage"))
@@ -26,11 +28,20 @@ class ChatMessage(DataClassJsonMixin):
 
 
 @dataclass
-class BidirectionalChatMessage(ChatMessage, DataClassJsonMixin):
+class BidirectionalChatMessage(DataClassJsonMixin):
     """
     The BidirectionalChatMessage data class. This represents a message
-    object that differentiate between the bot sender the actual user
+    object that differentiate between the bot sender the actual user.
+
+    This class more closely represents the database structure, which
+    does not contain the auth token.
     """
+    message: str
+    conversation_id: str = field(metadata=config(field_name="conversationId"))
+    sent_at: datetime = field(metadata=config(field_name="sentAt"))
+    is_image: bool = field(
+        default=False, metadata=config(field_name="isImage"))
+    index: str = field(default='validation-index')
     sender: Literal['bot', 'user'] = 'bot'
 
 

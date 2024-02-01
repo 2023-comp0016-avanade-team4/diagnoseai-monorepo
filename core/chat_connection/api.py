@@ -10,6 +10,7 @@ import azure.functions as func  # type: ignore[import-untyped]
 from azure.messaging.webpubsubservice import WebPubSubServiceClient  # type: ignore[import-untyped] # noqa: E501 # pylint: disable=line-too-long
 from utils.conversation import (ChatConnectionRequest,
                                 ChatConnectionResponse)
+from utils.verify_token import verify_token
 
 app = func.FunctionApp()
 
@@ -43,6 +44,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     Args:
         req (func.HttpRequest): The HTTP request
     """
+    if not verify_token(req.headers['Auth-Token']):
+        return func.HttpResponse(
+            '', status_code=401
+        )
+
     logging.info('Chat Connection called with %s', req.method)
     try:
         serialized = ChatConnectionRequest.from_json(req.get_body())
