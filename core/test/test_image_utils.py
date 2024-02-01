@@ -51,4 +51,4 @@ class TestImageUtils(unittest.TestCase):
                 get_preauthenticated_blob_url(client, 'container_name',
                                               'some_file')
             m.assert_called_once()
-            self.assertEqual(token, 'some_url/test_token')
+            self.assertEqual(token, 'some_url?test_token')

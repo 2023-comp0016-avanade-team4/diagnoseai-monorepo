@@ -35,7 +35,7 @@ def get_preauthenticated_blob_url(blob_service_client: BlobServiceClient,
         permission=BlobSasPermissions(read=True),
         expiry=datetime.utcnow() + timedelta(hours=1)
     )
-    return f"{blob_client.url}/{sas_token}"
+    return f"{blob_client.url}?{sas_token}"
 
 
 def is_url_encoded_image(body: str) -> bool:
