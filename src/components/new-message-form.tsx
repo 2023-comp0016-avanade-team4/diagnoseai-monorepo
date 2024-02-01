@@ -20,35 +20,6 @@ export const NewMessageForm = () => {
     }
   };
 
-  const uploadImage = async (file: File) => {
-    const formData = new FormData();
-    formData.append("image", file);
-
-    // temp URL to display in chat (not working rn)
-    const imageURL = URL.createObjectURL(file);
-    addImageMessage(imageURL);
-
-    try {
-      const response = await fetch(
-        "https://diagnoseai-core-apis.azure-api.net/core/chat_img?conversation_id=123",
-        {
-          method: "POST",
-          body: formData,
-          headers: {
-            "Ocp-Apim-Subscription-Key": "14accc73703e44e2b4ed893edd5fb01b",
-            "Auth-Token": token || "",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Image upload failed");
-      }
-    } catch (error) {
-      console.error("Error uploading image:", error);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -59,19 +30,6 @@ export const NewMessageForm = () => {
     } else {
       console.log("No message or image to send");
     }
-  };
-
-  const addImageMessage = (imageURL: string) => {
-    const imageMessage = {
-      id: uuidv4(),
-      username: "some_user",
-      avatar: "https://avatars.githubusercontent.com/u/114498077?v=4",
-      message: `<img src="${imageURL}" alt="uploaded image"/>`,
-      createdAt: new Date().toISOString(),
-    } as Message;
-
-    addMessage(imageMessage);
-    // URL.revokeObjectURL(imageURL)
   };
 
   useEffect(() => {
