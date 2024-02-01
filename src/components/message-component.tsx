@@ -6,8 +6,9 @@ export type Message = {
   id: string;
   username: string;
   message: string;
-  createdAt: string;
+  sentAt: number;
   isImage?: boolean;
+  authToken?: string;
 };
 
 interface Props {

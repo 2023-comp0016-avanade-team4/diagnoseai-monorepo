@@ -2,14 +2,24 @@ import React, { useContext, useEffect } from 'react';
 import { useInView } from "react-intersection-observer";
 
 import { WebSocketContext } from '@/contexts/WebSocketContext';
-import { MessageComponent } from '@/components/message-component';
+import { ChatContext } from '@/contexts/ChatContext';
+import { MessageComponent, Message } from '@/components/message-component';
+import { v4 as uuidv4 } from "uuid";
+
+export type IntermediateResponseMessage = {
+  body: string;
+  conversationId: number;
+  sentAt: number;
+  type: 'message'
+};
 
 export const MessageList = () => {
   const [scrollRef, inView, entry] = useInView({
     trackVisibility: true,
     delay: 1000,
   });
-  const { messages } = useContext(WebSocketContext);
+  const { webSocket } = useContext(WebSocketContext);
+  const { messages, addMessage, fetchHistory } = useContext(ChatContext);
 
   useEffect(() => {
     if (entry?.target) {
@@ -17,17 +27,46 @@ export const MessageList = () => {
     }
   }, [messages?.length, entry?.target]);
 
-  if (false)
-  return (
-    <div className="flex items-center justify-center h-full">
-      <p className="text-white">Fetching most recent chat messages.</p>
-    </div>
-  );
+  useEffect(() => {
+    const handleIncomingMessages = (event: MessageEvent) => {
+      try {
+        const messageData = JSON.parse(
+          JSON.parse(event.data) as string
+        ) as IntermediateResponseMessage;
+        const responseMessage = {
+          id: uuidv4(),
+          username: "bot",
+          message: messageData.body,
+          sentAt: messageData.sentAt / 1000,
+        } as Message;
+
+        addMessage(responseMessage);
+      } catch (error) {
+        console.error("Error parsing message data:", error);
+      }
+    };
+
+    if (webSocket) {
+      webSocket.addEventListener('message', handleIncomingMessages);
+      fetchHistory('1');  // TODO: replace with actual conversation ID
+
+      return () => {
+        webSocket.removeEventListener('message', handleIncomingMessages);
+      };
+    }
+  }, [addMessage, webSocket, fetchHistory]);
 
   if (false)
-  return (
-    <p className="text-white">Something went wrong. Refresh to try again.</p>
-  );
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-white">Fetching most recent chat messages.</p>
+      </div>
+    );
+
+  if (false)
+    return (
+      <p className="text-white">Something went wrong. Refresh to try again.</p>
+    );
 
   return (
     <div className="flex flex-col w-full space-y-3 overflow-y-scroll no-scrollbar">
