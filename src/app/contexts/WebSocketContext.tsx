@@ -1,11 +1,13 @@
-'use client';
-
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import axios from "axios";
 import { Message } from "../components/MessageComponent";
-import { useSelector } from 'react-redux';
-import { RootState } from '../../redux/stateTypes';
-
+import { useSelector } from "react-redux";
 
 type WebSocketContextState = {
   wsUrl: string | null;
@@ -25,39 +27,25 @@ type WebSocketProviderProps = {
   children: React.ReactNode;
 };
 
-export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }) => {
+export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
+  children,
+}) => {
   const [wsUrl, setWsUrl] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [webSocket, setWebSocket] = useState<WebSocket | null>(null);
-  const uuid = useSelector((state: RootState) => state.uuid.value);
 
   const addMessage = useCallback((message: Message) => {
-    setMessages(prevMessages => [...prevMessages, message]);
+    setMessages((prevMessages) => [...prevMessages, message]);
   }, []);
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = JSON.stringify({
-        "userId": "123" // Replace with dynamic user ID if necessary
-      });
-
-      const config = {
-        method: 'post',
-        url: 'https://diagnoseai-core-apis.azure-api.net/core/chat_connection',
-        headers: {
-          // 'Ocp-Apim-Subscription-Key': process.env.OCP_APIM_SUBSCRIPTION_KEY,
-          'Ocp-Apim-Subscription-Key': "14accc73703e44e2b4ed893edd5fb01b",
-          'Content-Type': 'application/json'
-        },
-        data
-      };
-
       try {
-        const response = await axios(config);
-        const wsUrl = response.data.wsUrl; // Extract the wsUrl from the response
+        const response = await axios.post("/api/chatConnection");
+        const wsUrl = response.data.wsUrl;
         setWsUrl(wsUrl);
       } catch (error) {
-        console.error('Error fetching WebSocket URL:', error);
+        console.error("Error fetching WebSocket URL:", error);
       }
     };
 
@@ -94,7 +82,6 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     webSocket, // Provide the WebSocket instance in context
   };
 
-
   return (
     <WebSocketContext.Provider value={contextValue}>
       {children}
@@ -105,7 +92,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
 export const useWebSocket = () => {
   const context = useContext(WebSocketContext);
   if (!context) {
-    throw new Error('useWebSocket must be used within a WebSocketProvider');
+    throw new Error("useWebSocket must be used within a WebSocketProvider");
   }
   return context;
 };
