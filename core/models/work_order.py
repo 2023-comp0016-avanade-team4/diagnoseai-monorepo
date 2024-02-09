@@ -1,6 +1,7 @@
 from sqlalchemy import Column, String, Integer, ForeignKey, Text, DateTime, func
-from sqlalchemy.orm import Mapped, declarative_base, relationship, mapped_column
+from sqlalchemy.orm import Mapped, declarative_base, relationship, mapped_column, Session
 from uuid import uuid4
+from typing import List
 
 from .common import Base
 
@@ -24,3 +25,24 @@ class MachineModel(Base):
     model: Mapped[str] = mapped_column(String(255))
 
     work_orders = relationship("WorkOrderModel", back_populates="machine")
+
+
+class WorkOrderDAO:
+    @staticmethod
+    def get_work_orders_for_user(session: Session, user_id: str) -> List[WorkOrderModel]:
+        """
+        Gets all work orders for a specific user.
+
+        Args:
+            session (Session): The database session
+            user_id (str): The user ID
+
+        Returns:
+            List[WorkOrderModel]: A list of work order models
+        """
+        return session.query(WorkOrderModel).filter(WorkOrderModel.user_id == user_id).all()
+
+    # @staticmethod
+    # def get_conversation_id(db_session: Session, order_id: str) -> str:
+    #     work_order = db_session.query(WorkOrderModel).get(order_id)
+    #     return work_order.conversation_id if work_order else None
