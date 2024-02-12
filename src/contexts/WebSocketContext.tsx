@@ -1,11 +1,9 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-} from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
-import useAuthToken from "@/hooks/use-auth-token";
+// import useAuthToken from "@/hooks/use-auth-token";
+// import { auth } from "@clerk/nextjs";
+
+// const { getToken } = auth();
 
 type WebSocketContextState = {
   wsUrl: string | null;
@@ -26,13 +24,13 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 }) => {
   const [wsUrl, setWsUrl] = useState<string | null>(null);
   const [webSocket, setWebSocket] = useState<WebSocket | null>(null);
-  const token = useAuthToken();
+  // const token = getToken();
 
   useEffect(() => {
     const fetchData = async () => {
       const data = {
-        token: token,
-      };
+        token: "",
+      }; // can remove this altogether since token is added in chatConnection
 
       try {
         const response = await axios.post("/api/chatConnection", data);
@@ -44,7 +42,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     };
 
     fetchData();
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     if (wsUrl && !webSocket) {

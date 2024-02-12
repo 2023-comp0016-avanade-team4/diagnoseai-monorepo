@@ -4,9 +4,11 @@ import useSound from "use-sound";
 import { useChatProvider } from "@/contexts/ChatContext";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 import uploadImageIcon from "../../assets/upload-image-icon.svg";
-import useAuthToken from "@/hooks/use-auth-token";
+// import useAuthToken from "@/hooks/use-auth-token";
 import { Message } from "./message-component";
 import { v4 as uuidv4 } from "uuid";
+// import { getAuth } from "@clerk/nextjs/dist/types/server-helpers.server";
+import { auth } from "@clerk/nextjs";
 
 export const NewMessageForm = () => {
   const [play] = useSound("sent.wav");
@@ -14,7 +16,8 @@ export const NewMessageForm = () => {
   const { webSocket } = useWebSocket();
   const { addMessage } = useChatProvider();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const token: string | null = useAuthToken();
+  // const token: string | null = useAuthToken();
+  const { getToken } = auth();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -53,14 +56,14 @@ export const NewMessageForm = () => {
     play();
   };
 
-  const addNewMessage = (body: string, file: File | null) => {
+  const addNewMessage = async (body: string, file: File | null) => {
     let message = {
       id: uuidv4(),
       username: "some_user",
       conversationId: "1", // TODO: use real conversation ID eventually
       message: body,
       sentAt: Date.now() / 1000,
-      authToken: token!,
+      authToken: await getToken(),
       isImage: false,
     } as Message;
 
