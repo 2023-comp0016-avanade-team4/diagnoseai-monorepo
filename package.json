@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "jest",
     "lint": "next lint"
   },
   "dependencies": {
@@ -24,9 +25,15 @@
     "use-sound": "4.0.1"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.2.0",
+    "@testing-library/react": "^14.1.2",
+    "@types/jest": "^29.5.11",
     "@types/jsonwebtoken": "9.0.1",
     "autoprefixer": "10.4.13",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
     "postcss": "^8.4.32",
-    "tailwindcss": "3.2.7"
+    "tailwindcss": "3.2.7",
+    "ts-node": "^10.9.2"
   }
 }

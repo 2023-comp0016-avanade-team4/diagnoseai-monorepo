@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import useSound from 'use-sound';
-import { useWebSocket } from '@/contexts/WebSocketContext';
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import useSound from "use-sound";
+import { useWebSocket } from "@/contexts/WebSocketContext";
+import uploadImageIcon from "../../assets/upload-image-icon.svg";
+import styles from "./new-message-form.module.css";
 
 export const NewMessageForm = () => {
-  const [play] = useSound('sent.wav');
-  const [body, setBody] = useState('');
+  const [play] = useSound("sent.wav");
+  const [body, setBody] = useState("");
   const { addMessage, webSocket } = useWebSocket(); // Get WebSocket from context
 
   useEffect(() => {
@@ -16,9 +19,9 @@ export const NewMessageForm = () => {
         const responseMessage = {
           id: "2",
           username: "bot",
-          avatar: 'https://avatars.githubusercontent.com/u/1856293?v=4',
+          avatar: "https://avatars.githubusercontent.com/u/1856293?v=4",
           body: textResponse,
-          createdAt: "1"
+          createdAt: "1",
         };
         addMessage(responseMessage);
       } catch (error) {
@@ -40,24 +43,23 @@ export const NewMessageForm = () => {
       const message = {
         conversationId: "1",
         message: body,
-        sentAt: 1
+        sentAt: 1,
       };
 
       webSocket.send(JSON.stringify(message));
       addMessage({
         id: "1",
         username: "some_user",
-        avatar: 'https://avatars.githubusercontent.com/u/114498077?v=4',
+        avatar: "https://avatars.githubusercontent.com/u/114498077?v=4",
         body: body,
-        createdAt: "1"
+        createdAt: "1",
       });
 
       play();
     } else {
-      console.error('WebSocket is not connected.');
+      console.error("WebSocket is not connected.");
     }
   };
-
 
   return (
     <form
@@ -65,11 +67,23 @@ export const NewMessageForm = () => {
         e.preventDefault();
         if (body) {
           addNewMessage(body);
-          setBody('');
+          setBody("");
         }
       }}
       className="flex items-center space-x-3"
     >
+      <div className={styles.imageUpload}>
+        <label htmlFor="file-input">
+          <Image src={uploadImageIcon} alt="upload image" className="w-6 h-6" />
+        </label>
+        <input
+          id="file-input"
+          name="image"
+          type="file"
+          accept=".png, .jpg, .jpeg"
+        />
+      </div>
+
       <input
         autoFocus
         id="message"
@@ -86,6 +100,6 @@ export const NewMessageForm = () => {
       >
         Send
       </button>
-    </form >
+    </form>
   );
 };
