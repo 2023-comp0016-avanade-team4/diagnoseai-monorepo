@@ -1,9 +1,9 @@
-import { getAuth } from '@clerk/nextjs/dist/types/server-helpers.server';
+import { getAuth } from '@clerk/nextjs/server';
 import axios from 'axios';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { getToken } =  getAuth(req);
+  const { getToken } = getAuth(req);
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });

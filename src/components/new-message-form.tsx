@@ -4,11 +4,9 @@ import useSound from "use-sound";
 import { useChatProvider } from "@/contexts/ChatContext";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 import uploadImageIcon from "../../assets/upload-image-icon.svg";
-// import useAuthToken from "@/hooks/use-auth-token";
 import { Message } from "./message-component";
 import { v4 as uuidv4 } from "uuid";
-// import { getAuth } from "@clerk/nextjs/dist/types/server-helpers.server";
-import { auth } from "@clerk/nextjs";
+import { useAuth } from "@clerk/nextjs";
 
 export const NewMessageForm = () => {
   const [play] = useSound("sent.wav");
@@ -17,7 +15,7 @@ export const NewMessageForm = () => {
   const { addMessage } = useChatProvider();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   // const token: string | null = useAuthToken();
-  const { getToken } = auth();
+  const { getToken } = useAuth();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
