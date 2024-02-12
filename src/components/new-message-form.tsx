@@ -9,6 +9,72 @@ export const NewMessageForm = () => {
   const [play] = useSound("sent.wav");
   const [body, setBody] = useState("");
   const { addMessage, webSocket } = useWebSocket(); // Get WebSocket from context
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      setSelectedFile(event.target.files[0]);
+    }
+  };
+
+  const uploadImage = async (file: File) => {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    // temp URL to display in chat (not working rn)
+    const imageURL = URL.createObjectURL(file);
+    addImageMessage(imageURL);
+
+    try {
+      const response = await fetch('https://diagnoseai-core-apis.azure-api.net/core/chat_img?conversation_id=123', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Ocp-Apim-Subscription-Key': process.env.OCP_APIM_SUBSCRIPTION_KEY || '',
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Image upload failed');
+      }
+
+    } catch (error) {
+      console.error('Error uploading image:', error);
+    }
+  };
+
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (body) {
+      addNewMessage(body);
+      setBody('');
+    }
+
+    if (selectedFile) {
+      console.log("Uploading image...");
+      await uploadImage(selectedFile);
+      setSelectedFile(null);
+    }
+
+    if (!body && !selectedFile) {
+      console.log("No message or image to send");
+    }
+  };
+
+  const addImageMessage = (imageURL: string) => {
+    const imageMessage = {
+      id: "unique_id",
+      username: "some_user",
+      avatar: 'https://avatars.githubusercontent.com/u/114498077?v=4',
+      body: `<img src="${imageURL}" alt="uploaded image"/>`,
+      createdAt: new Date().toISOString()
+    };
+
+    addMessage(imageMessage);
+    // URL.revokeObjectURL(imageURL)
+  };
 
   useEffect(() => {
     const handleIncomingMessages = (event: MessageEvent) => {
@@ -62,16 +128,7 @@ export const NewMessageForm = () => {
   };
 
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (body) {
-          addNewMessage(body);
-          setBody("");
-        }
-      }}
-      className="flex items-center space-x-3"
-    >
+    <form onSubmit={handleSubmit} className="flex items-center space-x-3">
       <div className={styles.imageUpload}>
         <label htmlFor="file-input">
           <Image src={uploadImageIcon} alt="upload image" className="w-6 h-6" />
@@ -81,6 +138,7 @@ export const NewMessageForm = () => {
           name="image"
           type="file"
           accept=".png, .jpg, .jpeg"
+          onChange={handleFileChange}
         />
       </div>
 
@@ -96,7 +154,7 @@ export const NewMessageForm = () => {
       <button
         type="submit"
         className="bg-[#222226] rounded h-12 font-medium text-white w-24 text-lg border border-transparent hover:bg-[#363739] transition"
-        disabled={!body}
+        disabled={!body && !selectedFile}
       >
         Send
       </button>

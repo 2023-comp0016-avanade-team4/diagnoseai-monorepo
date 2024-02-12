@@ -1,5 +1,6 @@
 // import { formatRelative, formatDistance, differenceInHours } from "date-fns";
 import Image from "next/image";
+import DOMPurify from 'dompurify';
 
 export type Message = {
   id: string;
@@ -14,11 +15,13 @@ interface Props {
 }
 
 export const MessageComponent = ({ message }: Props) => {
+  const createMarkup = (htmlContent: string) => {
+    return { __html: DOMPurify.sanitize(htmlContent) };
+  };
 
   return (
     <div
-      className={`flex flex-col relative space-x-1 space-y-1 ${message.username === "some_user" ? "text-right" : "text-left"
-        }`}
+      className={`flex flex-col relative space-x-1 space-y-1 ${message.username === "some_user" ? "text-right" : "text-left"}`}
     >
       <div
         className={`flex relative space-x-1 ${message.username === "some_user"
@@ -52,7 +55,7 @@ export const MessageComponent = ({ message }: Props) => {
           {message.username !== "some_user" && (
             <span className="font-bold">{message.username}:&nbsp;</span>
           )}
-          <span className="max-w-sm">{message.body}</span>
+          <span className="max-w-sm" dangerouslySetInnerHTML={createMarkup(message.body)}></span>
         </span>
       </div>
       {/* <p className="text-xs text-white/50">
