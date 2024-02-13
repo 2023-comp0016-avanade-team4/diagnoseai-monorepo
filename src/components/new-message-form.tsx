@@ -7,6 +7,7 @@ import uploadImageIcon from "../../assets/upload-image-icon.svg";
 import { Message } from "./message-component";
 import { v4 as uuidv4 } from "uuid";
 import { useAuth } from "@clerk/nextjs";
+import { useWorkOrder } from "@/contexts/WorkOrderContext";
 
 export const NewMessageForm = () => {
   const [play] = useSound("sent.wav");
@@ -16,6 +17,7 @@ export const NewMessageForm = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   // const token: string | null = useAuthToken();
   const { getToken } = useAuth();
+  const { current } = useWorkOrder();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -59,11 +61,12 @@ export const NewMessageForm = () => {
     let message = {
       id: uuidv4(),
       username: "some_user",
-      conversationId: "1", // TODO: use real conversation ID eventually
+      conversationId: current?.conversation_id || "1", // HACK: fallback to 1 if we can't get convesation ID
       message: body,
       sentAt: Date.now() / 1000,
       authToken: await getToken(),
       isImage: false,
+      index: current ? current?.machine_id : 'validation-index',
     } as Message;
 
     if (file) {

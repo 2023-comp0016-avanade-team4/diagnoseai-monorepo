@@ -3,6 +3,7 @@ import { useInView } from "react-intersection-observer";
 
 import { WebSocketContext } from '@/contexts/WebSocketContext';
 import { ChatContext } from '@/contexts/ChatContext';
+import { useWorkOrder } from '@/contexts/WorkOrderContext';
 import { MessageComponent, Message } from '@/components/message-component';
 import { v4 as uuidv4 } from "uuid";
 
@@ -20,6 +21,7 @@ export const MessageList = () => {
   });
   const { webSocket } = useContext(WebSocketContext);
   const { messages, addMessage, fetchHistory } = useContext(ChatContext);
+  const { current } = useWorkOrder();
 
   useEffect(() => {
     if (entry?.target) {
@@ -33,6 +35,10 @@ export const MessageList = () => {
         const messageData = JSON.parse(
           JSON.parse(event.data) as string
         ) as IntermediateResponseMessage;
+        if (current?.conversation_id !== messageData.conversationId.toString()) {
+          return;
+        }
+
         const responseMessage = {
           id: uuidv4(),
           username: "bot",
@@ -48,13 +54,13 @@ export const MessageList = () => {
 
     if (webSocket) {
       webSocket.addEventListener('message', handleIncomingMessages);
-      fetchHistory('1');  // TODO: replace with actual conversation ID
+      fetchHistory(current ? current?.conversation_id : '1');  // HACK: fallback to 1 if we can't get convesation ID
 
       return () => {
         webSocket.removeEventListener('message', handleIncomingMessages);
       };
     }
-  }, [addMessage, webSocket, fetchHistory]);
+  }, [addMessage, webSocket, fetchHistory, current]);
 
   if (false)
     return (

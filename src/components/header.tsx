@@ -1,18 +1,74 @@
-// import { signIn, signOut, useSession } from "next-auth/react";
+import React, { useState } from "react";
 import { UserButton } from "@clerk/nextjs";
-import Image from "next/image";
-import SignOutButton from "./sign-out-button";
+import { slide as Menu } from "react-burger-menu";
+import { useWorkOrder } from "@/contexts/WorkOrderContext";
+
+const menuStyles = {
+  bmBurgerButton: {
+    position: 'fixed',
+    width: '20px',
+    height: '20px',
+    left: '20px',
+    top: '26px',
+  },
+  bmCrossButton: {
+    height: '24px',
+    width: '24px'
+  },
+  bmBurgerBars: {
+    background: '#373a47'
+  },
+  bmCross: {
+    background: '#bdc3c7'
+  },
+  bmMenuWrap: {
+    top: '0',
+    left: '0',
+    position: 'fixed',
+    height: '100%'
+  },
+  bmMenu: {
+    top: '0',
+    left: '0',
+    background: '#373a47',
+    padding: '2.5em 1.5em 0',
+    fontSize: '1.15em'
+  },
+  bmOverlay: {
+    top: '0',
+    left: '0',
+    background: 'rgba(0, 0, 0, 0.3)'
+  }
+}
+
 
 export function Header() {
-  //const { data: session } = useSession();
+  const [isOpen, setIsOpen] = useState(false);
+  const { current, setCurrent, workOrders } = useWorkOrder();
 
   return (
     <header className="p-6 bg-white/5 border-b border-[#363739]">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center">
+          <Menu isOpen={isOpen}
+            onStateChange={(state: { isOpen: boolean }) => setIsOpen(state.isOpen)}
+            styles={menuStyles}>
+            <h2 className="text-white font-bold text-xl">Work Orders</h2>
+            {workOrders.map((workOrder) => (
+              <a
+                key={workOrder.order_id}
+                href="#"
+                onClick={() => setCurrent(workOrder)}
+                className="block text-white hover:bg-white/10 p-3"
+              >
+                {current == workOrder ? <p className="font-bold underline">
+                  {workOrder.machine_name}</p> : workOrder.machine_name}
+              </a>
+            ))}
+          </Menu>
           <p className="inline-flex items-center space-x-3">
             <a
-              href="https://grafbase.com?ref=chatbase"
+              href="/"
               target="_blank"
               rel="noopener noreferrer"
             >
