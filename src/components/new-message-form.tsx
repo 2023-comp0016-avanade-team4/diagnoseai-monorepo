@@ -12,9 +12,9 @@ export const NewMessageForm = () => {
   const [play] = useSound("sent.wav");
   const [body, setBody] = useState("");
   const { webSocket } = useWebSocket();
-  const { addMessage } = useChatProvider();
+  const { addMessage, isProcessingImage, setIsProcessingImage } =
+    useChatProvider();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  // const token: string | null = useAuthToken();
   const { getToken } = useAuth();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,6 +79,19 @@ export const NewMessageForm = () => {
         };
         sendMessageToWS(message);
       };
+
+      setIsProcessingImage(true);
+      const mockMessageId = uuidv4();
+
+      setTimeout(() => {
+        addMessage({
+          id: mockMessageId,
+          username: "bot",
+          message: "Processing image...",
+          isImage: false,
+          sentAt: Date.now() / 1000,
+        });
+      }, 250);
     } else {
       sendMessageToWS(message);
     }
@@ -116,10 +129,12 @@ export const NewMessageForm = () => {
         value={body}
         onChange={(e) => setBody(e.target.value)}
         className="flex-1 h-12 px-3 rounded bg-[#222226] border border-[#222226] focus:border-[#222226] focus:outline-none text-white placeholder-white"
+        autoComplete="off"
         disabled={
           !webSocket ||
           webSocket.readyState !== WebSocket.OPEN ||
-          !!selectedFile
+          !!selectedFile ||
+          isProcessingImage
         }
       />
       <button
