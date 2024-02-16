@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { FileUploader } from "react-drag-drop-files";
 import { Skeleton, Button } from "@nextui-org/react";
 import { useAppDispatch } from "../../redux/hook";
-import { setUUID } from "../../redux/uuidReducer"; // Adjust the import path as needed
+import { setUUID } from "../../redux/reducers/uuidReducer"; // Adjust the import path as needed
 
 const fileTypes = ["PDF", "DOCX"];
 

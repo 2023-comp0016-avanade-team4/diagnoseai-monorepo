@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import axios from 'axios';
 import { useDispatch } from 'react-redux';
-import { setUUID } from '../redux/uuidReducer';
+import { setUUID } from '../redux/reducers/uuidReducer';
 
 const UUIDFetcher = () => {
   const dispatch = useDispatch();

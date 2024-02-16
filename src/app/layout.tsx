@@ -23,10 +23,9 @@ export default function RootLayout({ children }) {
             <Header />
             <div className="flex flex-auto h-0">
               <Sidebar />
-
               <div className="flex-1">
                 <Providers>
-                  {children}
+                    {children}
                 </Providers>
               </div>
             </div>
