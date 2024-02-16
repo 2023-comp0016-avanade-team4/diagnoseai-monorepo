@@ -206,7 +206,8 @@ class TestChat(unittest.TestCase):
             image_summary.get_image_summary.assert_called_once()
             shadow.assert_called()
             self.assertTrue(not shadow.call_args_list[0][0][2])
-            self.assertEqual(shadow.call_args_list[1][0][1], 'summary')
+            self.assertEqual(shadow.call_args_list[1][0][1],
+                             'USER IMAGE: summary')
             self.assertTrue(shadow.call_args_list[1][0][2])
 
         # reset for other tests to use

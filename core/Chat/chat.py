@@ -21,7 +21,7 @@ from azure.messaging.webpubsubservice import \
 from azure.storage.blob import BlobServiceClient
 from openai import AzureOpenAI
 from openai.types.chat import ChatCompletionMessageParam
-from models.chat_message import ChatMessageDAO, ChatMessageModel
+from models.chat_message import ChatMessageDAO, ChatMessageModel, SenderTypes
 from utils.chat_message import (BidirectionalChatMessage, ChatMessage,
                                 ResponseChatMessage, ResponseErrorMessage)
 from utils.db import create_session
@@ -130,7 +130,7 @@ def db_history_to_ai_history(conversation_id: str, history_size: int = 10) \
     # ChatCompletionUserMessageParam, so we cast to make typing happy
     return [
         cast(ChatCompletionMessageParam,
-             {'role': 'system' if msg.sender.name == 'bot' else 'user',
+             {'role': 'assistant' if msg.sender == SenderTypes.BOT else 'user',
               'content': msg.message if not msg.is_image
               else msg.additional_context}
              ) for msg in history if not msg.is_image]
@@ -256,15 +256,12 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
         (filename, summary) = __process_message_image(message, connection_id)
 
         # send the summary as the user, but save it as a bot
-        contextualized_summary = (f"{summary}. The lines before is a text"
-                                  "interpretation of an image uploaded by me."
-                                  " Please contextualize the rest of the "
-                                  "conversation to any previous messages and"
-                                  " this image.")
+        contextualized_summary = f"USER IMAGE: {summary}"
         messages.append({'role': 'user', 'content': contextualized_summary})
         shadow_msg_to_db(message.conversation_id, filename, False, True,
                          contextualized_summary)
-        shadow_msg_to_db(message.conversation_id, summary, True, False)
+        shadow_msg_to_db(message.conversation_id, contextualized_summary, True,
+                         False)
         ws_send_message(
             ResponseChatMessage(
                 summary,
@@ -289,6 +286,28 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
                         "endpoint": SEARCH_ENDPOINT,
                         "key": SEARCH_KEY,
                         "indexName": message.index,
+                        "inScope": True,
+                        "filter": None,
+                        "strictness": 3,
+                        "topNDocuments": 5,
+                        "roleInformation": ('You are a helpful chatbot named'
+                                            ' DiagnoseAI. You have access'
+                                            ' to technical manuals via a'
+                                            ' connected data source.'
+                                            ' Users are able to upload'
+                                            ' images to contextualize their'
+                                            ' conversations; you will observe'
+                                            ' these as a message prefixed by'
+                                            ' "USER IMAGE:". If you see'
+                                            ' "USER IMAGE:", it is a'
+                                            ' factual description of the'
+                                            ' image uploaded by the user.'
+                                            ' All references to "image" or'
+                                            ' "images" always refer to'
+                                            ' the description in "USER'
+                                            ' IMAGE:". Answer accordingly to'
+                                            ' all user images and data'
+                                            ' sources you have access to.')
                     }
                 }
             ],
