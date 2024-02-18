@@ -16,13 +16,10 @@ export function Header() {
             setIsOpen={setIsOpen}
             workOrders={workOrders}
             current={current}
-            setCurrent={setCurrent} />
+            setCurrent={setCurrent}
+          />
           <p className="inline-flex items-center space-x-3">
-            <a
-              href="/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <a href="/" target="_blank" rel="noopener noreferrer">
               <svg
                 width="20"
                 height="20"

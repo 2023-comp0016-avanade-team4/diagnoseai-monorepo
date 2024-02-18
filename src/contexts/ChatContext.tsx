@@ -1,6 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import axios from "axios";
-import { Message } from '@/components/message-component';
+import { Message } from "@/components/message-component";
 import { v4 as uuid4 } from "uuid";
 
 export type IntermediateHistoricalMessage = {
@@ -9,7 +15,7 @@ export type IntermediateHistoricalMessage = {
   sentAt: number;
   isImage: boolean;
   index: string;
-  sender: 'user' | 'bot';
+  sender: "user" | "bot";
 };
 
 export const ChatContext = createContext({
@@ -32,16 +38,20 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
 
   const fetchHistory = useCallback(async (conversationId: string) => {
     try {
-      const response = await axios.get(`/api/chatHistory?conversation_id=${conversationId}`);
-      const messages = response.data.messages.map((message: IntermediateHistoricalMessage) => {
-        return {
-          id: uuid4(),
-          username: message.sender == 'bot' ? 'bot' : 'some_user',
-          message: message.message,
-          isImage: message.isImage,
-          sentAt: message.sentAt / 1000,
-        } as Message;
-      });
+      const response = await axios.get(
+        `/api/chatHistory?conversation_id=${conversationId}`,
+      );
+      const messages = response.data.messages.map(
+        (message: IntermediateHistoricalMessage) => {
+          return {
+            id: uuid4(),
+            username: message.sender == "bot" ? "bot" : "some_user",
+            message: message.message,
+            isImage: message.isImage,
+            sentAt: message.sentAt / 1000,
+          } as Message;
+        },
+      );
 
       setMessages(messages);
     } catch (error) {
@@ -50,7 +60,9 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
   }, []);
 
   return (
-    <ChatContext.Provider value={{ messages, setMessages, addMessage, fetchHistory }}>
+    <ChatContext.Provider
+      value={{ messages, setMessages, addMessage, fetchHistory }}
+    >
       {children}
     </ChatContext.Provider>
   );
@@ -62,4 +74,4 @@ export const useChatProvider = () => {
     throw new Error("useChatProvider must be used within a ChatProvider");
   }
   return context;
-}
+};

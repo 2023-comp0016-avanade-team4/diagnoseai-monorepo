@@ -1,20 +1,20 @@
-import React from 'react';
-import axios from 'axios';
-import { render, waitFor, screen } from '@testing-library/react';
-import { WorkOrderProvider, useWorkOrder, WorkOrder } from './WorkOrderContext';
+import React from "react";
+import axios from "axios";
+import { render, waitFor, screen } from "@testing-library/react";
+import { WorkOrderProvider, useWorkOrder, WorkOrder } from "./WorkOrderContext";
 
 let errorSpy: jest.SpyInstance;
 
-describe('WorkOrderContext', () => {
+describe("WorkOrderContext", () => {
   beforeEach(() => {
-    errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-  })
+    errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+  });
 
   afterAll(() => {
     errorSpy.mockRestore();
-  })
+  });
 
-  it('fetches work orders and sets the first one as the current one', async () => {
+  it("fetches work orders and sets the first one as the current one", async () => {
     const DummyComponentFetchOrders = () => {
       const { current, workOrders, refreshOrders } = useWorkOrder();
       React.useEffect(() => {
@@ -25,16 +25,16 @@ describe('WorkOrderContext', () => {
 
     const mockWorkOrders: WorkOrder[] = [
       {
-        order_id: 'mocked-order-id-1',
-        machine_id: 'mocked-machine-id',
-        machine_name: 'mocked-machine-name',
-        conversation_id: 'mocked-conversation-id'
+        order_id: "mocked-order-id-1",
+        machine_id: "mocked-machine-id",
+        machine_name: "mocked-machine-name",
+        conversation_id: "mocked-conversation-id",
       },
       {
-        order_id: 'mocked-order-id-2',
-        machine_id: 'mocked-machine-id-2',
-        machine_name: 'mocked-machine-name-2',
-        conversation_id: 'mocked-conversation-id-2'
+        order_id: "mocked-order-id-2",
+        machine_id: "mocked-machine-id-2",
+        machine_name: "mocked-machine-name-2",
+        conversation_id: "mocked-conversation-id-2",
       },
     ];
 
@@ -43,7 +43,7 @@ describe('WorkOrderContext', () => {
     render(
       <WorkOrderProvider>
         <DummyComponentFetchOrders />
-      </WorkOrderProvider>
+      </WorkOrderProvider>,
     );
 
     await waitFor(() => {
@@ -52,7 +52,7 @@ describe('WorkOrderContext', () => {
     });
   });
 
-  it('fails to fetch work order and throws an error', async () => {
+  it("fails to fetch work order and throws an error", async () => {
     const DummyComponentFetchOrders = () => {
       const { workOrders, refreshOrders } = useWorkOrder();
       React.useEffect(() => {
@@ -61,18 +61,20 @@ describe('WorkOrderContext', () => {
       return workOrders.length > 0 ? <p>Something</p> : <p>Nothing</p>;
     };
 
-    axios.get = jest.fn().mockRejectedValue(new Error('Failed to fetch work orders'));
+    axios.get = jest
+      .fn()
+      .mockRejectedValue(new Error("Failed to fetch work orders"));
 
     render(
       <WorkOrderProvider>
         <DummyComponentFetchOrders />
-      </WorkOrderProvider>
+      </WorkOrderProvider>,
     );
 
     await waitFor(() => {
       expect(axios.get).toHaveBeenCalledWith("/api/workOrders");
-      expect(errorSpy.mock.calls[0][0]).toMatch('Error fetching WorkOrder:');
-      expect(screen.queryByText('Nothing')).toBeInTheDocument();
+      expect(errorSpy.mock.calls[0][0]).toMatch("Error fetching WorkOrder:");
+      expect(screen.queryByText("Nothing")).toBeInTheDocument();
     });
   });
 });

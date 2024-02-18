@@ -1,17 +1,17 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect } from "react";
 import { useInView } from "react-intersection-observer";
 
-import { WebSocketContext } from '@/contexts/WebSocketContext';
-import { ChatContext } from '@/contexts/ChatContext';
-import { useWorkOrder } from '@/contexts/WorkOrderContext';
-import { MessageComponent, Message } from '@/components/message-component';
+import { WebSocketContext } from "@/contexts/WebSocketContext";
+import { ChatContext } from "@/contexts/ChatContext";
+import { useWorkOrder } from "@/contexts/WorkOrderContext";
+import { MessageComponent, Message } from "@/components/message-component";
 import { v4 as uuidv4 } from "uuid";
 
 export type IntermediateResponseMessage = {
   body: string;
   conversationId: number;
   sentAt: number;
-  type: 'message'
+  type: "message";
 };
 
 export const MessageList = () => {
@@ -33,9 +33,11 @@ export const MessageList = () => {
     const handleIncomingMessages = (event: MessageEvent) => {
       try {
         const messageData = JSON.parse(
-          JSON.parse(event.data) as string
+          JSON.parse(event.data) as string,
         ) as IntermediateResponseMessage;
-        if (current?.conversation_id !== messageData.conversationId.toString()) {
+        if (
+          current?.conversation_id !== messageData.conversationId.toString()
+        ) {
           return;
         }
 
@@ -53,11 +55,11 @@ export const MessageList = () => {
     };
 
     if (webSocket) {
-      webSocket.addEventListener('message', handleIncomingMessages);
-      fetchHistory(current ? current?.conversation_id : '1');  // HACK: fallback to 1 if we can't get convesation ID
+      webSocket.addEventListener("message", handleIncomingMessages);
+      fetchHistory(current ? current?.conversation_id : "1"); // HACK: fallback to 1 if we can't get convesation ID
 
       return () => {
-        webSocket.removeEventListener('message', handleIncomingMessages);
+        webSocket.removeEventListener("message", handleIncomingMessages);
       };
     }
   }, [addMessage, webSocket, fetchHistory, current]);
@@ -81,7 +83,10 @@ export const MessageList = () => {
           <button
             className="py-1.5 px-3 text-xs bg-[#1c1c1f] border border-[#363739] rounded-full text-white font-medium"
             onClick={() => {
-              entry?.target.scrollIntoView({ behavior: "smooth", block: "end" })
+              entry?.target.scrollIntoView({
+                behavior: "smooth",
+                block: "end",
+              });
             }}
           >
             Scroll to see latest messages

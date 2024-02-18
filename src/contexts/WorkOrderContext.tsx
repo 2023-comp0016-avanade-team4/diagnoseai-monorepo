@@ -26,7 +26,9 @@ type WorkOrderProviderProps = {
   children: React.ReactNode;
 };
 
-export const WorkOrderProvider: React.FC<WorkOrderProviderProps> = ({ children }) => {
+export const WorkOrderProvider: React.FC<WorkOrderProviderProps> = ({
+  children,
+}) => {
   const [current, setCurrent] = useState<WorkOrder | null>(null);
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
   const refreshOrders = async () => {
@@ -47,12 +49,14 @@ export const WorkOrderProvider: React.FC<WorkOrderProviderProps> = ({ children }
   }, []);
 
   return (
-    <WorkOrderContext.Provider value={{
-      current,
-      setCurrent,
-      workOrders,
-      refreshOrders,
-    }}>
+    <WorkOrderContext.Provider
+      value={{
+        current,
+        setCurrent,
+        workOrders,
+        refreshOrders,
+      }}
+    >
       {children}
     </WorkOrderContext.Provider>
   );

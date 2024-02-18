@@ -66,7 +66,7 @@ export const NewMessageForm = () => {
       sentAt: Date.now() / 1000,
       authToken: await getToken(),
       isImage: false,
-      index: current ? current?.machine_id : 'validation-index',
+      index: current ? current?.machine_id : "validation-index",
     } as Message;
 
     if (file) {
