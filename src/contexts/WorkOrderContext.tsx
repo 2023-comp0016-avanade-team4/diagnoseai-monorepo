@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 
-interface WorkOrder {
+export interface WorkOrder {
   order_id: string;
   machine_id: string;
   machine_name: string;
