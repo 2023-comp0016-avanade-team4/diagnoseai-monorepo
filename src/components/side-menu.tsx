@@ -47,6 +47,12 @@ interface SideMenuProps {
   setCurrent: (state: WorkOrder) => void;
 };
 
+const renderStyles = (isCurrent: boolean) => {
+  const commonStyles = " p-2 my-5 hover:bg-white/10 rounded-xl transition-all duration-300";
+  return (isCurrent ? "bg-gray-900 text-white rounded-xl"
+    : "text-white") + commonStyles;
+}
+
 const SideMenu = ({ isOpen,
   setIsOpen,
   workOrders,
@@ -56,16 +62,16 @@ const SideMenu = ({ isOpen,
     <Menu isOpen={isOpen}
       onStateChange={(state: { isOpen: boolean }) => setIsOpen(state.isOpen)}
       styles={menuStyles}>
-      <h2 className="text-white font-bold text-xl">Work Orders</h2>
+      <h2 className="text-white font-bold text-xl pb-3">Work Orders</h2>
       {workOrders.map((workOrder) => (
         <a
           key={workOrder.order_id}
           href="#"
           onClick={() => setCurrent(workOrder)}
-          className="block text-white hover:bg-white/10 p-3"
+          className={renderStyles(current == workOrder)}
         >
-          {current == workOrder ? <p className="font-bold underline">
-            {workOrder.machine_name}</p> : workOrder.machine_name}
+          <p className="pb-3"><span className="font-bold">Work Order:</span> {workOrder.order_id}</p>
+          <p><span className="font-bold">Machine:</span> {workOrder.machine_name}</p>
         </a>
       ))}
     </Menu>
