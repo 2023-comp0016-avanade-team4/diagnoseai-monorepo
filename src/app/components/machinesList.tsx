@@ -20,7 +20,7 @@ const MachineList = () => {
 
     const machines = useSelector((state : RootState) => state.machines);
 
-    const handleMachineChange = (event) => {
+    const handleMachineChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         if(event.target.value != "") dispatch(selectMachine(machines.filter((machine) => machine.machine_id === event.target.value)[0]));
     }
 
