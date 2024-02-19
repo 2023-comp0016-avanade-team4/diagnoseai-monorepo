@@ -1,4 +1,5 @@
-"""Azure Function to move vectors from validation to production inmex"""
+"""Azure Function to move vectors from validation to production index"""
+
 import os
 import logging
 
