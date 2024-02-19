@@ -1,13 +1,25 @@
-import Image from "next/image";
-import checkmark from '../../../public/accept.png';
+'use client'
+
+import { Skeleton } from "@nextui-org/react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function UploadSuccess() {
+  // TODO: Whoever is doing the backend, this page should redirect to /validate
+  // after it receives all required validation data
+
+  const router = useRouter();
+
+  useEffect(() => {
+    const timeoutFn = () => {
+      router.replace('/validate');
+    }
+    setTimeout(timeoutFn, 1000);
+  }, [router]);
+
   return (
     <div className="flex flex-col items-center justify-center h-full">
-      <div className="mb-2">
-        <Image src={checkmark} alt="checkmark" className="max-w-xs" />
-      </div>
-      <p className="text-large text-center">Your submission will be processed.</p>
+      <Skeleton className="h-full w-full"></Skeleton>
     </div>
   );
 }

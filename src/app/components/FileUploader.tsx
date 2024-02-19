@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FileUploader } from "react-drag-drop-files";
-import { Skeleton } from "@nextui-org/react";
-import { Button } from '@nextui-org/react';
+import { Skeleton, Button } from "@nextui-org/react";
 
 const fileTypes = ["PDF", "DOCX"];
 

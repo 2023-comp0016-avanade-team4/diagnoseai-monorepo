@@ -16,10 +16,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className="light text-foreground bg-background">
-      <body className={`${inter.className} min-h-screen flex flex-col`}>
+      <body className={`${inter.className} max-h-screen h-screen flex flex-col`}>
         <BlockSmallWidth>
           <Header />
-          <div className="flex flex-auto">
+          <div className="flex flex-auto h-0">
             <Sidebar />
 
             <div className="flex-1">
