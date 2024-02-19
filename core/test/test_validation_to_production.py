@@ -74,7 +74,6 @@ class TestValidationToProduction(unittest.TestCase):
                 'Validation index test not found',
                 status_code=404
         )
-       
 
     @patch('core.validation_to_production.cognitiveSearchClient')
     def test_failed_delete_index(self, cog_search_client_patch):
