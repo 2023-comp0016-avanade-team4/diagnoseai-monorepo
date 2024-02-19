@@ -1,4 +1,3 @@
-"use client";
 import FileUploader from "./FileUploader";
 import MachineList from "./machinesList";
 
