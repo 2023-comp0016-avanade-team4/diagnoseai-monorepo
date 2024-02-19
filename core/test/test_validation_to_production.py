@@ -7,10 +7,6 @@ from unittest.mock import patch
 from azure.functions import HttpRequest
 from azure.core.exceptions import HttpResponseError
 
-# Patching the verify_token function
-
-vjwt_patch = patch('utils.verify_token.verify_token').start()
-vjwt_patch.return_value = True
 
 # Globals patching
 akc_patch = patch('azure.core.credentials.AzureKeyCredential').start()
@@ -40,8 +36,8 @@ class TestValidationToProduction(unittest.TestCase):
         }
     )
 
-    @patch('core.validation_to_production.prodClient')
-    @patch('core.validation_to_production.cogSearchClient')
+    @patch('core.validation_to_production.productionClient')
+    @patch('core.validation_to_production.cognitiveSearchClient')
     def test_main(self, cog_search_client_patch, prod_client_patch):
         """
         Tests that the endpoint returns a 200 when authorized and validation
@@ -63,13 +59,6 @@ class TestValidationToProduction(unittest.TestCase):
                 status_code=200
         )
 
-    def test_unauthorised(self):
-        """Tests that the endpoint returns a 401 when unauthorized"""
-        verify_token_patch.return_value = False
-        main(self.req)
-        verify_token_patch.assert_called_with('test')
-        http_response_patch.assert_called_with('Unauthorized', status_code=401)
-
     @patch('core.validation_to_production.cognitiveSearchClient')
     def test_validation_index_not_found(self, cog_search_client_patch):
         """
@@ -79,10 +68,13 @@ class TestValidationToProduction(unittest.TestCase):
         cog_search_client_patch.list_index_names.return_value = iter(
                 ['not_test'])
         main(self.req)
+        verify_token_patch.assert_called_with('test')
+        cog_search_client_patch.list_index_names.assert_called()
         http_response_patch.assert_called_with(
-                'Validation index not found',
+                'Validation index test not found',
                 status_code=404
         )
+       
 
     @patch('core.validation_to_production.cognitiveSearchClient')
     def test_failed_delete_index(self, cog_search_client_patch):
@@ -99,3 +91,10 @@ class TestValidationToProduction(unittest.TestCase):
                 'Error deleting validation index: mock-error',
                 status_code=500
         )
+
+    def test_unauthorised(self):
+        """Tests that the endpoint returns a 401 when unauthorized"""
+        verify_token_patch.return_value = False
+        main(self.req)
+        verify_token_patch.assert_called_with('test')
+        http_response_patch.assert_called_with('Unauthorized', status_code=401)

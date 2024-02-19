@@ -55,19 +55,19 @@ def migrate_documents(validation_index_name: str) -> None:
     productionClient.upload_documents(documents)
 
 
-def validation_does_not_exist(validation_index_name: str) -> HttpResponse:
-    """Return a response indicating that the validation index does not exist"""
+def index_not_found_error(validation_index_name: str) -> HttpResponse:
+    """Return a response indicating that the validation index was not found"""
     return HttpResponse(
-        f"Index {validation_index_name} does not exist",
+        f"Validation index {validation_index_name} not found",
         status_code=404
     )
 
 
 def error_deleting_index(err: HttpResponseError) -> HttpResponse:
-    """Return a response indicating that there was an error deleting the 
-    validation index"""
+    """Return a response indicating that there was an error deleting
+    the validation index"""
     return HttpResponse(
-        f"Error deleting validation index :{err.message}",
+        f"Error deleting validation index: {err.message}",
         status_code=500
     )
 
@@ -86,7 +86,7 @@ def main(req: HttpRequest) -> HttpResponse:
     validation_index_name = req_body.get('validationIndexName')
 
     if not check_index_exists(validation_index_name):
-        return validation_does_not_exist(validation_index_name)
+        return index_not_found_error(validation_index_name)
 
     migrate_documents(validation_index_name)
 
