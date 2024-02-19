@@ -13,7 +13,7 @@ os.environ["DatabaseUsername"] = "SA"
 os.environ["DatabasePassword"] = "Strong@Passw0rd123!"
 os.environ["DatabaseSelfSigned"] = "true"
 
-from database.api import (
+from work_order.api import (
     main,
 )
 
@@ -57,7 +57,7 @@ class TestWorkOrders(unittest.TestCase):
             # mock HTTP request
             req = func.HttpRequest(
                 method="GET",
-                url="/api/work_orders",
+                url="/api/work_order",
                 params={"user_id": "user123"},
                 body=b"",
             )
@@ -87,9 +87,7 @@ class TestWorkOrders(unittest.TestCase):
         """
         Test the response when no user_id is provided in the request
         """
-        req = func.HttpRequest(
-            method="GET", url="/api/work_orders", params={}, body=b""
-        )
+        req = func.HttpRequest(method="GET", url="/api/work_order", params={}, body=b"")
 
         response = main(req)
 

@@ -1,6 +1,7 @@
 import azure.functions as func  # type: ignore[import-untyped]
 from utils.db import create_session
 from models.work_order import WorkOrderDAO
+from utils.verify_token import verify_token
 import os
 import json
 import logging
@@ -13,6 +14,10 @@ DATABASE_SELFSIGNED = os.environ.get("DatabaseSelfSigned", "false") == "true"
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
+
+    if not verify_token(req.headers["Auth-Token"]):
+        return func.HttpResponse("Unathorised", status_code=401)
+
     logging.info("Get Work Orders function processed a request.")
 
     user_id = req.params.get("user_id")
