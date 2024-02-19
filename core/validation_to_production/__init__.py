@@ -32,27 +32,15 @@ cognitiveSearchClient = SearchIndexClient(
 )
 
 
-def main(req: HttpRequest) -> HttpResponse:
-    """Azure Function to move vectors from validation to production index"""
-    req_body = req.get_json()
-
-    # Ensure that the sender is authorized to make this request
-    if not verify_token(req.headers['Auth-Token']):
-        return HttpResponse(
-            "Unauthorized",
-            status_code=401
-        )
-
-    # Create validation index client
-    validation_index_name = req_body.get('validationIndexName')
-
+def check_index_exists(index_name: str) -> bool:
+    """Check if an index exists in the search service"""
     index_names = list(cognitiveSearchClient.list_index_names())
-    if validation_index_name not in index_names:
-        return HttpResponse(
-            "Validation index not found",
-            status_code=404
-        )
+    return index_name in index_names
 
+
+def migrate_documents(validation_index_name: str) -> None:
+    """Migrate documents from validation to production index"""
+    # Create validation index client
     validation_index_client = SearchClient(
         endpoint=CognitiveSearchServiceEndpoint,
         index_name=validation_index_name,
@@ -66,14 +54,46 @@ def main(req: HttpRequest) -> HttpResponse:
     logging.info(documents)
     productionClient.upload_documents(documents)
 
-    # Delete validation index
+
+def validation_does_not_exist(validation_index_name: str) -> HttpResponse:
+    """Return a response indicating that the validation index does not exist"""
+    return HttpResponse(
+        f"Index {validation_index_name} does not exist",
+        status_code=404
+    )
+
+
+def error_deleting_index(err: HttpResponseError) -> HttpResponse:
+    """Return a response indicating that there was an error deleting the 
+    validation index"""
+    return HttpResponse(
+        f"Error deleting validation index :{err.message}",
+        status_code=500
+    )
+
+
+def main(req: HttpRequest) -> HttpResponse:
+    """Azure Function to move vectors from validation to production index"""
+    req_body = req.get_json()
+
+    # Ensure that the sender is authorized to make this request
+    if not verify_token(req.headers['Auth-Token']):
+        return HttpResponse(
+            "Unauthorized",
+            status_code=401
+        )
+
+    validation_index_name = req_body.get('validationIndexName')
+
+    if not check_index_exists(validation_index_name):
+        return validation_does_not_exist(validation_index_name)
+
+    migrate_documents(validation_index_name)
+
     try:
         cognitiveSearchClient.delete_index(validation_index_name)
     except HttpResponseError as err:
-        return HttpResponse(
-            f"Error deleting validation index: {err.message}",
-            status_code=500
-        )
+        return error_deleting_index(err)
 
     return HttpResponse(
         "Documents moved to production index",
