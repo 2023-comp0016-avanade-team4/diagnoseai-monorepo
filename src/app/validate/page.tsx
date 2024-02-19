@@ -75,7 +75,7 @@ const Validate = () => {
             <div className="bg-slate-100 flex-1 flex flex-col">
               <h3 className="p-3 text-md font-bold flex-0">Selected Machine</h3>
               <div className="m-3 bg-slate-200 rounded p-4 overflow-y-auto">
-                  <p>{selectedMachine ? selectedMachine.manufacturer + " " + selectedMachine.model : "No Machine is selected"}</p>
+              <p>{selectedMachine ? selectedMachine.manufacturer + " " + selectedMachine.model : "No Machine is selected"}</p>
               </div>
               <h3 className="p-3 text-md font-bold flex-0">Extracted Images</h3>
               <div ref={fillerDivRef} className="flex-1">
