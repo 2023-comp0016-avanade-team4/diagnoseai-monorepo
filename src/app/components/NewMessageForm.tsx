@@ -44,7 +44,6 @@ export const NewMessageForm = () => {
         sentAt: 1,
         index: uuid,
       };
-      console.log("message", message);
 
       webSocket.send(JSON.stringify(message));
       addMessage({
