@@ -13,11 +13,15 @@ from core.models.chat_message import ChatMessageModel
 # Globals patching
 db_session_patch = patch('utils.db.create_session') \
     .start()
+bsc_patch = patch('azure.storage.blob.BlobServiceClient.from_connection_string') \
+    .start()
 
 os.environ['DatabaseURL'] = ''
 os.environ['DatabaseName'] = ''
 os.environ['DatabaseUsername'] = ''
 os.environ['DatabasePassword'] = ''
+os.environ['ImageBlobConnectionString'] = ''
+os.environ['ImageBlobContainer'] = ''
 
 # This import must come after the global patches
 # pylint: disable=wrong-import-position
@@ -74,7 +78,7 @@ class TestChatHistory(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 400)
 
-    def test_get_history_from_db(self):
+    def test_get_history_from_db_no_images(self):
         """
         The get history from DB should call the
         get_all_messages_for_conversation method. It does not matter
@@ -83,10 +87,39 @@ class TestChatHistory(unittest.TestCase):
         with patch(
                 'models.chat_message.ChatMessageDAO'
                 '.get_all_messages_for_conversation'
-        ) as m:
+        ) as m, patch(
+            'core.utils.image_utils.get_preauthenticated_blob_url'
+        ) as n:
             # need to list it to consume the map
             list(get_history_from_db('123'))
             m.assert_called_once()
+            n.assert_not_called()
+
+    def test_get_history_from_db_image(self):
+        """
+        The get history from DB should call the
+        get_all_messages_for_conversation method. It does not matter
+        what arguments are passed to it; it just needs to call it.
+
+        This time, it should also call get_preauthenticated_blob_url
+        """
+        with patch(
+                'models.chat_message.ChatMessageDAO'
+                '.get_all_messages_for_conversation'
+        ) as m, patch(
+            'core.chat_history.api.get_preauthenticated_blob_url'
+        ) as n:
+            m.return_value = [ChatMessageModel(
+                conversation_id='123',
+                message='hello world',
+                sent_at=123,
+                sender='bot',
+                is_image=True
+            )]
+            # need to list it to consume the map
+            list(get_history_from_db('123'))
+            m.assert_called_once()
+            n.assert_called_once()
 
     def test_handle_request(self):
         """

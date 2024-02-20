@@ -22,16 +22,27 @@ class ChatMessage(DataClassJsonMixin):
     conversation_id: str = field(metadata=config(field_name="conversationId"))
     auth_token: Optional[str] = field(metadata=config(field_name="authToken"))
     sent_at: datetime = field(metadata=config(field_name="sentAt"))
+    is_image: bool = field(
+        default=False, metadata=config(field_name="isImage"))
     index: str = field(default='validation-index')
 
 
 @dataclass
-class BidirectionalChatMessage(ChatMessage, DataClassJsonMixin):
+class BidirectionalChatMessage(DataClassJsonMixin):
     """
     The BidirectionalChatMessage data class. This represents a message
-    object that differentiate between the bot sender the actual user
+    object that differentiate between the bot sender the actual user.
+
+    This class more closely represents the database structure, which
+    does not contain the auth token.
     """
-    sender: Literal['bot', 'user']
+    message: str
+    conversation_id: str = field(metadata=config(field_name="conversationId"))
+    sent_at: datetime = field(metadata=config(field_name="sentAt"))
+    is_image: bool = field(
+        default=False, metadata=config(field_name="isImage"))
+    index: str = field(default='validation-index')
+    sender: Literal['bot', 'user'] = 'bot'
 
 
 @dataclass

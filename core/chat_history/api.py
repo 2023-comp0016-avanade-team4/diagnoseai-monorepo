@@ -6,8 +6,10 @@ import logging
 import os
 
 import azure.functions as func  # type: ignore[import-untyped]
+from azure.storage.blob import BlobServiceClient
 from models.chat_message import ChatMessageDAO, ChatMessageModel
 from utils.db import create_session
+from utils.image_utils import get_preauthenticated_blob_url
 from utils.history import ChatHistoryResponse
 
 app = func.FunctionApp()
@@ -18,11 +20,38 @@ DATABASE_USERNAME = os.environ['DatabaseUsername']
 DATABASE_PASSWORD = os.environ['DatabasePassword']
 DATABASE_SELFSIGNED = os.environ.get('DatabaseSelfSigned')
 
+IMAGE_BLOB_CONNECTION_STRING = os.environ["ImageBlobConnectionString"]
+IMAGE_BLOB_CONTAINER = os.environ["ImageBlobContainer"]
+
 # Global clients
 db_session = create_session(
     DATABASE_URL, DATABASE_NAME, DATABASE_USERNAME, DATABASE_PASSWORD,
     bool(DATABASE_SELFSIGNED)
 )
+
+blob_service_client = BlobServiceClient.from_connection_string(
+    IMAGE_BLOB_CONNECTION_STRING)
+
+
+def __transform_chat_message_helper(model: ChatMessageModel):
+    """
+    Helper function to transform a chat message model into a
+    bidirectional chat message.
+
+    Args:
+        model (ChatMessageModel): The model to transform
+
+    Returns:
+        BidirectionalChatMessage: The transformed model
+    """
+    bidirectional_chat_message = \
+        ChatMessageModel.to_bidirectional_chat_message(model)
+    if bidirectional_chat_message.is_image:
+        bidirectional_chat_message.message = \
+            get_preauthenticated_blob_url(
+                blob_service_client, IMAGE_BLOB_CONTAINER,
+                bidirectional_chat_message.message)
+    return bidirectional_chat_message
 
 
 def get_history_from_db(
@@ -36,7 +65,7 @@ def get_history_from_db(
     Returns:
         map: The chat history
     """
-    return map(ChatMessageModel.to_bidirectional_chat_message,
+    return map(__transform_chat_message_helper,
                ChatMessageDAO.get_all_messages_for_conversation(
                    db_session, convesation_id, count=50))
 

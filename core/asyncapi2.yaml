@@ -65,6 +65,10 @@ components:
           description: The body of the chat message
         sentAt:
           $ref: '#/components/schemas/sentAt'
+        isImage:
+          type: boolean
+          description: Whether the message is an image. If true, "message" should be a base64 encoded image, with the "data:image/png;base64," prefix.
+          default: false
         auth_token:
           type: string
           description: The authentication token to identify the sender
@@ -72,6 +76,10 @@ components:
           type: string
           description: "A data source index. (validation-* prefixes are validation indexes, while production-* are production indexes) TODO: This changes often, and hence should not be documented at this point. Once things are more firm, we can try to solidify the index."
           default: validation-index
+      required:
+        - conversationId
+        - message
+        - sentAt
     responseMessagePayload:
       type: object
       properties:
