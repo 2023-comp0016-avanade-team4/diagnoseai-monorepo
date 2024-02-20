@@ -5,6 +5,21 @@ import { NewMessageForm } from "./new-message-form"; // adjust the import path a
 
 enableFetchMocks();
 
+jest.mock("@clerk/nextjs", () => ({
+  useAuth: () => ({
+    getToken: jest.fn().mockResolvedValue("mock-token"),
+  }),
+}));
+
+jest.mock("@/contexts/WebSocketContext", () => ({
+  useWebSocket: () => ({
+    webSocket: {
+      readyState: WebSocket.OPEN,
+      send: jest.fn(),
+    },
+  }),
+}));
+
 describe("NewMessageForm", () => {
   it("Only accepts only images", () => {
     const chat = render(<NewMessageForm />);

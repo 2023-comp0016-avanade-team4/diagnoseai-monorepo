@@ -18,7 +18,6 @@ export type IntermediateHistoricalMessage = {
   sender: "user" | "bot";
 };
 
-// needed for isPorcessingImage
 type ChatContextType = {
   messages: Message[];
   setMessages: (state: Message[], message: Message[]) => void;
@@ -47,14 +46,12 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
 
   const addMessage = useCallback((newMessage: Message) => {
     setMessages((prevMessages) => {
-      // Check if the last message is "Processing image..."
       const lastMessage = prevMessages[prevMessages.length - 1];
       if (lastMessage && lastMessage.message === "Processing image...") {
         // Remove the last message and add the new one
         setIsProcessingImage(false);
         return [...prevMessages.slice(0, prevMessages.length - 1), newMessage];
       } else {
-        // Simply add the new message
         return [...prevMessages, newMessage];
       }
     });

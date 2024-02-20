@@ -56,8 +56,9 @@ export const NewMessageForm = () => {
   };
 
   const addNewMessage = async (body: string, file: File | null) => {
+    const message_uuid = uuidv4();
     let message = {
-      id: uuidv4(),
+      id: message_uuid,
       username: "some_user",
       conversationId: "1", // TODO: use real conversation ID eventually
       message: body,
@@ -81,7 +82,7 @@ export const NewMessageForm = () => {
       };
 
       setIsProcessingImage(true);
-      const mockMessageId = uuidv4();
+      const mockMessageId = message_uuid;
 
       setTimeout(() => {
         addMessage({
