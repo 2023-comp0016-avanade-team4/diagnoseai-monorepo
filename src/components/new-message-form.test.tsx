@@ -1,9 +1,6 @@
 import React from "react";
 import { render, fireEvent, waitFor, screen } from "@testing-library/react";
-import fetch, { enableFetchMocks } from "jest-fetch-mock";
 import { NewMessageForm } from "./new-message-form"; // adjust the import path accordingly
-
-enableFetchMocks();
 
 jest.mock("@clerk/nextjs", () => ({
   useAuth: () => ({
@@ -11,22 +8,16 @@ jest.mock("@clerk/nextjs", () => ({
   }),
 }));
 
+let mockWebSocketSender = jest.fn();
+
 jest.mock("@/contexts/WebSocketContext", () => ({
   useWebSocket: () => ({
     webSocket: {
       readyState: WebSocket.OPEN,
-      send: jest.fn(),
+      send: mockWebSocketSender,
     },
   }),
 }));
-
-describe("NewMessageForm", () => {
-  it("Only accepts only images", () => {
-    const chat = render(<NewMessageForm />);
-    const imageInput = chat.baseElement.getElementsByTagName("input").item(0);
-    expect(imageInput).toHaveAttribute("accept", ".png, .jpg, .jpeg");
-  });
-});
 
 describe("NewMessageForm", () => {
   beforeAll(() => {
@@ -34,12 +25,16 @@ describe("NewMessageForm", () => {
   });
 
   beforeEach(() => {
-    fetch.resetMocks();
+    mockWebSocketSender.mockClear();
+  });
+
+  it("Only accepts only images", () => {
+    const chat = render(<NewMessageForm />);
+    const imageInput = chat.baseElement.getElementsByTagName("input").item(0);
+    expect(imageInput).toHaveAttribute("accept", ".png, .jpg, .jpeg");
   });
 
   it("uploads an image and checks the Auth-Token header", async () => {
-    fetch.mockResponseOnce(JSON.stringify({ data: "12345" }));
-
     const { getByText } = render(<NewMessageForm />);
     const fileInput = screen.getByTestId("file-input");
     const sendButton = getByText("Send");
@@ -53,12 +48,10 @@ describe("NewMessageForm", () => {
     fireEvent.change(fileInput, { target: { files: [file] } });
     fireEvent.click(sendButton);
 
-    await waitFor(() => expect(fetch).toHaveBeenCalled());
-
-    expect(fetch.mock.calls[0][0]).toEqual(
-      "https://diagnoseai-core-apis.azure-api.net/core/chat_img?conversation_id=123"
-    );
-    const headers = fetch.mock.calls[0][1]?.headers as Record<string, string>;
-    expect(headers["Auth-Token"]).toBeDefined();
+    await waitFor(() => expect(mockWebSocketSender).toHaveBeenCalled());
+    const jsonVal = JSON.parse(mockWebSocketSender.mock.calls[0][0]);
+    expect(jsonVal.isImage).toBe(true);
+    expect(jsonVal.message).toContain("data:image/jpeg;base64,");
+    expect(jsonVal.authToken).toBe("mock-token");
   });
 });
