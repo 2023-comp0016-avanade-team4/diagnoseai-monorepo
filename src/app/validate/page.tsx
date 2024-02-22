@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import ImageCarousel from "../components/ImageCarousel"
 import Chat from "../components/Chat";
 
+
 const Validate = () => {
   const fillerDivRef = useRef<HTMLDivElement>(null)
   const [divHeight, setDivHeight] = useState(0)
