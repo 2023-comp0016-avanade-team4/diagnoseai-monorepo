@@ -91,6 +91,7 @@ export const NewMessageForm = () => {
     if (file) {
       const reader = new FileReader();
       reader.readAsDataURL(file);
+
       reader.onload = () => {
         const dataURL = reader.result as string;
 
@@ -101,6 +102,10 @@ export const NewMessageForm = () => {
         };
         sendMessageToWS(message);
       };
+
+      reader.onerror = (error) => {
+        console.error("Error reading file:", error);
+      }
     } else {
       sendMessageToWS(message);
     }
