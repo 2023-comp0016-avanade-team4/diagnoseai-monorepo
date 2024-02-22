@@ -1,4 +1,5 @@
 import { Sequelize, DataTypes, Model, Optional } from 'sequelize';
+import 'tedious'; // to force build to package tedious
 
 // Import database connection details from .env file
 import dotenv from 'dotenv';
