@@ -54,7 +54,13 @@ export const MessageComponent = ({ message }: Props) => {
             <span className="font-bold">{message.username}:&nbsp;</span>
           )}
           {message.isImage ? (
-            <Image alt="" src={message.message} width={300} height={0} />
+            <Image
+              className="w-[300px] h-auto"
+              alt={`Image uploaded by ${message.username}`}
+              src={message.message}
+              width={0}
+              height={0}
+            />
           ) : (
             <span className="max-w-sm">{message.message}</span>
           )}
