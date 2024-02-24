@@ -26,11 +26,42 @@ class PendingUploadsModel(Base):
     user_email: Mapped[str] = mapped_column()
     sent_at: Mapped[datetime] = mapped_column(default=datetime.now())
 
+    @staticmethod
+    def make_model(filename: str, username: str, user_email: str):
+        """
+        Makes a model from the given parameters.
+
+        Args:
+            filename (str): The filename
+            username (str): The username
+            user_email (str): The user's email
+
+        Returns:
+            PendingUploadsModel: The model
+        """
+        return PendingUploadsModel(filename=filename,
+                                   username=username,
+                                   user_email=user_email)
+
 
 class PendingUploadsDAO:
     """
     The data access object for an pending upload.
     """
+
+    @staticmethod
+    def add_pending_upload(session: Session,
+                           model: PendingUploadsModel) -> None:
+        """
+        Adds a pending upload to the database.
+
+        Args:
+            session (Session): The database session
+            model (PendingUploadsModel): The model to add
+        """
+        session.add(model)
+        session.commit()
+
     @staticmethod
     def delete_for_filename(session: Session,
                             filename: str) -> None:
