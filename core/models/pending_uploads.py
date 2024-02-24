@@ -22,6 +22,7 @@ class PendingUploadsModel(Base):
                                            primary_key=True,
                                            default=uuid4)
     filename: Mapped[str] = mapped_column()
+    username: Mapped[str] = mapped_column()
     user_email: Mapped[str] = mapped_column()
     sent_at: Mapped[datetime] = mapped_column(default=datetime.now())
 
@@ -48,7 +49,7 @@ class PendingUploadsDAO:
 
     @staticmethod
     def get_all_unprocessed_filenames(session: Session
-                                      ) -> list[tuple[str, str]]:
+                                      ) -> list[PendingUploadsModel]:
         """
         Gets all unprocessed filenames and their associated email.
 
@@ -56,8 +57,6 @@ class PendingUploadsDAO:
             session (Session): The database session
 
         Returns:
-            list[tuple[str, str]]: The unprocessed filenames and email
+            list[PendingUploadsModel]: The unprocessed filenames and email
         """
-        stmt = select(PendingUploadsModel.filename,
-                      PendingUploadsModel.user_email)
-        return [(row[0], row[1]) for row in session.execute(stmt)]
+        return session.query(PendingUploadsModel).all()
