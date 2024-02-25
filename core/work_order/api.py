@@ -29,7 +29,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             status_code=400
         )
 
-    if not get_user_id(req.headers["Auth-Token"]) == user_id:
+    if get_user_id(req.headers["Auth-Token"]) != user_id:
         return func.HttpResponse("Unathorised", status_code=401)
 
     with create_session(

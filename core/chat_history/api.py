@@ -11,7 +11,7 @@ from utils.db import create_session
 from utils.history import ChatHistoryResponse
 from utils.authorise_conversation import authorise_user
 from utils.get_user_id import get_user_id
-
+from utils.verify_token import verify_token
 
 app = func.FunctionApp()
 
@@ -78,8 +78,12 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse("", status_code=400)
 
     conversation_id = req.params.get("conversation_id")
+    if not verify_token(req.headers['Auth-Token']):
+        return func.HttpResponse(
+            '', status_code=401
+        )
 
-    curr_user = get_user_id(req.params["Auth-Token"])
+    curr_user = get_user_id(req.headers["Auth-Token"])
     if not authorise_user(db_session, conversation_id, curr_user):
         return func.HttpResponse("User not authorised.", status_code=401)
 
