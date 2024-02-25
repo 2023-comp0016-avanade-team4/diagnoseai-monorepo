@@ -24,6 +24,8 @@ from utils.chat_message import (BidirectionalChatMessage, ChatMessage,
 from utils.db import create_session
 from utils.web_pub_sub_interfaces import WebPubSubRequest
 from utils.verify_token import verify_token
+from utils.get_user_id import get_user_id
+from core.utils.authorise_conversation import authorise_user
 
 # Load required variables from the environment
 
@@ -83,7 +85,7 @@ def shadow_msg_to_db(
     ChatMessageDAO.save_message(
         db_session,
         ChatMessageModel.from_bidirectional_chat_message(
-            BidirectionalChatMessage(
+            BidirectionalChatMessage(  # pylint: disable=unexpected-keyword-arg, no-value-for-parameter # noqa: E501
                 message=message,
                 conversation_id=conversation_id,
                 sent_at=datetime.now(),
@@ -129,10 +131,18 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
                                input
         connection_id (str): The conneciton ID of the websocket in question
     """
-    
+
     if not verify_token(message.auth_token):
         ws_log_and_send_error(
             ('Invalid token.'
+             f' for debugging purposes, you were {connection_id}'),
+            connection_id)
+        return
+
+    curr_user = get_user_id(message.auth_token)
+    if not authorise_user(db_session, message.conversation_id, curr_user):
+        ws_log_and_send_error(
+            ('User not authorised.'
              f' for debugging purposes, you were {connection_id}'),
             connection_id)
         return

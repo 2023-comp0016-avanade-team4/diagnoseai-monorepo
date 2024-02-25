@@ -1,10 +1,12 @@
+import os
+import json
+import logging
 import azure.functions as func  # type: ignore[import-untyped]
 from utils.db import create_session
 from models.work_order import WorkOrderDAO
 from utils.verify_token import verify_token
-import os
-import json
-import logging
+from utils.get_user_id import get_user_id
+
 
 DATABASE_URL = os.environ["DatabaseURL"]
 DATABASE_NAME = os.environ["DatabaseName"]
@@ -23,8 +25,12 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     user_id = req.params.get("user_id")
     if not user_id:
         return func.HttpResponse(
-            "Pass a user_id on the query string or in the request body", status_code=400
+            "Pass a user_id on the query string or in the request body",
+            status_code=400
         )
+
+    if not get_user_id(req.headers["Auth-Token"]) == user_id:
+        return func.HttpResponse("Unathorised", status_code=401)
 
     with create_session(
         DATABASE_URL,
@@ -34,7 +40,10 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         DATABASE_SELFSIGNED,
     ) as db_session:
 
-        work_orders = WorkOrderDAO.get_work_orders_for_user(db_session, user_id)
+        work_orders = WorkOrderDAO.get_work_orders_for_user(
+            db_session,
+            user_id
+        )
         work_orders_data = [
             {
                 "order_id": wo.order_id,
@@ -48,5 +57,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         ]
 
     return func.HttpResponse(
-        json.dumps(work_orders_data), status_code=200, mimetype="application/json"
+        json.dumps(work_orders_data),
+        status_code=200,
+        mimetype="application/json"
     )

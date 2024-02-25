@@ -1,13 +1,13 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, Text, DateTime, func
+from uuid import uuid4
+from typing import List
+
+from sqlalchemy import String, ForeignKey, Text, DateTime, func
 from sqlalchemy.orm import (
     Mapped,
-    declarative_base,
     relationship,
     mapped_column,
     Session,
 )
-from uuid import uuid4
-from typing import List
 
 from .common import Base
 
@@ -29,7 +29,7 @@ class WorkOrderModel(Base):
     task_name: Mapped[str] = mapped_column(String(255))
     task_desc: Mapped[str] = mapped_column(Text)
     created_at: Mapped[DateTime] = mapped_column(
-        DateTime, default=func.now()
+        DateTime, default=func.now()  # pylint: disable=not-callable
     )  # Automatically sets to current time
 
     machine = relationship("MachineModel", back_populates="work_orders")
@@ -68,7 +68,9 @@ class WorkOrderDAO:
         )
 
     @staticmethod
-    def get_machine_name_for_machine_id(session: Session, machine_id: str) -> str:
+    def get_machine_name_for_machine_id(
+        session: Session, machine_id: str
+    ) -> str:
         """
         Gets the machine name for a specific machine ID.
 
@@ -81,3 +83,24 @@ class WorkOrderDAO:
         """
         machine = session.query(MachineModel).get(machine_id)
         return f"{machine.manufacturer} {machine.model}" if machine else None
+
+    @staticmethod
+    def get_user_id_for_conversation_id(
+        session: Session, conversation_id: str
+    ) -> str:
+        """
+        Gets the user ID for a specific conversation ID.
+
+        Args:
+            session (Session): The database session
+            conversation_id (str): The conversation ID
+
+        Returns:
+            str: The user ID
+        """
+        work_order = (
+            session.query(WorkOrderModel)
+            .filter(WorkOrderModel.conversation_id == conversation_id)
+            .first()
+        )
+        return work_order.user_id if work_order else None
