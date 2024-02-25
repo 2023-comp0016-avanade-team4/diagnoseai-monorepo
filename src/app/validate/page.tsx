@@ -3,10 +3,11 @@ import { Button } from "@nextui-org/react";
 import { useEffect, useRef, useState } from "react";
 import ImageCarousel from "../components/ImageCarousel";
 import Chat from "../components/Chat";
-import { useSelector } from "react-redux";
+import { useAppSelector } from "../../redux/hook";
+import { selectMachineById } from "../../redux/reducers/selectedMachineReducer";
 import { RootState } from "../../redux/store";
-
-
+import { useRouter, useSearchParams } from "next/navigation";
+import MachineList from "../components/machinesList";
 
 const Validate = () => {
   const fillerDivRef = useRef<HTMLDivElement>(null);
@@ -21,9 +22,24 @@ const Validate = () => {
 
   // TODO: whoever is doing the backend, use setExtractedText
   const [extractedText, setExtractedText] = useState<string>(
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In eu suscipit diam. Ut vitae varius mauris, a pharetra erat. Suspendisse tempus eget orci vitae euismod. Fusce lacinia velit quam, quis sollicitudin urna sagittis et. Integer in lacus ac turpis fermentum interdum id mattis lacus. Praesent at condimentum tellus. Nunc dignissim neque id dui blandit consectetur. In at ultricies mi. Aliquam id risus ac elit consectetur porttitor eu at lacus. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Pellentesque aliquam dui et laoreet porttitor. Proin tempor enim eu tortor laoreet, vitae pretium augue interdum."
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In eu suscipit diam. Ut vitae varius mauris, a pharetra erat. Suspendisse tempus eget orci vitae euismod. Fusce lacinia velit quam, quis sollicitudin urna sagittis et. Integer in lacus ac turpis fermentum interdum id mattis lacus. Praesent at condimentum tellus. Nunc dignissim neque id dui blandit consectetur. In at ultricies mi. Aliquam id risus ac elit consectetur porttitor eu at lacus. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Pellentesque aliquam dui et laoreet porttitor. Proin tempor enim eu tortor laoreet, vitae pretium augue interdum.",
   );
-  const  selectedMachine  = useSelector((state: RootState) => state.selectedMachine);
+  const router = useRouter();
+  const { machines, selectedMachine } = useAppSelector((state: RootState) => ({
+    machines: state.machines,
+    selectedMachine: state.selectedMachine,
+  }));
+  const params = useSearchParams();
+  const index = params?.get("index");
+  const machine = params?.get("machine");
+
+  useEffect(() => {
+    if (index === null || machine === null || index === "" || machine === "") {
+      router.replace("/?");
+      return;
+    }
+    selectMachineById(machines, machine as string);
+  }, [router, index, machine, machines]);
 
   // HACK (?): Not sure if this counts as a hack, since this was the only way I had to do this.,
   // Handles the resizing of the image carousel
@@ -53,9 +69,8 @@ const Validate = () => {
   }, [fillerDivRef]);
 
   useEffect(() => {
-    // TODO: replace with index from store
-    const searchIndex = "validation-index";
-    let response = fetch(`/api/indexContent?searchIndex=${searchIndex}`, {
+    const searchIndex = params.get("index") || "";
+    fetch(`/api/indexContent?searchIndex=${searchIndex}`, {
       method: "GET",
     }).then((response) => {
       response.json().then((data) => {
@@ -75,7 +90,7 @@ const Validate = () => {
             <div className="bg-slate-100 flex-1 flex flex-col">
               <h3 className="p-3 text-md font-bold flex-0">Selected Machine</h3>
               <div className="m-3 bg-slate-200 rounded p-4 overflow-y-auto">
-              <p>{selectedMachine ? selectedMachine.manufacturer + " " + selectedMachine.model : "No Machine is selected"}</p>
+                <MachineList />
               </div>
               <h3 className="p-3 text-md font-bold flex-0">Extracted Images</h3>
               <div ref={fillerDivRef} className="flex-1">
