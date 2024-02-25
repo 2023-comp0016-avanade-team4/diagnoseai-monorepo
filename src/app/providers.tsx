@@ -13,7 +13,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <NextUIProvider className="h-full">
-      <Provider store={storeRef.current}>{children}</Provider>
+            <Provider store={storeRef.current}>
+                    {children}
+            </Provider>
     </NextUIProvider>
   );
 }
