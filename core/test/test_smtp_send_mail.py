@@ -31,8 +31,10 @@ class TestSendMail(unittest.TestCase):
         """
         base_url = "https://example.com"
         filename = "someindex"
-        self.assertEqual(make_validation_link(base_url, filename),
-                         "https://example.com/validate?index=someindex")
+        machine_id = "someid"
+        self.assertEqual(
+            make_validation_link(base_url, filename, machine_id),
+            "https://example.com/validate?index=someindex&machine=someid")
 
     def test_create_mail_text(self):
         """
@@ -107,10 +109,12 @@ class TestSendMail(unittest.TestCase):
         filename = "someindex"
         target_username = "johndoe"
         target_email = "johndoe@example.com"
+        target_machine_id = "someid"
 
         send_file_processed_mail("smtp.example.com", username,
                                  password, base_url, filename,
-                                 target_username, target_email)
+                                 target_username, target_email,
+                                 target_machine_id)
 
         mock_create_mail.assert_called()
         mock_send_mail.assert_called()

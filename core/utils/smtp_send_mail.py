@@ -29,18 +29,19 @@ DiagnoseAI
 """
 
 
-def make_validation_link(base_url: str, filename: str) -> str:
+def make_validation_link(base_url: str, filename: str, machine_id: str) -> str:
     """
     Creates a validation link based on filename given.
 
     Args:
         base_url (str): The base URL of the server.
         filename (str): The name of the file to be validated.
+        machine_id (str): The machine ID of the user.
 
     Returns:
         str: The validation link.
     """
-    return f"{base_url}/validate?index={filename}"
+    return f"{base_url}/validate?index={filename}&machine={machine_id}"
 
 
 def create_mail_text(user: str, filename: str, validation_link: str) -> str:
@@ -116,7 +117,8 @@ def send_file_processed_mail(server: str,  # pylint: disable=too-many-arguments
                              base_url: str,
                              filename: str,
                              target_username: str,
-                             target_email: str):
+                             target_email: str,
+                             target_machine_id: str):
     """
     Sends an email to the user informing them that the file has been
     processed successfully.
@@ -129,8 +131,10 @@ def send_file_processed_mail(server: str,  # pylint: disable=too-many-arguments
         filename (str): The name of the file that was processed.
         target_username (str): The name of the user.
         target_email (str): The email address of the user.
+        target_machine_id (str): The machine ID of the user.
     """
-    validation_link = make_validation_link(base_url, filename)
+    validation_link = make_validation_link(base_url, filename,
+                                           target_machine_id)
     mail = create_mail(target_username, target_email, filename,
                        validation_link)
     send_mail(server, username, password, mail)

@@ -24,10 +24,12 @@ class PendingUploadsModel(Base):
     filename: Mapped[str] = mapped_column()
     username: Mapped[str] = mapped_column()
     user_email: Mapped[str] = mapped_column()
+    machine_id: Mapped[str] = mapped_column()
     sent_at: Mapped[datetime] = mapped_column(default=datetime.now())
 
     @staticmethod
-    def make_model(filename: str, username: str, user_email: str):
+    def make_model(filename: str, username: str, user_email: str,
+                   machine_id: str):
         """
         Makes a model from the given parameters.
 
@@ -35,6 +37,7 @@ class PendingUploadsModel(Base):
             filename (str): The filename
             username (str): The username
             user_email (str): The user's email
+            machine_id (str): The machine ID
 
         Returns:
             PendingUploadsModel: The model
