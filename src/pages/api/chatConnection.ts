@@ -3,14 +3,14 @@ import axios from 'axios';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { getToken } = getAuth(req);
+  const {userId, getToken } = getAuth(req);
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   const data = JSON.stringify({
-    userId: "123", // Replace with dynamic user ID if necessary
+    userId: userId,
   });
 
   const config = {
