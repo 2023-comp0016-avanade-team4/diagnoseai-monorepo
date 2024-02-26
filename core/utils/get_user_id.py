@@ -10,7 +10,7 @@ def get_user_id(token):
         headers = jwt.get_unverified_header(token)
         # Note: jwt.decode automatically checks for expiration
         decoded = jwt.decode(token, key=PUBLIC_KEY, algorithms=headers['alg'])
-        return decoded['user_id']
+        return decoded["sub"]
     except jwt.exceptions.InvalidTokenError:
         return None
     except:
