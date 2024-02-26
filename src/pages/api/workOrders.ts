@@ -20,7 +20,7 @@ export default async function handler(
     method: "get",
     // TODO: use userId from Clerk. We're doing this at the moment
     // because sending messages still does not involve the user ID (yet)
-    url: `${process.env.WORK_ORDERS_URL}?user_id=1`,
+    url: `${process.env.WORK_ORDERS_URL}?user_id=${userId}`,
     headers: {
       "Ocp-Apim-Subscription-Key": process.env.OCP_APIM_SUBSCRIPTION_KEY,
       "Content-Type": "application/json",
