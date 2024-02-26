@@ -6,10 +6,15 @@ import formidable from "formidable";
 import { authGuard } from "./authGuard";
 import { clerkClient } from "@clerk/nextjs";
 import { User, getAuth } from "@clerk/nextjs/server";
+import { Machine } from "../../models/workOrderModel";
 
 require("dotenv").config();
 
-async function addProcessingFileToDB(filename: string, user: User) {
+async function addProcessingFileToDB(
+  filename: string,
+  machine_id: string,
+  user: User,
+) {
   if (user.username === undefined) {
     throw new Error("Username empty");
   }
@@ -22,6 +27,7 @@ async function addProcessingFileToDB(filename: string, user: User) {
     filename,
     username: user.username || "123",
     user_email: user.emailAddresses[0].emailAddress,
+    machine_id,
   });
   console.log(`Filename ${filename} registered in file processing`);
 }
@@ -30,8 +36,22 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   // If the request is not a POST request, return a 405 'Method Not Allowed';
   if (req.method == "POST") {
     const form = formidable({});
-    form.parse(req, async (error, _, files) => {
+    form.parse(req, async (error, fields, files) => {
+      const { machineId } = fields;
+
       try {
+        if (!machineId || machineId.length < 1 || !machineId[0]) {
+          res
+            .status(403)
+            .json({ message: "Invalid request, missing machine ID" });
+          return;
+        }
+
+        if (!(await Machine.findByPk(machineId[0]))) {
+          res.status(404).json({ message: "Machine ID does not exist" });
+          return;
+        }
+
         if (error) {
           throw error;
         }
@@ -58,7 +78,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           .then(async (_response) => {
             const { userId } = getAuth(req);
             const user = await clerkClient.users.getUser(userId || "");
-            await addProcessingFileToDB(blobName, user);
+            await addProcessingFileToDB(blobName, machineId[0], user);
             console.log(`Upload block blob ${blobName} successfully`);
             res.status(200).json({ message: "File uploaded successfully" });
           })

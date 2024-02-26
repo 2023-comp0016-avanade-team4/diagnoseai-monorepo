@@ -1,16 +1,18 @@
 import {
+  Sequelize,
   DataTypes,
   Model,
   InferAttributes,
   InferCreationAttributes,
 } from "sequelize";
 import { sequelize } from "../db";
+import { Machine } from "./workOrderModel";
 
 class PendingUploads extends Model<
   InferAttributes<PendingUploads>,
   InferCreationAttributes<PendingUploads>
 > {
-  declare id: string;
+  declare upload_id: string;
   declare filename: string;
   declare username: string;
   declare user_email: string;
@@ -20,10 +22,10 @@ class PendingUploads extends Model<
 
 PendingUploads.init(
   {
-    id: {
+    upload_id: {
       type: DataTypes.STRING(36),
       primaryKey: true,
-      defaultValue: sequelize.fn("uuid_generate_v4"),
+      defaultValue: DataTypes.UUIDV4,
     },
     filename: {
       type: DataTypes.STRING(255),
@@ -43,7 +45,7 @@ PendingUploads.init(
     },
     sent_at: {
       type: DataTypes.DATE,
-      defaultValue: sequelize.fn("now"),
+      defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
     },
   },
   {
@@ -52,5 +54,8 @@ PendingUploads.init(
     timestamps: false,
   },
 );
+
+PendingUploads.belongsTo(Machine, { foreignKey: "machine_id" });
+Machine.hasMany(PendingUploads, { foreignKey: "machine_id" });
 
 export { PendingUploads };

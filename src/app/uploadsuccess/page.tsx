@@ -8,7 +8,7 @@ export default function UploadSuccess() {
         <Image src={checkmark} alt="checkmark" className="max-w-xs" />
       </div>
       <p className="text-large text-center">
-        Your submission will be processed.
+        Your submission will be processed. Please check your inbox.
       </p>
     </div>
   );
