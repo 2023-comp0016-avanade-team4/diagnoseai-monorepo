@@ -5,8 +5,11 @@ All data access related functions for chat messages.
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import String, delete, select
-from sqlalchemy.orm import Mapped, Session, mapped_column
+from sqlalchemy import ForeignKey, String, delete
+from sqlalchemy.orm import Mapped, Session, mapped_column, relationship
+
+# Import necessary for back_populates
+from .work_order import MachineModel  # noqa: F401, E501 # pylint: disable=unused-import
 
 from .common import Base
 
@@ -24,8 +27,11 @@ class PendingUploadsModel(Base):
     filename: Mapped[str] = mapped_column()
     username: Mapped[str] = mapped_column()
     user_email: Mapped[str] = mapped_column()
-    machine_id: Mapped[str] = mapped_column()
+    machine_id: Mapped[str] = mapped_column(String(36),
+                                            ForeignKey("machines.machine_id"))
     sent_at: Mapped[datetime] = mapped_column(default=datetime.now())
+
+    machine = relationship("MachineModel", back_populates="pending_uploads")
 
     @staticmethod
     def make_model(filename: str, username: str, user_email: str,
@@ -44,7 +50,8 @@ class PendingUploadsModel(Base):
         """
         return PendingUploadsModel(filename=filename,
                                    username=username,
-                                   user_email=user_email)
+                                   user_email=user_email,
+                                   machine_id=machine_id)
 
 
 class PendingUploadsDAO:
