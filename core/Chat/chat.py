@@ -25,7 +25,7 @@ from utils.db import create_session
 from utils.web_pub_sub_interfaces import WebPubSubRequest
 from utils.verify_token import verify_token
 from utils.get_user_id import get_user_id
-from core.utils.authorise_conversation import authorise_user
+from utils.authorise_conversation import authorise_user
 
 # Load required variables from the environment
 
