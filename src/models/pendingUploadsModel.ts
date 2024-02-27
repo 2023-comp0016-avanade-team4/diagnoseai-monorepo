@@ -12,12 +12,12 @@ class PendingUploads extends Model<
   InferAttributes<PendingUploads>,
   InferCreationAttributes<PendingUploads>
 > {
-  declare upload_id: string;
+  declare upload_id: string | null;
   declare filename: string;
   declare username: string;
   declare user_email: string;
   declare machine_id: string;
-  declare sent_at: Date;
+  declare sent_at: Date | null;
 }
 
 PendingUploads.init(

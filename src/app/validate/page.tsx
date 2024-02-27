@@ -69,7 +69,7 @@ const Validate = () => {
   }, [fillerDivRef]);
 
   useEffect(() => {
-    const searchIndex = params.get("index") || "";
+    const searchIndex = params?.get("index") || "";
     fetch(`/api/indexContent?searchIndex=${searchIndex}`, {
       method: "GET",
     }).then((response) => {
