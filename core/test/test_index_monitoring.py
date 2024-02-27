@@ -63,7 +63,7 @@ class TestIndexMonitoring(unittest.TestCase):
         is_index_ready_mock.assert_called_once_with('test.pdf',
                                                     sc_patch.return_value)
         send_file_processed_mail_mock.assert_called_once_with(
-            '', '', '', '', 'test.pdf', 'test', 'test@example.com')
+            '', '', '', '', 'test.pdf', 'test', 'test@example.com', None)
         delete_for_filename_mock.assert_called_once_with(
             db_session_patch.return_value, 'test.pdf')
 

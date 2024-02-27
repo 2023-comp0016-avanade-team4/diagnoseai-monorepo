@@ -8,9 +8,6 @@ from uuid import uuid4
 from sqlalchemy import ForeignKey, String, delete
 from sqlalchemy.orm import Mapped, Session, mapped_column, relationship
 
-# Import necessary for back_populates
-from .work_order import MachineModel  # noqa: F401, E501 # pylint: disable=unused-import
-
 from .common import Base
 
 # pylint: disable=too-few-public-methods,too-many-ancestors

@@ -68,7 +68,8 @@ def process_outstanding_index(model: PendingUploadsModel) -> None:
         UPLOADER_BASE_URL,
         model.filename,
         model.username,
-        model.user_email)
+        model.user_email,
+        model.machine_id)
     PendingUploadsDAO.delete_for_filename(db_session, model.filename)
 
 
