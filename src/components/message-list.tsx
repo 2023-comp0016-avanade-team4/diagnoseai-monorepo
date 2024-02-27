@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef } from "react";
+import React, { useContext, useEffect} from "react";
 import { useInView } from "react-intersection-observer";
 
 import { WebSocketContext } from "@/contexts/WebSocketContext";
@@ -18,7 +18,7 @@ export const MessageList = () => {
   const [scrollRef, inView, entry] = useInView({
     trackVisibility: true,
     delay: 1000,
-    });
+  });
   const { webSocket } = useContext(WebSocketContext);
   const { messages, addMessage, fetchHistory } = useContext(ChatContext);
   const { current } = useWorkOrder();
