@@ -1,9 +1,16 @@
+"""
+Module to test the work_order endpoint
+"""
+
 import unittest
 import os
 import json
-from unittest.mock import patch, MagicMock
-import azure.functions as func
-from models.work_order import WorkOrderModel, MachineModel
+from unittest.mock import patch
+from work_order.api import (  # pylint: disable=E0401
+    main,
+)
+import azure.functions as func  # pylint: disable=E0401
+from models.work_order import WorkOrderModel  # pylint: disable=E0401
 
 db_session_patch = patch("utils.db.create_session").start()
 
@@ -13,10 +20,6 @@ os.environ["DatabaseUsername"] = "SA"
 os.environ["DatabasePassword"] = "Strong@Passw0rd123!"
 os.environ["DatabaseSelfSigned"] = "true"
 
-from work_order.api import (
-    main,
-)
-
 
 class TestWorkOrders(unittest.TestCase):
     """
@@ -24,7 +27,9 @@ class TestWorkOrders(unittest.TestCase):
     """
 
     def setUp(self):
-        self.mock_session = db_session_patch.return_value.__enter__.return_value
+        self.mock_session = (
+            db_session_patch.return_value.__enter__.return_value
+        )
 
     def test_get_work_orders_for_user_happy_path(self):
         """
@@ -44,14 +49,18 @@ class TestWorkOrders(unittest.TestCase):
                 conversation_id="conv2",
             ),
         ]
-        mock_machine_names = {"machine1": "BrandX ModelY", "machine2": "BrandA ModelB"}
+        mock_machine_names = {
+            "machine1": "BrandX ModelY",
+            "machine2": "BrandA ModelB"
+        }
 
         with patch(
             "models.work_order.WorkOrderDAO.get_work_orders_for_user",
             return_value=mock_work_orders,
         ), patch(
             "models.work_order.WorkOrderDAO.get_machine_name_for_machine_id",
-            side_effect=lambda session, machine_id: mock_machine_names[machine_id],
+            side_effect=lambda session, machine_id:
+                mock_machine_names[machine_id]
         ):
 
             # mock HTTP request
@@ -81,13 +90,21 @@ class TestWorkOrders(unittest.TestCase):
                     },
                 ]
             )
-            self.assertEqual(response.get_body().decode(), expected_response_body)
+            self.assertEqual(
+                response.get_body().decode(),
+                expected_response_body
+            )
 
     def test_get_work_orders_for_user_no_user_id(self):
         """
         Test the response when no user_id is provided in the request
         """
-        req = func.HttpRequest(method="GET", url="/api/work_order", params={}, body=b"")
+        req = func.HttpRequest(
+            method="GET",
+            url="/api/work_order",
+            params={},
+            body=b""
+        )
 
         response = main(req)
 
@@ -98,6 +115,7 @@ class TestWorkOrders(unittest.TestCase):
         )
 
 
+# pylint disable=all
 @classmethod
 def tearDownClass(cls):
     patch.stopall()

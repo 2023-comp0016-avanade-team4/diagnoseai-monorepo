@@ -1,10 +1,15 @@
-import azure.functions as func  # type: ignore[import-untyped]
-from utils.db import create_session
-from models.work_order import WorkOrderDAO
-from utils.verify_token import verify_token
+"""
+Work Order API endpoint.
+"""
+
 import os
 import json
 import logging
+import azure.functions as func  # noqa: E501 type: ignore[import-untyped] pylint: disable=E0401
+from utils.db import create_session
+from utils.verify_token import verify_token
+from models.work_order import WorkOrderDAO  # pylint: disable=E0401
+
 
 DATABASE_URL = os.environ["DatabaseURL"]
 DATABASE_NAME = os.environ["DatabaseName"]
@@ -14,16 +19,26 @@ DATABASE_SELFSIGNED = os.environ.get("DatabaseSelfSigned", "false") == "true"
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
+    """
+    Main function to handle HTTP requests and retrieve work orders for a user.
 
+    Args:
+        req (func.HttpRequest): The HTTP request object.
+
+    Returns:
+        func.HttpResponse: The HTTP response object containing the work orders
+        data.
+    """
     if not verify_token(req.headers["Auth-Token"]):
-        return func.HttpResponse("Unathorised", status_code=401)
+        return func.HttpResponse("Unauthorised", status_code=401)
 
     logging.info("Get Work Orders function processed a request.")
 
     user_id = req.params.get("user_id")
     if not user_id:
         return func.HttpResponse(
-            "Pass a user_id on the query string or in the request body", status_code=400
+            "Pass a user_id on the query string or in the request body",
+            status_code=400
         )
 
     with create_session(
@@ -34,7 +49,10 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         DATABASE_SELFSIGNED,
     ) as db_session:
 
-        work_orders = WorkOrderDAO.get_work_orders_for_user(db_session, user_id)
+        work_orders = WorkOrderDAO.get_work_orders_for_user(
+            db_session,
+            user_id
+        )
         work_orders_data = [
             {
                 "order_id": wo.order_id,
@@ -48,5 +66,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         ]
 
     return func.HttpResponse(
-        json.dumps(work_orders_data), status_code=200, mimetype="application/json"
+        json.dumps(work_orders_data),
+        status_code=200,
+        mimetype="application/json"
     )
