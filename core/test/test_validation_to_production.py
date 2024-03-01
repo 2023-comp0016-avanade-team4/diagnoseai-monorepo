@@ -99,3 +99,35 @@ class TestValidationToProduction(unittest.TestCase):
                 'Error deleting validation index: mock-error',
                 status_code=500
         )
+
+    @patch('core.validation_to_production.SearchIndexClient')
+    @patch('core.validation_to_production.SearchClient')
+    def test_filepath_added_to_documents(
+        self, mock_search_client, mock_search_index_client
+    ):
+        """
+        Tests that the filepath is added correctly to each document
+        """
+        validation_index_name = "test"
+        documents = [
+            {"id": "1", "content": "Example 1"},
+            {"id": "2", "content": "Example 2"}
+        ]
+
+        verify_token_patch.return_value = True
+        mock_search_client.return_value.search.return_value.by_page.return_value = iter([documents])  # noqa: E501  pylint: disable=line-too-long
+
+        mock_search_index_client.return_value.list_index_names.return_value = [
+            validation_index_name
+        ]
+
+        main(self.req)
+
+        expected_filepath = validation_index_name
+        for doc in documents:
+            self.assertIn('filepath', doc, "Document missing 'filepath' key")
+            self.assertEqual(
+                doc['filepath'],
+                expected_filepath,
+                "'filepath' does not match validation index name"
+            )

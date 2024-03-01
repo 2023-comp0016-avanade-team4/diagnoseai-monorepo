@@ -43,7 +43,7 @@ def main(req: HttpRequest) -> HttpResponse:
             status_code=401
         )
 
-    # Create validation index client
+    # Retrieve the validation index name from the request
     validation_index_name = req_body.get('validationIndexName')
 
     index_names = list(cognitiveSearchClient.list_index_names())
@@ -63,6 +63,11 @@ def main(req: HttpRequest) -> HttpResponse:
     documents: list[dict] = list(
         list(*validation_index_client.search(search_text="*").by_page())
     )
+
+    # add filepath to files (same as index name)
+    for doc in documents:
+        doc['filepath'] = validation_index_name
+
     logging.info(documents)
     productionClient.upload_documents(documents)
 
@@ -76,6 +81,6 @@ def main(req: HttpRequest) -> HttpResponse:
         )
 
     return HttpResponse(
-        "Documents moved to production index",
+        "Documents moved to production index with filepath added",
         status_code=200
     )

@@ -17,15 +17,19 @@ from typing import cast
 from azure.messaging.webpubsubservice import WebPubSubServiceClient  # type: ignore[import-untyped] # noqa: E501 # pylint: disable=line-too-long
 from openai.types.chat import ChatCompletionMessageParam
 from openai import AzureOpenAI
+from azure.storage.blob import BlobServiceClient
+
 
 from models.chat_message import ChatMessageDAO, ChatMessageModel
 from utils.chat_message import (BidirectionalChatMessage, ChatMessage,
-                                ResponseChatMessage, ResponseErrorMessage)
+                                ResponseChatMessage, ResponseErrorMessage,
+                                Citation)
 from utils.db import create_session
 from utils.web_pub_sub_interfaces import WebPubSubRequest
 from utils.verify_token import verify_token
 from utils.get_user_id import get_user_id
 from utils.authorise_conversation import authorise_user
+from utils.get_preauthenticated_blob_url import get_preauthenticated_blob_url
 
 # Load required variables from the environment
 
@@ -44,15 +48,22 @@ DATABASE_USERNAME = os.environ['DatabaseUsername']
 DATABASE_PASSWORD = os.environ['DatabasePassword']
 DATABASE_SELFSIGNED = os.environ.get('DatabaseSelfSigned')
 
+DOC_BLOB_CONNECTION_STRING = os.environ["DocBlobConnectionString"]
+DOC_BLOB_CONTAINER = os.environ["DocBlobContainer"]
+
+doc_blob_service_client = BlobServiceClient.from_connection_string(
+    DOC_BLOB_CONNECTION_STRING
+)
+
 # Global clients
 
 logging.basicConfig(level=logging.INFO)
 
 ai_client = AzureOpenAI(
     base_url=(f"{OPENAI_ENDPOINT}/openai/deployments/"
-              "validation-testing-model/extensions"),
+              "validation-testing-model"),
     api_key=OPENAI_KEY,
-    api_version='2023-09-01-preview'
+    api_version='2024-02-15-preview'
 )
 
 db_session = create_session(
@@ -119,6 +130,19 @@ def ws_log_and_send_error(text: str, connection_id: str) -> None:
     ws_send_message(ResponseErrorMessage(text).to_json(), connection_id)
 
 
+def add_citation_urls(citations):
+    """
+    Adds preauthenticated blob URLs to the filepaths of the given citations.
+    """
+    for citation in citations:
+        citation.filepath = get_preauthenticated_blob_url(
+            doc_blob_service_client,
+            DOC_BLOB_CONTAINER,
+            citation.filepath
+        )
+    return citations
+
+
 def process_message(message: ChatMessage, connection_id: str) -> None:
     """
     Processes the message received from the request.
@@ -156,13 +180,16 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
     chat_response = ai_client.chat.completions.create(
         model='validation-testing-model',
         extra_body={
-            "dataSources": [
+            "data_sources": [
                 {
                     "type": "AzureCognitiveSearch",
                     "parameters": {
                         "endpoint": SEARCH_ENDPOINT,
                         "key": SEARCH_KEY,
                         "indexName": message.index,
+                        "fieldsMapping": {
+                            "filepath_field": "filepath"
+                        }
                     }
                 }
             ],
@@ -179,10 +206,16 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
             connection_id)
         return
 
+    citations: list[Citation] = (
+        chat_response.choices[0].message.context['citations']
+    )
+    citations = add_citation_urls(citations)
+
     response = ResponseChatMessage(
         chat_response.choices[0].message.content,
         message.conversation_id,
-        datetime.now()
+        datetime.now(),
+        citations
     )
     shadow_msg_to_db(message.conversation_id, response.body, True)
     ws_send_message(response.to_json(), connection_id)
