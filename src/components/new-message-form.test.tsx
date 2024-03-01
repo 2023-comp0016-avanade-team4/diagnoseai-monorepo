@@ -20,6 +20,7 @@ describe("NewMessageForm", () => {
 
   beforeEach(() => {
     fetch.resetMocks();
+    jest.resetAllMocks();
   });
 
   it("uploads an image and checks the Auth-Token header", async () => {
@@ -45,5 +46,38 @@ describe("NewMessageForm", () => {
     );
     const headers = fetch.mock.calls[0][1]?.headers as Record<string, string>;
     expect(headers["Auth-Token"]).toBeDefined();
+  });
+
+  it("cannot read the file and logs an error", async () => {
+    const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
+    const readAsDataURLSpy = jest.fn();
+
+    jest.spyOn(global, "FileReader").mockImplementation(() => {
+      return {
+        readAsDataURL: readAsDataURLSpy,
+        onload: null,
+        onerror: null,
+      } as unknown as FileReader;
+    });
+
+    readAsDataURLSpy.mockImplementation(function (this: FileReader) {
+      this.onerror?.(new ProgressEvent('error') as unknown as ProgressEvent<FileReader>);
+    });
+
+    const { getByText } = render(<NewMessageForm />);
+    const fileInput = screen.getByTestId("file-input");
+    const sendButton = getByText("Send");
+
+    const file = new Blob(["dummy content"], { type: "image/jpeg" });
+    Object.defineProperty(file, "name", {
+      value: "test.jpg",
+    });
+
+    // file selection and form submission
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    fireEvent.click(sendButton);
+
+    await waitFor(() => expect(consoleErrorSpy).toHaveBeenCalled());
+    expect(readAsDataURLSpy).toHaveBeenCalled();
   });
 });
