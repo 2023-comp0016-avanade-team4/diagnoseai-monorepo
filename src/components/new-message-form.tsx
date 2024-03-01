@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import useSound from "use-sound";
+import { useChatProvider } from "@/contexts/ChatContext";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 import uploadImageIcon from "../../assets/upload-image-icon.svg";
 import useAuthToken from "@/hooks/use-auth-token";
@@ -10,9 +11,10 @@ import { v4 as uuidv4 } from "uuid";
 export const NewMessageForm = () => {
   const [play] = useSound("sent.wav");
   const [body, setBody] = useState("");
-  const { addMessage, webSocket } = useWebSocket(); // Get WebSocket from context
+  const { webSocket } = useWebSocket();
+  const { addMessage } = useChatProvider();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const token = useAuthToken();
+  const token: string | null = useAuthToken();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -32,34 +34,6 @@ export const NewMessageForm = () => {
     }
   };
 
-  useEffect(() => {
-    const handleIncomingMessages = (event: MessageEvent) => {
-      try {
-        const messageData = JSON.parse(event.data);
-        const textResponse = JSON.parse(messageData).body;
-
-        const responseMessage = {
-          id: "2",
-          username: "bot",
-          avatar: "https://avatars.githubusercontent.com/u/1856293?v=4",
-          message: textResponse,
-          createdAt: "1",
-        } as Message;
-        addMessage(responseMessage);
-      } catch (error) {
-        console.error("Error parsing message data:", error);
-      }
-    };
-
-    if (webSocket) {
-      webSocket.onmessage = handleIncomingMessages;
-
-      return () => {
-        webSocket.onmessage = null; // Cleanup event handler on unmount
-      };
-    }
-  }, [addMessage, webSocket]);
-
   const sendMessageToWS = (message: Message) => {
     if (!webSocket || webSocket.readyState !== WebSocket.OPEN) {
       console.error("WebSocket is not ready");
@@ -71,10 +45,9 @@ export const NewMessageForm = () => {
       // HACK: stopgap so that react doesn't complain about duplicate keys
       id: uuidv4(),
       username: "some_user",
-      avatar: "https://avatars.githubusercontent.com/u/114498077?v=4",
       message: message.message,
       isImage: message.isImage,
-      createdAt: Date.now().toString(),
+      sentAt: Date.now() / 1000,
     });
 
     play();
@@ -82,10 +55,13 @@ export const NewMessageForm = () => {
 
   const addNewMessage = (body: string, file: File | null) => {
     let message = {
-      conversationId: "1",
+      id: uuidv4(),
+      username: "some_user",
+      conversationId: "1", // TODO: use real conversation ID eventually
       message: body,
-      sentAt: 1,
-      authToken: token,
+      sentAt: Date.now() / 1000,
+      authToken: token!,
+      isImage: false,
     } as Message;
 
     if (file) {

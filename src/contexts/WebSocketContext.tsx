@@ -3,23 +3,17 @@ import React, {
   useContext,
   useState,
   useEffect,
-  useCallback,
 } from "react";
 import axios from "axios";
-import { Message } from "@/components/message-component";
 import useAuthToken from "@/hooks/use-auth-token";
 
 type WebSocketContextState = {
   wsUrl: string | null;
-  messages: Message[];
-  addMessage: (message: Message) => void;
   webSocket: WebSocket | null;
 };
 
 export const WebSocketContext = createContext<WebSocketContextState>({
   wsUrl: null,
-  messages: [],
-  addMessage: () => {},
   webSocket: null,
 });
 
@@ -31,13 +25,8 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   children,
 }) => {
   const [wsUrl, setWsUrl] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
   const [webSocket, setWebSocket] = useState<WebSocket | null>(null);
   const token = useAuthToken();
-
-  const addMessage = useCallback((message: Message) => {
-    setMessages((prevMessages) => [...prevMessages, message]);
-  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -60,30 +49,18 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   useEffect(() => {
     if (wsUrl && !webSocket) {
       const ws = new WebSocket(wsUrl);
-
-      ws.onmessage = (event) => {
-        try {
-          const messageData: Message = JSON.parse(event.data);
-          addMessage(messageData);
-        } catch (error) {
-          console.error("Error parsing message data:", error);
-        }
-      };
-
       setWebSocket(ws);
     }
 
     return () => {
       if (webSocket) {
-        webSocket.close(); // Clean up the WebSocket on unmount
+        webSocket.close();
       }
     };
-  }, [wsUrl, webSocket, addMessage]);
+  }, [wsUrl, webSocket]);
 
   const contextValue = {
     wsUrl,
-    messages,
-    addMessage,
     webSocket, // Provide the WebSocket instance in context
   };
 

@@ -2,7 +2,10 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ["avatars.githubusercontent.com"],
+    domains: [
+      "ucl2324team4fnsa.blob.core.windows.net",
+      "img.clerk.com"
+    ],
   },
 };
 
