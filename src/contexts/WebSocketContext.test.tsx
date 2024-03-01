@@ -4,7 +4,6 @@ import { WebSocketProvider, useWebSocket } from "./WebSocketContext";
 import axios from "axios";
 
 jest.mock("axios");
-jest.mock("@/hooks/use-auth-token", () => () => "mocked-token");
 let mockWebSocketInstance: { send: any; close?: jest.Mock<any, any, any> };
 let mockWebSocket: jest.Mock;
 

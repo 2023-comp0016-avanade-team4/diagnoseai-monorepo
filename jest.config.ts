@@ -12,7 +12,6 @@ const config: Config = {
   moduleNameMapper: {
     '^@/components/(.*)$': '<rootDir>/src/components/$1',
     '^@/contexts/(.*)$': '<rootDir>/src/contexts/$1',
-    '^@/hooks/(.*)$': '<rootDir>/src/hooks/$1',
     // ... any other path aliases you have
   },
 }
