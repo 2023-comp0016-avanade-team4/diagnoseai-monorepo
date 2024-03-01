@@ -1,7 +1,13 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
-import { Message } from '@/components/message-component';
-
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import axios from "axios";
+import { Message } from "@/components/message-component";
+import useAuthToken from "@/hooks/use-auth-token";
 
 type WebSocketContextState = {
   wsUrl: string | null;
@@ -21,30 +27,34 @@ type WebSocketProviderProps = {
   children: React.ReactNode;
 };
 
-export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }) => {
+export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
+  children,
+}) => {
   const [wsUrl, setWsUrl] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [webSocket, setWebSocket] = useState<WebSocket | null>(null);
+  const token = useAuthToken();
 
   const addMessage = useCallback((message: Message) => {
-    setMessages(prevMessages => [...prevMessages, message]);
+    setMessages((prevMessages) => [...prevMessages, message]);
   }, []);
 
   useEffect(() => {
     const fetchData = async () => {
       const data = JSON.stringify({
-        "userId": "123" // Replace with dynamic user ID if necessary
+        userId: "123", // Replace with dynamic user ID if necessary
       });
 
       const config = {
-        method: 'post',
-        url: 'https://diagnoseai-core-apis.azure-api.net/core/chat_connection',
+        method: "post",
+        url: "https://diagnoseai-core-apis.azure-api.net/core/chat_connection",
         headers: {
           // 'Ocp-Apim-Subscription-Key': process.env.OCP_APIM_SUBSCRIPTION_KEY,
-          'Ocp-Apim-Subscription-Key': "KEY",
-          'Content-Type': 'application/json'
+          "Ocp-Apim-Subscription-Key": "14accc73703e44e2b4ed893edd5fb01b",
+          "Content-Type": "application/json",
+          "Auth-Token": token,
         },
-        data
+        data,
       };
 
       try {
@@ -52,12 +62,12 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
         const wsUrl = response.data.wsUrl; // Extract the wsUrl from the response
         setWsUrl(wsUrl);
       } catch (error) {
-        console.error('Error fetching WebSocket URL:', error);
+        console.error("Error fetching WebSocket URL:", error);
       }
     };
 
     fetchData();
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     if (wsUrl && !webSocket) {
@@ -89,7 +99,6 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     webSocket, // Provide the WebSocket instance in context
   };
 
-
   return (
     <WebSocketContext.Provider value={contextValue}>
       {children}
@@ -100,7 +109,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
 export const useWebSocket = () => {
   const context = useContext(WebSocketContext);
   if (!context) {
-    throw new Error('useWebSocket must be used within a WebSocketProvider');
+    throw new Error("useWebSocket must be used within a WebSocketProvider");
   }
   return context;
 };
