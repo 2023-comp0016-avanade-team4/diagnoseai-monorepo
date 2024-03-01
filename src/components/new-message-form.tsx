@@ -4,21 +4,23 @@ import useSound from "use-sound";
 import { useChatProvider } from "@/contexts/ChatContext";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 import uploadImageIcon from "../../assets/upload-image-icon.svg";
-import useAuthToken from "@/hooks/use-auth-token";
 import { Message } from "./message-component";
 import { v4 as uuidv4 } from "uuid";
+import { useAuth } from "@clerk/nextjs";
 
 export const NewMessageForm = () => {
   const [play] = useSound("sent.wav");
   const [body, setBody] = useState("");
   const { webSocket } = useWebSocket();
-  const { addMessage } = useChatProvider();
+  const { addMessage, isProcessingImage, setIsProcessingImage } =
+    useChatProvider();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const token: string | null = useAuthToken();
+  const { getToken } = useAuth();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       setSelectedFile(event.target.files[0]);
+      setBody(event.target.files[0].name); // show filename
     }
   };
 
@@ -53,14 +55,15 @@ export const NewMessageForm = () => {
     play();
   };
 
-  const addNewMessage = (body: string, file: File | null) => {
+  const addNewMessage = async (body: string, file: File | null) => {
+    const message_uuid = uuidv4();
     let message = {
-      id: uuidv4(),
+      id: message_uuid,
       username: "some_user",
       conversationId: "1", // TODO: use real conversation ID eventually
       message: body,
       sentAt: Date.now() / 1000,
-      authToken: token!,
+      authToken: await getToken(),
       isImage: false,
     } as Message;
 
@@ -79,9 +82,18 @@ export const NewMessageForm = () => {
         sendMessageToWS(message);
       };
 
-      reader.onerror = (error) => {
-        console.error("Error reading file:", error);
-      }
+      setIsProcessingImage(true);
+      const mockMessageId = message_uuid;
+
+      setTimeout(() => {
+        addMessage({
+          id: mockMessageId,
+          username: "bot",
+          message: "Processing image...",
+          isImage: false,
+          sentAt: Date.now() / 1000,
+        });
+      }, 250);
     } else {
       sendMessageToWS(message);
     }
@@ -92,6 +104,9 @@ export const NewMessageForm = () => {
       <style jsx>{`
         .image-upload > input {
           display: none;
+        }
+        .image-upload label {
+          cursor: pointer;
         }
       `}</style>
       <div className="image-upload">
@@ -116,10 +131,17 @@ export const NewMessageForm = () => {
         value={body}
         onChange={(e) => setBody(e.target.value)}
         className="flex-1 h-12 px-3 rounded bg-[#222226] border border-[#222226] focus:border-[#222226] focus:outline-none text-white placeholder-white"
+        autoComplete="off"
+        disabled={
+          !webSocket ||
+          webSocket.readyState !== WebSocket.OPEN ||
+          !!selectedFile ||
+          isProcessingImage
+        }
       />
       <button
         type="submit"
-        className="bg-[#222226] rounded h-12 font-medium text-white w-24 text-lg border border-transparent hover:bg-[#363739] transition"
+        className="bg-[#222226] rounded h-12 font-medium text-white w-24 text-lg border border-transparent hover:bg-[#363739] transition cursor-pointer"
         disabled={!body && !selectedFile}
       >
         Send

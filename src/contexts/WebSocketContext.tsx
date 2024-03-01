@@ -1,11 +1,5 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-} from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
-import useAuthToken from "@/hooks/use-auth-token";
 
 type WebSocketContextState = {
   wsUrl: string | null;
@@ -26,16 +20,11 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 }) => {
   const [wsUrl, setWsUrl] = useState<string | null>(null);
   const [webSocket, setWebSocket] = useState<WebSocket | null>(null);
-  const token = useAuthToken();
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = {
-        token: token,
-      };
-
       try {
-        const response = await axios.post("/api/chatConnection", data);
+        const response = await axios.post("/api/chatConnection");
         const wsUrl = response.data.wsUrl; // Extract the wsUrl from the response
         setWsUrl(wsUrl);
       } catch (error) {
@@ -44,20 +33,45 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     };
 
     fetchData();
-  }, [token]);
+  }, []);
 
   useEffect(() => {
-    if (wsUrl && !webSocket) {
+    if (!wsUrl) return;
+
+    let attemptReconnect = true;
+
+    const connectWebSocket = () => {
       const ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        console.log("WebSocket Connected");
+      };
+
+      ws.onclose = () => {
+        if (attemptReconnect) {
+          console.log("WebSocket Disconnected. Attempting to reconnect...");
+          setTimeout(() => {
+            connectWebSocket();
+          }, 1000); // wait before reconnecting
+        }
+      };
+
+      ws.onerror = (error) => {
+        console.error("WebSocket Error", error);
+      };
+
       setWebSocket(ws);
-    }
+    };
+
+    connectWebSocket();
 
     return () => {
+      attemptReconnect = false;
       if (webSocket) {
         webSocket.close();
       }
     };
-  }, [wsUrl, webSocket]);
+  }, [wsUrl]);
 
   const contextValue = {
     wsUrl,

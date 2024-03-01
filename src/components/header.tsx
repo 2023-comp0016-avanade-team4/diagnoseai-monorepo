@@ -1,4 +1,5 @@
 // import { signIn, signOut, useSession } from "next-auth/react";
+import { UserButton } from "@clerk/nextjs";
 import Image from "next/image";
 import SignOutButton from "./sign-out-button";
 
@@ -36,9 +37,9 @@ export function Header() {
             </a>
             <span className="text-white font-bold text-xl">DiagnoseAI</span>
           </p>
-          <SignOutButton />
+          <UserButton />
         </div>
-      </div >
-    </header >
+      </div>
+    </header>
   );
 }
