@@ -16,8 +16,10 @@ vjwt_patch.return_value = True
 akc_patch = patch('azure.core.credentials.AzureKeyCredential').start()
 sc_patch = patch('azure.search.documents.SearchClient').start()
 sic_patch = patch('azure.search.documents.indexes.SearchIndexClient').start()
-http_response_patch = patch('azure.functions.HttpResponse').start()
 verify_token_patch = patch('utils.verify_token.verify_token').start()
+http_response_patch = patch('azure.functions.HttpResponse')
+
+http_response_patch.start()
 
 os.environ['CognitiveSearchKey'] = 'mock-key'
 os.environ['CognitiveSearchEndpoint'] = 'mock-endpoint'
@@ -25,6 +27,10 @@ os.environ['ProductionIndexName'] = 'mock-index'
 
 # pylint: disable=wrong-import-position
 from core.validation_to_production import main  # noqa: E402
+
+# TODO: When we do Core cleanup, the patches all need a better way
+# to prevent side-effects with other tests
+http_response_patch.stop()
 
 
 class TestValidationToProduction(unittest.TestCase):
@@ -39,6 +45,14 @@ class TestValidationToProduction(unittest.TestCase):
             'Auth-Token': 'test'
         }
     )
+
+    @staticmethod
+    def tearDownClass():
+        akc_patch.stop()
+        sc_patch.stop()
+        sic_patch.stop()
+        verify_token_patch.stop()
+        http_response_patch.stop()
 
     @patch('core.validation_to_production.prodClient')
     @patch('core.validation_to_production.cogSearchClient')

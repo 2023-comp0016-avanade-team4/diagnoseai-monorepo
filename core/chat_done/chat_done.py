@@ -27,6 +27,10 @@ from langchain.embeddings import AzureOpenAIEmbeddings
 
 OPENAI_KEY = os.environ["OpenAIKey"]
 OPENAI_ENDPOINT = os.environ["OpenAIEndpoint"]
+
+os.environ["AZURE_OPENAI_API_KEY"] = OPENAI_KEY
+os.environ["AZURE_OPENAI_ENDPOINT"] = OPENAI_ENDPOINT
+
 SUMMARIZATION_MODEL = os.environ["SummarizationModel"]
 
 DATABASE_URL = os.environ['DatabaseURL']
@@ -93,7 +97,9 @@ def __obtain_summary(prev_summary: str, next_chunk: str) -> str:
         }],
     )
 
-    return chat_response.choices[0].message['content']
+    response = chat_response.choices[0].message.content is not None
+    assert response is not None
+    return response
 
 
 def __summarize_conversation(conversation_id: str) -> str:
@@ -157,11 +163,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     Args:
         req (func.HttpRequest): The HTTP request
     """
-    if not req.method == 'POST':
-        return func.HttpResponse(
-            'Unknown HTTP method', status_code=400
-        )
-
     if not verify_token(req.headers['Auth-Token']):
         return func.HttpResponse(
             'Missing auth token', status_code=401
@@ -179,14 +180,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     # ideally all of the above guards should be in its own function
 
     logging.info('Chat Done called with %s', req.method)
-    try:
-        ConversationStatusDAO.mark_conversation_completed(
-            req.params['conversation_id'], db_session)
-        summarize_and_store(user_id, conversation_id)
-        return func.HttpResponse(
-            '', status_code=200
-        )
-    except JSONDecodeError:
-        return func.HttpResponse(
-            '', status_code=400
-            )
+    ConversationStatusDAO.mark_conversation_completed(
+        req.params['conversation_id'], db_session)
+    summarize_and_store(user_id, conversation_id)
+    return func.HttpResponse(
+        '', status_code=200
+    )
