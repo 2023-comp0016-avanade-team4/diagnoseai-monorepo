@@ -119,6 +119,86 @@ def ws_log_and_send_error(text: str, connection_id: str) -> None:
     ws_send_message(ResponseErrorMessage(text).to_json(), connection_id)
 
 
+def __query_llm_with_index(
+        messages: list[ChatCompletionMessageParam],
+        document_index: str,
+        connection_id: str) -> str:
+    """
+    Queries the AI model from the validation document index.
+
+    Args:
+        messages (list[ChatCompletionMessageParam]): The messages to
+            send to the model
+        document_index (str): The document index to query
+        connection_id (str): The connection ID
+
+    Returns:
+        str: The response from the model
+    """
+    chat_response = ai_client.chat.completions.create(
+        model='validation-testing-model',
+        extra_body={
+            "dataSources": [
+                {
+                    "type": "AzureCognitiveSearch",
+                    "parameters": {
+                        "endpoint": SEARCH_ENDPOINT,
+                        "key": SEARCH_KEY,
+                        "indexName": document_index,
+                    }
+                }
+            ],
+        },
+        messages=messages,
+    )
+
+    logging.info('%s: model response received', connection_id)
+    if len(chat_response.choices) == 0 \
+       or chat_response.choices[0].message.content is None:
+        ws_log_and_send_error(
+            ('no response from AI chat.'
+             f' for debugging purposes, you were {connection_id}'),
+            connection_id)
+        return ''
+    return chat_response.choices[0].message.content
+
+
+def __combine_responses_with_llm(
+        responses: list[str], connection_id: str) -> str:
+    """
+    Combines responses with the LLM. This function is used in tandem
+    with __query_llm_with_index; for all responses received, it will
+    query the LLM with the responses and return the final response.
+    """
+    chat_response = ai_client.chat.completions.create(
+        model='validation-testing-model',
+        messages=[{
+            "role": "system",
+            "content": ("You are a model that combines"
+                        " several assistant responses. Given"
+                        " all messages after this prompt, you"
+                        " will generate a response that"
+                        " combines all the messages. In your"
+                        " response, do not contradict yourself;"
+                        " if you find any contradicting"
+                        " information, prioritize the most"
+                        " recent message.")
+        }, *[cast(ChatCompletionMessageParam,
+                  {"role": "user", "content": response})
+             for response in responses]]
+    )
+
+    logging.info('%s: combining model response received', connection_id)
+    if len(chat_response.choices) == 0 \
+       or chat_response.choices[0].message.content is None:
+        ws_log_and_send_error(
+            ('no response from combining.'
+             f' for debugging purposes, you were {connection_id}'),
+            connection_id)
+        return ''
+    return chat_response.choices[0].message.content
+
+
 def process_message(message: ChatMessage, connection_id: str) -> None:
     """
     Processes the message received from the request.
@@ -153,34 +233,22 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
     shadow_msg_to_db(message.conversation_id, message.message, False)
     # TODO: Probably want to refactor calling the model to a function
     # to reduce the size of this monster
-    chat_response = ai_client.chat.completions.create(
-        model='validation-testing-model',
-        extra_body={
-            "dataSources": [
-                {
-                    "type": "AzureCognitiveSearch",
-                    "parameters": {
-                        "endpoint": SEARCH_ENDPOINT,
-                        "key": SEARCH_KEY,
-                        "indexName": message.index,
-                    }
-                }
-            ],
-        },
-        messages=messages,
+    chat_response = __combine_responses_with_llm(
+        [__query_llm_with_index(messages, message.index, connection_id),
+         __query_llm_with_index(messages, f'user-{curr_user}', # TODO: need to massage this slightly, remove all the reference tags
+                                connection_id)],
+        connection_id
     )
 
     logging.info('%s: model response received', connection_id)
-    if len(chat_response.choices) == 0 \
-       or chat_response.choices[0].message.content is None:
+    if chat_response.strip() == '':
         ws_log_and_send_error(
-            ('no response from AI chat.'
+            ('empty response.'
              f' for debugging purposes, you were {connection_id}'),
             connection_id)
-        return
 
     response = ResponseChatMessage(
-        chat_response.choices[0].message.content,
+        chat_response,
         message.conversation_id,
         datetime.now()
     )
@@ -201,8 +269,9 @@ def main(request: str) -> None:
     serialized_request = None
     try:
         serialized_request = WebPubSubRequest.from_json(request)
+        chat_message = ChatMessage.from_json(serialized_request.data)
         process_message(
-            ChatMessage.from_json(serialized_request.data),
+            chat_message,
             serialized_request.connection_context.connection_id
         )
     except (KeyError, JSONDecodeError) as e:
