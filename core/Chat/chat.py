@@ -238,15 +238,16 @@ def combine_responses_with_llm(
         model='validation-testing-model',
         messages=[{
             "role": "system",
-            "content": ("You are a model that combines"
-                        " several assistant responses. Given"
-                        " all messages after this prompt, you"
-                        " will generate a response that"
-                        " combines all the messages. In your"
-                        " response, do not contradict yourself;"
-                        " if you find any contradicting"
-                        " information, prioritize the most"
-                        " recent message.")
+            "content": ("You are a model that combines several "
+                        "assistant responses. Given all "
+                        "messages after this prompt, you will "
+                        "generate a response that combines all "
+                        "the messages. In your response, do not "
+                        "contradict yourself; if you find any "
+                        "contradicting information, prioritize "
+                        "the most recent message. Please "
+                        "preserve any tags that look like this: "
+                        "[doc1].")
         }, *[cast(ChatCompletionMessageParam,
                   {"role": "user", "content": response})
              for response in cleaned_responses]]
