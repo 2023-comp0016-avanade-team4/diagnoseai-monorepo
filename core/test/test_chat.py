@@ -7,6 +7,7 @@ import unittest
 from datetime import datetime
 from typing import Optional, Tuple
 from unittest.mock import MagicMock, PropertyMock, create_autospec, patch
+from azure.core.exceptions import ResourceNotFoundError
 
 from openai.types.chat.chat_completion import (ChatCompletion,
                                                ChatCompletionMessage, Choice)
@@ -39,7 +40,8 @@ os.environ['DatabasePassword'] = ''
 # pylint: disable=wrong-import-position
 from core.Chat.chat import (ai_client, main, process_message,  # noqa: E402
                             ws_log_and_send_error, ws_send_message,
-                            shadow_msg_to_db, strip_all_citations)
+                            shadow_msg_to_db, strip_all_citations,
+                            combine_responses_with_llm, ChatError)
 from core.utils.chat_message import ChatMessage  # noqa: E402
 from core.utils.web_pub_sub_interfaces import WebPubSubConnectionContext  # pylint: disable=line-too-long # noqa: E402, E501
 from core.utils.web_pub_sub_interfaces import WebPubSubRequest  # pylint: disable= line-too-long wrong-import-position # noqa: E402, E501
@@ -60,6 +62,12 @@ class TestChat(unittest.TestCase):
     def tearDown(self):
         self.verifyjwt_mock.stop()
         self.get_user_id_mock.stop()
+
+    @staticmethod
+    def tearDownClass():
+        db_session_patch.stop()
+        aoi_patch.stop()
+        sic_patch.stop()
 
     @patch('core.Chat.chat.process_message')
     def test_main_happy(self, m):
@@ -150,10 +158,15 @@ class TestChat(unittest.TestCase):
 
         self.assertIn('hi', m.call_args[0][0])
         self.assertEqual(m.call_args[0][1], '123')
+        self.assertEqual(ai_client.chat.completions.create.call_count, 3)
         self.assertEqual(ai_client.chat.completions.create
                          .call_args_list[0]
                          .kwargs['extra_body']['dataSources'][0]
                          ['parameters']['indexName'], 'validation-index')
+        self.assertEqual(ai_client.chat.completions.create.call_args_list[2]
+                         .kwargs['messages'][1]['content'], 'hi')
+        self.assertEqual(ai_client.chat.completions.create.call_args_list[2]
+                         .kwargs['messages'][2]['content'], 'hi')
 
         # reset for other tests to use
         mocked_create.reset_mock()
@@ -171,12 +184,42 @@ class TestChat(unittest.TestCase):
 
         self.assertIn('hi', m.call_args[0][0])
         self.assertEqual(m.call_args[0][1], '123')
+        self.assertEqual(ai_client.chat.completions.create.call_count, 3)
+        self.assertEqual(ai_client.chat.completions.create
+                         .call_args_list[0]
+                         .kwargs['extra_body']['dataSources'][0]
+                         ['parameters']['indexName'], 'other-index')
+        self.assertEqual(ai_client.chat.completions.create.call_args_list[2]
+                         .kwargs['messages'][1]['content'], 'hi')
+        self.assertEqual(ai_client.chat.completions.create.call_args_list[2]
+                         .kwargs['messages'][2]['content'], 'hi')
+
+        # reset for other tests to use
+        mocked_create.reset_mock()
+
+    @patch('core.Chat.chat.ws_send_message')
+    def test_process_message_happy_summary_index_not_found(self, m):
+        """
+        Message is sent to the chat model cleanly. The default index is used,
+        but the summary index is not found.
+        """
+        mocked_create, message = self.__create_mock_chat_completion(
+            'hi', True, 'other-index')
+
+        sic_patch.return_value.get_index.side_effect = ResourceNotFoundError
+        process_message(message, '123')
+        m.assert_called_once()
+
+        self.assertIn('hi', m.call_args[0][0])
+        self.assertEqual(m.call_args[0][1], '123')
+        self.assertEqual(ai_client.chat.completions.create.call_count, 1)
         self.assertEqual(ai_client.chat.completions.create
                          .call_args_list[0]
                          .kwargs['extra_body']['dataSources'][0]
                          ['parameters']['indexName'], 'other-index')
 
         # reset for other tests to use
+        sic_patch.return_value.get_index.side_effect = None
         mocked_create.reset_mock()
 
     @patch('core.Chat.chat.ws_log_and_send_error')
@@ -251,3 +294,57 @@ class TestChat(unittest.TestCase):
         self.assertEqual(strip_all_citations(
             'blah blah blah [doc1]. blah blah [doc2]'),
                          'blah blah blah. blah blah')
+
+    def test_combine_responses_with_llm_happy(self):
+        """
+        Can combine successfully
+        """
+        mocked_create, _message = self.__create_mock_chat_completion(
+            'hello world', True, None)
+
+        response = combine_responses_with_llm(['hello', 'world'], '123')
+        self.assertEqual(response, 'hello world')
+        mocked_create.assert_called_once()
+
+        mocked_create.reset_mock()
+
+    def test_combine_responses_with_llm_only_one(self):
+        """
+        Can combine successfully, but there is only one message
+        """
+        mocked_create, _message = self.__create_mock_chat_completion(
+            'hello', True, None)
+
+        response = combine_responses_with_llm(['hello'], '123')
+        self.assertEqual(response, 'hello')
+        mocked_create.assert_not_called()
+
+        mocked_create.reset_mock()
+
+    def test_combine_responses_with_llm_only_one_actual_msg(self):
+        """
+        Can combine successfully, but there is only one real message
+        """
+        mocked_create, _message = self.__create_mock_chat_completion(
+            'hello', False, None)
+
+        response = combine_responses_with_llm(['hello', '', ''], '123')
+        self.assertEqual(response, 'hello')
+        mocked_create.assert_not_called()
+
+        mocked_create.reset_mock()
+
+    @patch('core.Chat.chat.ws_log_and_send_error')
+    def test_combine_responses_with_llm_error(self, m):
+        """
+        Cannot combine successfully, should respond with errors
+        """
+        mocked_create, _message = self.__create_mock_chat_completion(
+            'hello', False, None)
+
+        with self.assertRaisesRegex(ChatError, 'no response from combining'):
+            combine_responses_with_llm(['hello', 'world'], '123')
+            mocked_create.assert_called_once()
+            m.assert_called_once()
+
+        mocked_create.reset_mock()

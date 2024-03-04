@@ -214,13 +214,26 @@ def __query_llm_with_index(
     return chat_response.choices[0].message.content
 
 
-def __combine_responses_with_llm(
+def combine_responses_with_llm(
         responses: list[str], connection_id: str) -> str:
     """
     Combines responses with the LLM. This function is used in tandem
     with __query_llm_with_index; for all responses received, it will
     query the LLM with the responses and return the final response.
+
+    Args:
+        responses (list[str]): The responses to combine
+        connection_id (str): The connection ID
+
+    Returns:
+        str: The combined response
     """
+    cleaned_responses = [response for response in responses
+                         if response.strip() != '']
+
+    if len(cleaned_responses) <= 1:
+        return responses[0]
+
     chat_response = ai_client.chat.completions.create(
         model='validation-testing-model',
         messages=[{
@@ -236,7 +249,7 @@ def __combine_responses_with_llm(
                         " recent message.")
         }, *[cast(ChatCompletionMessageParam,
                   {"role": "user", "content": response})
-             for response in responses]]
+             for response in cleaned_responses]]
     )
 
     logging.info('%s: combining model response received', connection_id)
@@ -285,7 +298,7 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
     summary_index = f'user-{curr_user}'
 
     try:
-        chat_response = __combine_responses_with_llm(
+        chat_response = combine_responses_with_llm(
             [__query_llm_with_index(messages, message.index,
                                     SEARCH_ENDPOINT, SEARCH_KEY,
                                     connection_id),
