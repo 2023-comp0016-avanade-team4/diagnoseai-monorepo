@@ -29,36 +29,61 @@ class TestChatHistory(unittest.TestCase):
     """
     Tests the Chat History API
     """
-    def test_main_happy(self):
+    def setUp(self):
+        """
+        Set up the test
+        """
+        db_session_patch.start()
+        self.verifyjwt_patch = patch('core.chat_history.api.verify_token') \
+            .start()
+        self.get_user_id_patch = patch('core.chat_history.api.get_user_id') \
+            .start()
+        self.authoriseuser_patch = patch(
+            'core.chat_history.api.authorise_user').start()
+
+        self.verifyjwt_patch.return_value = True
+        self.get_user_id_patch.return_value = '123'
+        self.authoriseuser_patch.return_value = True
+
+    def tearDown(self):
+        """
+        Tear down the test
+        """
+        db_session_patch.stop()
+        self.verifyjwt_patch.stop()
+        self.get_user_id_patch.stop()
+        self.authoriseuser_patch.stop()
+
+    @patch('core.chat_history.api.handle_request_by_conversation_id')
+    def test_main_happy(self, m):
         """
         Reads from the conversation ID parameter
         """
-        with patch(
-                'core.chat_history.api.handle_request_by_conversation_id'
-        ) as m:
-            mocked_output = ChatHistoryResponse.from_dict({
-                'messages': [
-                    {
-                        'message': 'hello',
-                        'conversation_id': '123',
-                        'sent_at': 1703629825,
-                        'sender': 'bot'
-                    }
-                ]
-            })
-            m.return_value = mocked_output
-            expected_response = mocked_output.to_json()
+        mocked_output = ChatHistoryResponse.from_dict({
+            'messages': [
+                {
+                    'message': 'hello',
+                    'conversation_id': '123',
+                    'sent_at': 1703629825,
+                    'sender': 'bot'
+                }
+            ],
+            'conversation_done': True
+        })
+        m.return_value = mocked_output
+        expected_response = mocked_output.to_json()
 
-            response = main(
-                func.HttpRequest(
-                    'GET', "/api/chat/history",
-                    params={'conversation_id': '123'},
-                    body=b''))
+        response = main(
+            func.HttpRequest(
+                'GET', "/api/chat/history",
+                params={'conversation_id': '123'},
+                headers={'auth-token': 'mock-token'},
+                body=b''))
 
-            m.assert_called_once()
-            self.assertEqual(m.call_args[0][0], '123')
-            self.assertEqual(response.status_code, 200)
-            self.assertEqual(response.get_body().decode(), expected_response)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_body().decode(), expected_response)
+        m.assert_called_once()
+        self.assertEqual(m.call_args[0][0], '123')
 
     def test_main_sad_1(self):
         """
@@ -88,21 +113,24 @@ class TestChatHistory(unittest.TestCase):
             list(get_history_from_db('123'))
             m.assert_called_once()
 
-    def test_handle_request(self):
+    @patch(
+        'models.conversation_status.ConversationStatusDAO.'
+        'is_conversation_completed', return_value=False)
+    @patch(
+        'models.chat_message.ChatMessageDAO.get_all_messages_for_conversation')
+    def test_handle_request(self, m, csdao_mock):
         """
         Handling a request should eventually call the DAO to obtain
         messages
         """
-        with patch(
-                'models.chat_message.ChatMessageDAO'
-                '.get_all_messages_for_conversation'
-        ) as m:
-            m.return_value = [ChatMessageModel(
-                conversation_id='123',
-                message='hello world',
-                sent_at=123,
-                sender='bot'
-            )]
-            response = handle_request_by_conversation_id('123')
-            m.assert_called_once()
-            self.assertEqual(response.messages[0].message, 'hello world')
+        m.return_value = [ChatMessageModel(
+            conversation_id='123',
+            message='hello world',
+            sent_at=123,
+            sender='bot'
+        )]
+        response = handle_request_by_conversation_id('123')
+        m.assert_called_once()
+        csdao_mock.assert_called_once()
+        self.assertEqual(response.messages[0].message, 'hello world')
+        self.assertEqual(response.conversation_done, False)

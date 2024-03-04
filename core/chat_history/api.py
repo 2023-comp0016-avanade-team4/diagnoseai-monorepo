@@ -7,6 +7,7 @@ import os
 
 import azure.functions as func  # type: ignore[import-untyped]
 from models.chat_message import ChatMessageDAO, ChatMessageModel
+from models.conversation_status import ConversationStatusDAO
 from utils.db import create_session
 from utils.history import ChatHistoryResponse
 from utils.authorise_conversation import authorise_user
@@ -62,7 +63,10 @@ def handle_request_by_conversation_id(
         ChatHistoryResponse: The chat history response
     """
     return ChatHistoryResponse.from_dict(
-        {"messages": list(get_history_from_db(conversation_id))}
+        {"messages": list(get_history_from_db(conversation_id)),
+         "conversation_done": ConversationStatusDAO.is_conversation_completed(
+             conversation_id, db_session
+         )}
     )
 
 
