@@ -190,7 +190,7 @@ def __query_llm_with_index(
     chat_response = ai_client.chat.completions.create(
         model='validation-testing-model',
         extra_body={
-            "dataSources": [
+            "data_sources": [
                 {
                     "type": "AzureCognitiveSearch",
                     "parameters": {
