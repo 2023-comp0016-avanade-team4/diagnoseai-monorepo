@@ -58,9 +58,9 @@ logging.basicConfig(level=logging.INFO)
 
 ai_client = AzureOpenAI(
     base_url=(f"{OPENAI_ENDPOINT}/openai/deployments/"
-              "validation-testing-model/extensions"),
+              "validation-testing-model"),
     api_key=OPENAI_KEY,
-    api_version='2023-09-01-preview'
+    api_version='2024-02-15-preview'
 )
 
 db_session = create_session(
