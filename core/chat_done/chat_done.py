@@ -18,7 +18,7 @@ from langchain.vectorstores.azuresearch import AzureSearch
 from openai import AzureOpenAI
 from models.chat_message import ChatMessageDAO
 from models.conversation_status import ConversationStatusDAO
-from models.work_order import WorkOrderDAO
+from utils.authorise_conversation import authorise_user
 from utils.db import create_session
 from utils.get_user_id import get_user_id
 from utils.verify_token import verify_token
@@ -156,23 +156,37 @@ def summarize_and_store(user_id: str, conversation_id: str) -> None:
                        __summarize_conversation(conversation_id))
 
 
-def __guards(req: func.HttpRequest) -> Optional[func.HttpResponse]:
+def __guards(req: func.HttpRequest
+             ) -> tuple[Optional[func.HttpResponse], str, str]:
+    """
+    Guards for the chat done endpoint.
+
+    Args:
+        req (func.HttpRequest): The HTTP request
+
+    Returns:
+        tuple[Optional[func.HttpResponse], str, str]: The guard
+                                                      response, the
+                                                      user ID, and the
+                                                      conversation ID
+    """
     if not verify_token(req.headers['Auth-Token']):
         return func.HttpResponse(
             'Missing auth token', status_code=401
-        )
+        ), '', ''
 
     if 'conversation_id' not in req.params:
         return func.HttpResponse(
             'Missing conversation ID', status_code=400
-        )
+        ), '', ''
 
-    if not WorkOrderDAO.get_user_id_for_conversation_id(
-            db_session, req.params['conversation_id']):
+    user_id = get_user_id(req.headers['Auth-Token'])
+    conversation_id = req.params['conversation_id']
+    if not authorise_user(db_session, conversation_id, user_id):
         return func.HttpResponse(
             'Conversation does not belong to user', status_code=401
-        )
-    return None
+        ), '', ''
+    return None, user_id, conversation_id
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
@@ -182,12 +196,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     Args:
         req (func.HttpRequest): The HTTP request
     """
-    guards = __guards(req)
-    if guards:
-        return guards
-
-    user_id = get_user_id(req.headers['Auth-Token'])
-    conversation_id = req.params['conversation_id']
+    guard_res, user_id, conversation_id = __guards(req)
+    if guard_res:
+        return guard_res
 
     logging.info('Chat Done called with %s', req.method)
     ConversationStatusDAO.mark_conversation_completed(

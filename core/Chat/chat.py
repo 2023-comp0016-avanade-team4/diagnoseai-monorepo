@@ -10,22 +10,26 @@ References:
 
 import logging
 import os
+import re
 from datetime import datetime
 from json import JSONDecodeError
-from typing import cast
+from typing import Callable, cast
 
-from azure.messaging.webpubsubservice import WebPubSubServiceClient  # type: ignore[import-untyped] # noqa: E501 # pylint: disable=line-too-long
-from openai.types.chat import ChatCompletionMessageParam
+from azure.core.credentials import AzureKeyCredential
+from azure.core.exceptions import ResourceNotFoundError
+from azure.messaging.webpubsubservice import \
+    WebPubSubServiceClient  # type: ignore[import-untyped] # noqa: E501 # pylint: disable=line-too-long
+from azure.search.documents.indexes import SearchIndexClient
 from openai import AzureOpenAI
-
+from openai.types.chat import ChatCompletionMessageParam
 from models.chat_message import ChatMessageDAO, ChatMessageModel
+from utils.authorise_conversation import authorise_user
 from utils.chat_message import (BidirectionalChatMessage, ChatMessage,
                                 ResponseChatMessage, ResponseErrorMessage)
 from utils.db import create_session
-from utils.web_pub_sub_interfaces import WebPubSubRequest
-from utils.verify_token import verify_token
 from utils.get_user_id import get_user_id
-from utils.authorise_conversation import authorise_user
+from utils.verify_token import verify_token
+from utils.web_pub_sub_interfaces import WebPubSubRequest
 
 # Load required variables from the environment
 
@@ -34,6 +38,9 @@ WPBSS_HUB_NAME = os.environ['WebPubSubHubName']
 
 SEARCH_KEY = os.environ["CognitiveSearchKey"]
 SEARCH_ENDPOINT = os.environ["CognitiveSearchEndpoint"]
+
+SUMMARY_SEARCH_KEY = os.environ["SummarySearchKey"]
+SUMMARY_SEARCH_ENDPOINT = os.environ["SummarySearchEndpoint"]
 
 OPENAI_KEY = os.environ["OpenAIKey"]
 OPENAI_ENDPOINT = os.environ["OpenAIEndpoint"]
@@ -60,6 +67,17 @@ db_session = create_session(
     bool(DATABASE_SELFSIGNED)
 )
 
+si_client = SearchIndexClient(SEARCH_ENDPOINT,
+                              AzureKeyCredential(SEARCH_KEY))
+
+
+class ChatError(Exception):
+    """
+    Represents a chat-related error. The exception raiser should be
+    the one that handles the exception (e.g. send error messages to
+    the WebSocket)
+    """
+
 
 def ws_send_message(text: str, connection_id: str) -> None:
     """
@@ -85,7 +103,7 @@ def shadow_msg_to_db(
     ChatMessageDAO.save_message(
         db_session,
         ChatMessageModel.from_bidirectional_chat_message(
-            BidirectionalChatMessage(  # pylint: disable=unexpected-keyword-arg, no-value-for-parameter # noqa: E501
+            BidirectionalChatMessage(
                 message=message,
                 conversation_id=conversation_id,
                 sent_at=datetime.now(),
@@ -119,9 +137,40 @@ def ws_log_and_send_error(text: str, connection_id: str) -> None:
     ws_send_message(ResponseErrorMessage(text).to_json(), connection_id)
 
 
+def __index_guard(index_name: str, fully_applied_fn: Callable[[], str]) -> str:
+    """
+    Guards a function that requires an existing search index
+
+    Args:
+        index_name (str): The index name
+        fully_applied_fn (Callable[[], str]): The function to call if the
+                                              index exists
+
+    Returns:
+        str: The response from the function
+    """
+    try:
+        si_client.get_index(index_name)
+        return fully_applied_fn()
+    except ResourceNotFoundError:
+        logging.info('Index %s does not exist, guard is skipping the callable',
+                     index_name)
+        return ''
+
+
+def strip_all_citations(completion: str) -> str:
+    """
+    Strips all citations from a completion
+    """
+    doc_regex = r'\s*\[doc\d+\]'
+    return re.sub(doc_regex, '', completion)
+
+
 def __query_llm_with_index(
         messages: list[ChatCompletionMessageParam],
         document_index: str,
+        search_endpoint: str,
+        search_key: str,
         connection_id: str) -> str:
     """
     Queries the AI model from the validation document index.
@@ -130,6 +179,8 @@ def __query_llm_with_index(
         messages (list[ChatCompletionMessageParam]): The messages to
             send to the model
         document_index (str): The document index to query
+        search_endpoint (str): The search endpoint
+        search_key (str): The search key
         connection_id (str): The connection ID
 
     Returns:
@@ -142,8 +193,8 @@ def __query_llm_with_index(
                 {
                     "type": "AzureCognitiveSearch",
                     "parameters": {
-                        "endpoint": SEARCH_ENDPOINT,
-                        "key": SEARCH_KEY,
+                        "endpoint": search_endpoint,
+                        "key": search_key,
                         "indexName": document_index,
                     }
                 }
@@ -159,7 +210,7 @@ def __query_llm_with_index(
             ('no response from AI chat.'
              f' for debugging purposes, you were {connection_id}'),
             connection_id)
-        return ''
+        raise ChatError('no response from AI chat')
     return chat_response.choices[0].message.content
 
 
@@ -195,7 +246,7 @@ def __combine_responses_with_llm(
             ('no response from combining.'
              f' for debugging purposes, you were {connection_id}'),
             connection_id)
-        return ''
+        raise ChatError('no response from combining')
     return chat_response.choices[0].message.content
 
 
@@ -231,14 +282,25 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
     messages = db_history_to_ai_history(message.conversation_id)
     messages.append({'role': 'user', 'content': message.message})
     shadow_msg_to_db(message.conversation_id, message.message, False)
-    # TODO: Probably want to refactor calling the model to a function
-    # to reduce the size of this monster
-    chat_response = __combine_responses_with_llm(
-        [__query_llm_with_index(messages, message.index, connection_id),
-         __query_llm_with_index(messages, f'user-{curr_user}', # TODO: need to massage this slightly, remove all the reference tags
-                                connection_id)],
-        connection_id
-    )
+    summary_index = f'user-{curr_user}'
+
+    try:
+        chat_response = __combine_responses_with_llm(
+            [__query_llm_with_index(messages, message.index,
+                                    SEARCH_ENDPOINT, SEARCH_KEY,
+                                    connection_id),
+             __index_guard(summary_index,
+                           lambda: strip_all_citations(
+                               __query_llm_with_index(
+                                   messages, summary_index,
+                                   SUMMARY_SEARCH_ENDPOINT, SUMMARY_SEARCH_KEY,
+                                   connection_id)))
+             ],
+            connection_id
+        )
+    except ChatError:
+        # chat errors already have responses sent to the websocket
+        return
 
     logging.info('%s: model response received', connection_id)
     if chat_response.strip() == '':
@@ -246,6 +308,7 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
             ('empty response.'
              f' for debugging purposes, you were {connection_id}'),
             connection_id)
+        return
 
     response = ResponseChatMessage(
         chat_response,
