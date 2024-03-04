@@ -7,21 +7,21 @@ complete.
 
 import logging
 import os
-from json import JSONDecodeError
+from functools import reduce
+from typing import Optional
 
 import azure.functions as func  # type: ignore[import-untyped]
-from azure.search.documents.indexes import SearchIndexClient  # type: ignore[import-untyped] # noqa: E501 # pylint: disable=line-too-long
-from functools import reduce
 from langchain.docstore.document import Document
+from langchain.embeddings import AzureOpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.vectorstores.azuresearch import AzureSearch
 from openai import AzureOpenAI
 from models.chat_message import ChatMessageDAO
 from models.conversation_status import ConversationStatusDAO
+from models.work_order import WorkOrderDAO
 from utils.db import create_session
-from utils.verify_token import verify_token
 from utils.get_user_id import get_user_id
-from langchain.vectorstores.azuresearch import AzureSearch
-from langchain.embeddings import AzureOpenAIEmbeddings
+from utils.verify_token import verify_token
 
 # Environment Variables / Constants
 
@@ -97,7 +97,7 @@ def __obtain_summary(prev_summary: str, next_chunk: str) -> str:
         }],
     )
 
-    response = chat_response.choices[0].message.content is not None
+    response = chat_response.choices[0].message.content
     assert response is not None
     return response
 
@@ -156,13 +156,7 @@ def summarize_and_store(user_id: str, conversation_id: str) -> None:
                        __summarize_conversation(conversation_id))
 
 
-def main(req: func.HttpRequest) -> func.HttpResponse:
-    """
-    Marks a conversation as completed.
-
-    Args:
-        req (func.HttpRequest): The HTTP request
-    """
+def __guards(req: func.HttpRequest) -> Optional[func.HttpResponse]:
     if not verify_token(req.headers['Auth-Token']):
         return func.HttpResponse(
             'Missing auth token', status_code=401
@@ -173,11 +167,27 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             'Missing conversation ID', status_code=400
         )
 
+    if not WorkOrderDAO.get_user_id_for_conversation_id(
+            db_session, req.params['conversation_id']):
+        return func.HttpResponse(
+            'Conversation does not belong to user', status_code=401
+        )
+    return None
+
+
+def main(req: func.HttpRequest) -> func.HttpResponse:
+    """
+    Marks a conversation as completed.
+
+    Args:
+        req (func.HttpRequest): The HTTP request
+    """
+    guards = __guards(req)
+    if guards:
+        return guards
+
     user_id = get_user_id(req.headers['Auth-Token'])
     conversation_id = req.params['conversation_id']
-
-    # TODO: one more check to see if user actually has access to work order
-    # ideally all of the above guards should be in its own function
 
     logging.info('Chat Done called with %s', req.method)
     ConversationStatusDAO.mark_conversation_completed(

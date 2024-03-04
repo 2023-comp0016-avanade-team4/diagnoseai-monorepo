@@ -26,13 +26,23 @@ os.environ['SummarySearchEndpoint'] = ''
 
 # This import must come after the global patches
 # pylint: disable=wrong-import-position
-from core.chat_done.chat_done import main, summarize_and_store
+from core.chat_done.chat_done import main, summarize_and_store  # noqa: E402
 
 
 class TestChatDone(unittest.TestCase):
     """
     Tests the Chat Done API
     """
+    # pylint: disable=too-many-arguments
+    def setUp(self):
+        self.request = func.HttpRequest(
+            method='POST',
+            url='/api/chat_done',
+            params={'conversation_id': '123'},
+            body='',
+            headers={'Auth-Token': '123'}
+        )
+
     @staticmethod
     def tearDownClass():
         db_session_patch.stop()
@@ -40,68 +50,56 @@ class TestChatDone(unittest.TestCase):
         as_patch.stop()
 
     @patch('core.chat_done.chat_done.summarize_and_store')
+    @patch('core.chat_done.chat_done.WorkOrderDAO')
     @patch('core.chat_done.chat_done.ConversationStatusDAO')
     @patch('core.chat_done.chat_done.verify_token', return_value=True)
     @patch('core.chat_done.chat_done.get_user_id', return_value='123')
-    def test_main_happy(self, gui_mock, vjwt_mock, csdao_mock, sas_mock):
+    def test_main_happy(self, gui_mock, vjwt_mock, csdao_mock, wodao_mock,
+                        sas_mock):
         """Parses the expected ChatMessage from input"""
-        req = func.HttpRequest(
-            method='POST',
-            url='/api/chat_done',
-            params={'conversation_id': '123'},
-            body='',
-            headers={'Auth-Token': '123'}
-        )
-
-        main(req)
+        main(self.request)
 
         sas_mock.assert_called_once()
+        wodao_mock.get_user_id_for_conversation_id.assert_called_once()
         csdao_mock.mark_conversation_completed.assert_called_once()
         vjwt_mock.assert_called_once()
         gui_mock.assert_called_once()
 
     @patch('core.chat_done.chat_done.summarize_and_store')
+    @patch('core.chat_done.chat_done.WorkOrderDAO')
     @patch('core.chat_done.chat_done.ConversationStatusDAO')
     @patch('core.chat_done.chat_done.verify_token', return_value=False)
     @patch('core.chat_done.chat_done.get_user_id', return_value='123')
     def test_main_unauthorized(self, gui_mock, vjwt_mock, csdao_mock,
-                               sas_mock):
+                               wodao_mock, sas_mock):
         """Parses the expected ChatMessage from input"""
-        req = func.HttpRequest(
-            method='POST',
-            url='/api/chat_done',
-            params={'conversation_id': '123'},
-            body='',
-            headers={'Auth-Token': '123'}
-        )
-
-        response = main(req)
+        response = main(self.request)
 
         self.assertEqual(response.status_code, 401)
         sas_mock.assert_not_called()
+        wodao_mock.get_user_id_for_conversation_id.assert_not_called()
         csdao_mock.mark_conversation_completed.assert_not_called()
         vjwt_mock.assert_called_once()
         gui_mock.assert_not_called()
 
     @patch('core.chat_done.chat_done.summarize_and_store')
+    @patch('core.chat_done.chat_done.WorkOrderDAO')
     @patch('core.chat_done.chat_done.ConversationStatusDAO')
     @patch('core.chat_done.chat_done.verify_token', return_value=True)
     @patch('core.chat_done.chat_done.get_user_id', return_value='123')
     def test_main_no_conversation_id(self, gui_mock, vjwt_mock, csdao_mock,
-                                     sas_mock):
+                                     wodao_mock, sas_mock):
         """Parses the expected ChatMessage from input"""
-        req = func.HttpRequest(
+        response = main(func.HttpRequest(
             method='POST',
             url='/api/chat_done',
-            params={},
             body='',
             headers={'Auth-Token': '123'}
-        )
-
-        response = main(req)
+        ))
 
         self.assertEqual(response.status_code, 400)
         sas_mock.assert_not_called()
+        wodao_mock.get_user_id_for_conversation_id.assert_not_called()
         csdao_mock.mark_conversation_completed.assert_not_called()
         vjwt_mock.assert_called_once()
         gui_mock.assert_not_called()
