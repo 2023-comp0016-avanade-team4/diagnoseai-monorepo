@@ -18,6 +18,7 @@ from langchain.vectorstores.azuresearch import AzureSearch
 from openai import AzureOpenAI
 from models.chat_message import ChatMessageDAO
 from models.conversation_status import ConversationStatusDAO
+from utils.hashing import get_search_index_for_user_id
 from utils.authorise_conversation import authorise_user
 from utils.db import create_session
 from utils.get_user_id import get_user_id
@@ -152,8 +153,8 @@ def summarize_and_store(user_id: str, conversation_id: str) -> None:
         user_id (str): The user ID
         conversation_id (str): The conversation ID
     """
-    __store_into_index(f'{user_id}-summaries',
-                       __summarize_conversation(conversation_id))
+    index = get_search_index_for_user_id(user_id)
+    __store_into_index(index, __summarize_conversation(conversation_id))
 
 
 def __guards(req: func.HttpRequest

@@ -23,6 +23,7 @@ from azure.search.documents.indexes import SearchIndexClient
 from openai import AzureOpenAI
 from openai.types.chat import ChatCompletionMessageParam
 from models.chat_message import ChatMessageDAO, ChatMessageModel
+from utils.hashing import get_search_index_for_user_id
 from utils.authorise_conversation import authorise_user
 from utils.chat_message import (BidirectionalChatMessage, ChatMessage,
                                 ResponseChatMessage, ResponseErrorMessage)
@@ -296,7 +297,7 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
     messages = db_history_to_ai_history(message.conversation_id)
     messages.append({'role': 'user', 'content': message.message})
     shadow_msg_to_db(message.conversation_id, message.message, False)
-    summary_index = f'user-{curr_user}'
+    summary_index = get_search_index_for_user_id(curr_user)
 
     try:
         chat_response = combine_responses_with_llm(
