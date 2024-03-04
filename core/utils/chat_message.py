@@ -26,12 +26,17 @@ class ChatMessage(DataClassJsonMixin):
 
 
 @dataclass
-class BidirectionalChatMessage(ChatMessage, DataClassJsonMixin):
+class BidirectionalChatMessage(DataClassJsonMixin):
     """
     The BidirectionalChatMessage data class. This represents a message
     object that differentiate between the bot sender the actual user
     """
     sender: Literal['bot', 'user']
+    message: str
+    conversation_id: str = field(metadata=config(field_name="conversationId"))
+    auth_token: Optional[str] = field(metadata=config(field_name="authToken"))
+    sent_at: datetime = field(metadata=config(field_name="sentAt"))
+    index: str = field(default='validation-index')
 
 
 @dataclass
