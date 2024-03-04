@@ -6,8 +6,6 @@ import Chat from "../components/Chat";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 
-
-
 const Validate = () => {
   const fillerDivRef = useRef<HTMLDivElement>(null);
   const [divHeight, setDivHeight] = useState(0);
@@ -21,9 +19,11 @@ const Validate = () => {
 
   // TODO: whoever is doing the backend, use setExtractedText
   const [extractedText, setExtractedText] = useState<string>(
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In eu suscipit diam. Ut vitae varius mauris, a pharetra erat. Suspendisse tempus eget orci vitae euismod. Fusce lacinia velit quam, quis sollicitudin urna sagittis et. Integer in lacus ac turpis fermentum interdum id mattis lacus. Praesent at condimentum tellus. Nunc dignissim neque id dui blandit consectetur. In at ultricies mi. Aliquam id risus ac elit consectetur porttitor eu at lacus. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Pellentesque aliquam dui et laoreet porttitor. Proin tempor enim eu tortor laoreet, vitae pretium augue interdum."
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In eu suscipit diam. Ut vitae varius mauris, a pharetra erat. Suspendisse tempus eget orci vitae euismod. Fusce lacinia velit quam, quis sollicitudin urna sagittis et. Integer in lacus ac turpis fermentum interdum id mattis lacus. Praesent at condimentum tellus. Nunc dignissim neque id dui blandit consectetur. In at ultricies mi. Aliquam id risus ac elit consectetur porttitor eu at lacus. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Pellentesque aliquam dui et laoreet porttitor. Proin tempor enim eu tortor laoreet, vitae pretium augue interdum.",
   );
-  const  selectedMachine  = useSelector((state: RootState) => state.selectedMachine);
+  const selectedMachine = useSelector(
+    (state: RootState) => state.selectedMachine,
+  );
 
   // HACK (?): Not sure if this counts as a hack, since this was the only way I had to do this.,
   // Handles the resizing of the image carousel
@@ -75,7 +75,11 @@ const Validate = () => {
             <div className="bg-slate-100 flex-1 flex flex-col">
               <h3 className="p-3 text-md font-bold flex-0">Selected Machine</h3>
               <div className="m-3 bg-slate-200 rounded p-4 overflow-y-auto">
-              <p>{selectedMachine ? selectedMachine.manufacturer + " " + selectedMachine.model : "No Machine is selected"}</p>
+                <p>
+                  {selectedMachine
+                    ? selectedMachine.manufacturer + " " + selectedMachine.model
+                    : "No Machine is selected"}
+                </p>
               </div>
               <h3 className="p-3 text-md font-bold flex-0">Extracted Images</h3>
               <div ref={fillerDivRef} className="flex-1">
