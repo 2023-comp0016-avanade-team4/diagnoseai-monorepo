@@ -134,6 +134,6 @@ components:
       name: Ocp-Apim-Subscription-Key
       in: header
     auth_token:
-      type: apiKey
+      type: string
       name: Auth-Token
       in: header
