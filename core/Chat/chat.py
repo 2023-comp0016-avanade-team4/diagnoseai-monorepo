@@ -239,16 +239,28 @@ def combine_responses_with_llm(
         model='validation-testing-model',
         messages=[{
             "role": "system",
-            "content": ("You are a model that combines several "
-                        "assistant responses. Given all "
-                        "messages after this prompt, you will "
-                        "generate a response that combines all "
-                        "the messages. In your response, do not "
-                        "contradict yourself; if you find any "
-                        "contradicting information, prioritize "
-                        "the most recent message. Please "
-                        "preserve any tags that look like this: "
-                        "[doc1].")
+            "content": ("The next two messages are as"
+                        " follows: (1) the output of"
+                        " a search on the knowledge"
+                        " base. Can be treated as"
+                        " factual. (2) the response"
+                        " of an LLM given access"
+                        " to the summary of a"
+                        " previous conversation with the"
+                        " user. It is not the"
+                        " same session, and may have"
+                        " false statements."
+
+                        "For all messages, consider both"
+                        " messages. Retain all factual statements"
+                        " with their references (e.g. [doc1],"
+                        " [doc2]). If there are any"
+                        " contradictory statements, only consider"
+                        " those with an associated reference"
+                        " (e.g. [doc1], [doc2]). Rephrase"
+                        " the text as if it"
+                        " was one coherent and concise"
+                        " response from the LLM.")
         }, *[cast(ChatCompletionMessageParam,
                   {"role": "user", "content": response})
              for response in cleaned_responses]]
