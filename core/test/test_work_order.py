@@ -10,11 +10,13 @@ from models.work_order import WorkOrderModel  # pylint: disable=E0401
 
 db_session_patch = patch("utils.db.create_session").start()
 
-os.environ["DatabaseURL"] = "localhost"
-os.environ["DatabaseName"] = "master"
-os.environ["DatabaseUsername"] = "SA"
-os.environ["DatabasePassword"] = "Strong@Passw0rd123!"
-os.environ["DatabaseSelfSigned"] = "true"
+os.environ["DatabaseURL"] = ""
+os.environ["DatabaseName"] = ""
+os.environ["DatabaseUsername"] = ""
+os.environ["DatabasePassword"] = ""
+os.environ["DatabaseSelfSigned"] = ""
+os.environ["CLERK_PUBLIC_KEY"] = ""
+os.environ["CLERK_AZP_LIST"] = ""
 
 from core.work_order.api import main  # noqa: E402 pylint: disable=C0413
 

@@ -29,7 +29,7 @@ class WorkOrderModel(Base):
     task_name: Mapped[str] = mapped_column(String(255))
     task_desc: Mapped[str] = mapped_column(Text)
     created_at: Mapped[DateTime] = mapped_column(
-        DateTime, default=func.now()  # pylint: disable=not-callable
+        DateTime, default=func.now
     )  # Automatically sets to current time
 
     machine = relationship("MachineModel", back_populates="work_orders")
