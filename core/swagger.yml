@@ -16,16 +16,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ChatConnectionRequest'
+              $ref: "#/components/schemas/ChatConnectionRequest"
       responses:
-        '200':
-          description: 'Success'
+        "200":
+          description: "Success"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ChatConnectionResponse'
-        '500':
-          description: 'Failure. Likely a JSON parsing issue'
+                $ref: "#/components/schemas/ChatConnectionResponse"
+        "500":
+          description: "Failure. Likely a JSON parsing issue"
       security:
         - api_key: []
   /chat_history:
@@ -40,14 +40,40 @@ paths:
           schema:
             type: string
       responses:
-        '200':
-          description: 'Success'
+        "200":
+          description: "Success"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ChatHistoryResponse'
+                $ref: "#/components/schemas/ChatHistoryResponse"
       security:
         - api_key: []
+  /work_order:
+    get:
+      summary: Retrieves work orders for a specific user
+      description: Returns a list of work orders associated with the given user ID
+      parameters:
+        - name: user_id
+          in: query
+          description: The user ID to fetch work orders for
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A list of work orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkOrderResponse"
+        "400":
+          description: Bad request, user_id missing
+        "401":
+          description: Unauthorized, invalid or missing Auth-Token
+      security:
+        - auth_token: []
 
 components:
   schemas:
@@ -85,8 +111,22 @@ components:
     ChatHistoryResponse:
       type: array
       items:
-          $ref: '#/components/schemas/Message'
-
+        $ref: "#/components/schemas/Message"
+    WorkOrderResponse:
+      type: object
+      properties:
+        order_id:
+          type: string
+          description: Unique identifier for the work order
+        machine_id:
+          type: string
+          description: Identifier for the machine associated with the work order
+        machine_name:
+          type: string
+          description: Name of the machine associated with the work order
+        conversation_id:
+          type: string
+          description: Identifier for the conversation associated with the work order
 
   securitySchemes:
     api_key:
