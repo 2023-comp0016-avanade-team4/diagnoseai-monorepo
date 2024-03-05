@@ -8,6 +8,7 @@ import {
 
 
 describe('ChatContext', () => {
+  // TODO: write tests for marked as done
   it('fetches for history and converts to the right representation', async () => {
     const DummyComponentFetchHistory = () => {
       const { messages, fetchHistory } = useChatProvider();

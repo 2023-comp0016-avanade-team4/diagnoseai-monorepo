@@ -73,7 +73,7 @@ export const MessageList = () => {
 
   if (false)
     return (
-      <p className="text-white">Something went wrong. Refresh to try again.</p>
+      <p className="text-white">SomeThing went wrong. Refresh to try again.</p>
     );
 
   return (
