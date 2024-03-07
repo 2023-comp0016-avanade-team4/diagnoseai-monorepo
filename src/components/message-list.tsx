@@ -4,13 +4,18 @@ import { useInView } from "react-intersection-observer";
 import { WebSocketContext } from "@/contexts/WebSocketContext";
 import { ChatContext } from "@/contexts/ChatContext";
 import { useWorkOrder } from "@/contexts/WorkOrderContext";
-import { MessageComponent, Message } from "@/components/message-component";
+import {
+  MessageComponent,
+  Message,
+  citationObject,
+} from "@/components/message-component";
 import { v4 as uuidv4 } from "uuid";
 
 export type IntermediateResponseMessage = {
   body: string;
   conversationId: number;
   sentAt: number;
+  citations: citationObject[];
   type: "message";
 };
 
@@ -27,7 +32,7 @@ export const MessageList = () => {
     if (entry?.target) {
       entry.target.scrollIntoView({ behavior: "smooth", block: "end" });
     }
-  }, [messages?.length, entry?.target]);
+ }, [messages?.length, entry?.target]);
 
   useEffect(() => {
     const handleIncomingMessages = (event: MessageEvent) => {
@@ -46,6 +51,7 @@ export const MessageList = () => {
           username: "bot",
           message: messageData.body,
           sentAt: messageData.sentAt / 1000,
+          citations: messageData.citations,
         } as Message;
 
         addMessage(responseMessage);

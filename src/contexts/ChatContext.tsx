@@ -6,7 +6,7 @@ import React, {
   useCallback,
 } from "react";
 import axios from "axios";
-import { Message } from "@/components/message-component";
+import { Message, citationObject } from "@/components/message-component";
 import { v4 as uuid4 } from "uuid";
 
 export type IntermediateHistoricalMessage = {
@@ -16,6 +16,7 @@ export type IntermediateHistoricalMessage = {
   isImage: boolean;
   index: string;
   sender: "user" | "bot";
+  citations: citationObject[];
 };
 
 export const ChatContext = createContext({
@@ -49,6 +50,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
             message: message.message,
             isImage: message.isImage,
             sentAt: message.sentAt / 1000,
+            citations: message.citations,
           } as Message;
         },
       );
