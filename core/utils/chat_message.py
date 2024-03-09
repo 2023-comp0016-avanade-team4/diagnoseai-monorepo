@@ -5,9 +5,21 @@ Contains the chat mesage data class.
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
-from typing import Literal, List
+from typing import Literal
 
 from dataclasses_json import DataClassJsonMixin, config
+
+
+@dataclass
+class Citation(DataClassJsonMixin):
+    """
+    Represents a citation with content, title, URL, filepath, and chunk ID.
+    """
+    content: str
+    title: Optional[str]
+    url: Optional[str]
+    filepath: Optional[str]
+    chunk_id: Optional[str]
 
 
 @dataclass
@@ -23,6 +35,7 @@ class ChatMessage(DataClassJsonMixin):
     auth_token: Optional[str] = field(metadata=config(field_name="authToken"))
     sent_at: datetime = field(metadata=config(field_name="sentAt"))
     index: str = field(default='validation-index')
+    citations: Optional[list[Citation]]
 
 
 @dataclass
@@ -35,18 +48,6 @@ class BidirectionalChatMessage(ChatMessage, DataClassJsonMixin):
 
 
 @dataclass
-class Citation:
-    """
-    Represents a citation with content, title, URL, filepath, and chunk ID.
-    """
-    content: str
-    title: Optional[str]
-    url: Optional[str]
-    filepath: Optional[str]
-    chunk_id: Optional[str]
-
-
-@dataclass
 class ResponseChatMessage(DataClassJsonMixin):
     """
     Response chat message data class.
@@ -54,8 +55,8 @@ class ResponseChatMessage(DataClassJsonMixin):
     body: str
     conversation_id: str = field(metadata=config(field_name="conversationId"))
     sent_at: datetime = field(metadata=config(field_name="sentAt"))
+    citations: Optional[list[Citation]]
     type: str = 'message'
-    citations: Optional[List[Citation]]
 
 
 @dataclass

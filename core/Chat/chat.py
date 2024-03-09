@@ -89,7 +89,11 @@ def ws_send_message(text: str, connection_id: str) -> None:
 
 
 def shadow_msg_to_db(
-        conversation_id: str, message: str, sender_is_bot: bool) -> None:
+    conversation_id: str,
+    message: str,
+    sender_is_bot: bool,
+    citations: list[Citation] = None
+) -> None:
     """
     Shadows the message to the database
     """
@@ -100,7 +104,8 @@ def shadow_msg_to_db(
                 message=message,
                 conversation_id=conversation_id,
                 sent_at=datetime.now(),
-                sender='bot' if sender_is_bot else 'user'
+                sender='bot' if sender_is_bot else 'user',
+                citations=citations
             )
         )
     )
@@ -130,7 +135,7 @@ def ws_log_and_send_error(text: str, connection_id: str) -> None:
     ws_send_message(ResponseErrorMessage(text).to_json(), connection_id)
 
 
-def add_citation_urls(citations):
+def add_citation_urls(citations: list[Citation]) -> list[Citation]:
     """
     Adds preauthenticated blob URLs to the filepaths of the given citations.
     """
@@ -206,18 +211,29 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
             connection_id)
         return
 
-    citations: list[Citation] = (
-        chat_response.choices[0].message.context['citations']
-    )
+    citations: list[Citation] = [
+        Citation.from_dict(raw_citation)
+        for raw_citation in (
+            chat_response.choices[0].message.context['citations']
+        )
+    ]
     citations = add_citation_urls(citations)
 
     response = ResponseChatMessage(
-        chat_response.choices[0].message.content,
-        message.conversation_id,
-        datetime.now(),
-        citations
+        body=chat_response.choices[0].message.content,
+        conversation_id=message.conversation_id,
+        sent_at=datetime.now(),
+        citations=citations
     )
-    shadow_msg_to_db(message.conversation_id, response.body, True)
+
+    # citation_dict = [citation.to_dict() for citation in citations]
+
+    shadow_msg_to_db(
+        conversation_id=message.conversation_id,
+        message=response.body,
+        sender_is_bot=True,
+        citations=citations
+    )
     ws_send_message(response.to_json(), connection_id)
 
 

@@ -7,7 +7,7 @@ from uuid import uuid4
 
 import enum
 from datetime import datetime
-from sqlalchemy import Column, Enum, String, select
+from sqlalchemy import Column, Enum, String, select, JSON
 from sqlalchemy.orm import Mapped, Session, mapped_column
 from utils.chat_message import BidirectionalChatMessage
 
@@ -40,6 +40,7 @@ class ChatMessageModel(Base):
     message: Mapped[str] = mapped_column()
     sent_at: Mapped[datetime] = mapped_column()
     sender: Column = Column(Enum(SenderTypes))
+    citations: Column = Column(JSON, nullable=True)
 
     @staticmethod
     def from_bidirectional_chat_message(
@@ -54,7 +55,8 @@ class ChatMessageModel(Base):
             conversation_id=message.conversation_id,
             message=message.message,
             sent_at=message.sent_at,
-            sender=SenderTypes(message.sender)
+            sender=SenderTypes(message.sender),
+            citations=[citation.to_dict() for citation in message.citations]
         )
 
     @staticmethod
@@ -79,7 +81,8 @@ class ChatMessageModel(Base):
             sent_at=message.sent_at,
             # casted because message.sender (is a str) should
             # become either bot or user
-            sender=cast(Literal['bot', 'user'], message.sender)
+            sender=cast(Literal['bot', 'user'], message.sender),
+            citations=[citation.from_dict() for citation in message.citations]
         )
 
 
