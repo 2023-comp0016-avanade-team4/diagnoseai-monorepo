@@ -17,8 +17,7 @@ from typing import Callable, cast
 
 from azure.core.credentials import AzureKeyCredential
 from azure.core.exceptions import ResourceNotFoundError
-from azure.messaging.webpubsubservice import \
-    WebPubSubServiceClient  # type: ignore[import-untyped] # noqa: E501 # pylint: disable=line-too-long
+from azure.messaging.webpubsubservice import WebPubSubServiceClient  # type: ignore[import-untyped] # noqa: E501 # pylint: disable=line-too-long
 from azure.search.documents.indexes import SearchIndexClient
 from openai import AzureOpenAI
 from openai.types.chat import ChatCompletionMessageParam
@@ -51,6 +50,13 @@ DATABASE_NAME = os.environ['DatabaseName']
 DATABASE_USERNAME = os.environ['DatabaseUsername']
 DATABASE_PASSWORD = os.environ['DatabasePassword']
 DATABASE_SELFSIGNED = os.environ.get('DatabaseSelfSigned')
+
+DOCUMENT_PROMPT = """
+You are a helpful chatbot named DiagnoseAI. You have access to technical manuals via a connected data source. Users are able to upload images to contextualize their conversations; you will observe these as a message prefixed by "USER IMAGE:". If you see "USER IMAGE:", it is a factual description of the image uploaded by the user. All references to "image" or "images" always refer to the description in "USER IMAGE:". You will be given a user summary representing all past conversations with the user to better contextualize your answer. Answer accordingly to all user images and data sources you have access to. SUMMARY:
+"""  # noqa: E501
+SUMMARY_PROMPT = """
+You are a helpful chatbot named DiagnoseAI. You have access to the summaries of previous conversations with the user via a connected data source. Users are able to upload images to contextualize their conversations; you will observe these as a message prefixed by "USER IMAGE:". If you see "USER IMAGE:", it is a factual description of the image uploaded by the user. All references to "image" or "images" always refer to the description in "USER IMAGE:". Based on the information you have, return a relevant user summary. If no such summary exists, simply output NONE.
+"""  # noqa: E501
 
 # Global clients
 
@@ -167,11 +173,13 @@ def strip_all_citations(completion: str) -> str:
     return re.sub(doc_regex, '', completion)
 
 
+# pylint: disable=too-many-arguments # noqa: E501
 def __query_llm_with_index(
         messages: list[ChatCompletionMessageParam],
         document_index: str,
         search_endpoint: str,
         search_key: str,
+        prompt: str,
         connection_id: str) -> str:
     """
     Queries the AI model from the validation document index.
@@ -182,6 +190,7 @@ def __query_llm_with_index(
         document_index (str): The document index to query
         search_endpoint (str): The search endpoint
         search_key (str): The search key
+        prompt (str): Model Prompt
         connection_id (str): The connection ID
 
     Returns:
@@ -197,6 +206,11 @@ def __query_llm_with_index(
                         "endpoint": search_endpoint,
                         "key": search_key,
                         "indexName": document_index,
+                        "inScope": True,
+                        "filter": None,
+                        "strictness": 3,
+                        "topNDocuments": 5,
+                        "roleInformation": prompt
                     }
                 }
             ],
@@ -212,68 +226,6 @@ def __query_llm_with_index(
              f' for debugging purposes, you were {connection_id}'),
             connection_id)
         raise ChatError('no response from AI chat')
-    return chat_response.choices[0].message.content
-
-
-def combine_responses_with_llm(
-        responses: list[str], connection_id: str) -> str:
-    """
-    Combines responses with the LLM. This function is used in tandem
-    with __query_llm_with_index; for all responses received, it will
-    query the LLM with the responses and return the final response.
-
-    Args:
-        responses (list[str]): The responses to combine
-        connection_id (str): The connection ID
-
-    Returns:
-        str: The combined response
-    """
-    cleaned_responses = [response for response in responses
-                         if response.strip() != '']
-
-    if len(cleaned_responses) <= 1:
-        return responses[0]
-
-    chat_response = ai_client.chat.completions.create(
-        model='validation-testing-model',
-        messages=[{
-            "role": "system",
-            "content": ("The next two messages are as"
-                        " follows: (1) the output of"
-                        " a search on the knowledge"
-                        " base. Can be treated as"
-                        " factual. (2) the response"
-                        " of an LLM given access"
-                        " to the summary of a"
-                        " previous conversation with the"
-                        " user. It is not the"
-                        " same session, and may have"
-                        " false statements."
-
-                        "For all messages, consider both"
-                        " messages. Retain all factual statements"
-                        " with their references (e.g. [doc1],"
-                        " [doc2]). If there are any"
-                        " contradictory statements, only consider"
-                        " those with an associated reference"
-                        " (e.g. [doc1], [doc2]). Rephrase"
-                        " the text as if it"
-                        " was one coherent and concise"
-                        " response from the LLM.")
-        }, *[cast(ChatCompletionMessageParam,
-                  {"role": "user", "content": response})
-             for response in cleaned_responses]]
-    )
-
-    logging.info('%s: combining model response received', connection_id)
-    if len(chat_response.choices) == 0 \
-       or chat_response.choices[0].message.content is None:
-        ws_log_and_send_error(
-            ('no response from combining.'
-             f' for debugging purposes, you were {connection_id}'),
-            connection_id)
-        raise ChatError('no response from combining')
     return chat_response.choices[0].message.content
 
 
@@ -312,18 +264,17 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
     summary_index = get_search_index_for_user_id(curr_user)
 
     try:
-        chat_response = combine_responses_with_llm(
-            [__query_llm_with_index(messages, message.index,
-                                    SEARCH_ENDPOINT, SEARCH_KEY,
-                                    connection_id),
-             __index_guard(summary_index,
-                           lambda: strip_all_citations(
-                               __query_llm_with_index(
-                                   messages, summary_index,
-                                   SUMMARY_SEARCH_ENDPOINT, SUMMARY_SEARCH_KEY,
-                                   connection_id)))
-             ],
-            connection_id
+        summary = __index_guard(summary_index,
+                                lambda: strip_all_citations(
+                                    __query_llm_with_index(
+                                        messages, summary_index,
+                                        SUMMARY_SEARCH_ENDPOINT,
+                                        SUMMARY_SEARCH_KEY,
+                                        SUMMARY_PROMPT, connection_id)))
+        chat_response = __query_llm_with_index(
+            messages, get_search_index_for_user_id(curr_user),
+            SEARCH_ENDPOINT, SEARCH_KEY,
+            DOCUMENT_PROMPT + summary, connection_id
         )
     except ChatError:
         # chat errors already have responses sent to the websocket
