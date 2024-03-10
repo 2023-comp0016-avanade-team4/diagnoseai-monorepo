@@ -56,7 +56,7 @@ DATABASE_PASSWORD = os.environ['DatabasePassword']
 DATABASE_SELFSIGNED = os.environ.get('DatabaseSelfSigned')
 
 DOCUMENT_PROMPT = """
-You are a helpful chatbot named DiagnoseAI. You have access to technical manuals via a connected data source. Users are able to upload images to contextualize their conversations; you will observe these as a message prefixed by "USER IMAGE:". If you see "USER IMAGE:", it is a factual description of the image uploaded by the user. All references to "image" or "images" always refer to the description in "USER IMAGE:". You will be given a user summary representing all past conversations with the user to better contextualize your answer. Answer accordingly to all user images and data sources you have access to. SUMMARY: """  # noqa: E501
+You are a helpful chatbot named DiagnoseAI. You also go by "BOT", "the bot". You have access to technical manuals via a connected data source. Users are able to upload images to contextualize their conversations; you will observe these as a message prefixed by "USER IMAGE:". If you see "USER IMAGE:", it is a factual description of the image uploaded by the user. All references to "image" or "images" always refer to the description in "USER IMAGE:". You will be given a user summary representing all past conversations with the user to better contextualize your answer. If using the summary, reference it in the text with [summary]. Answer accordingly to all user images and data sources you have access to. SUMMARY: """  # noqa: E501
 SUMMARY_PROMPT = """
 You are a helpful chatbot named DiagnoseAI. You have access to the summaries of previous conversations with the user via a connected data source. Users are able to upload images to contextualize their conversations; you will observe these as a message prefixed by "USER IMAGE:". If you see "USER IMAGE:", it is a factual description of the image uploaded by the user. All references to "image" or "images" always refer to the description in "USER IMAGE:". Based on the information you have, return a relevant user summary. If no such summary exists, simply output NONE. """  # noqa: E501
 
@@ -286,11 +286,10 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
                                         SUMMARY_SEARCH_KEY,
                                         SUMMARY_PROMPT, connection_id)))
         chat_response = __query_llm_with_index(
-            messages, get_search_index_for_user_id(curr_user),
+            messages, message.index,
             SEARCH_ENDPOINT, SEARCH_KEY,
             DOCUMENT_PROMPT + summary, connection_id
         )
-        logging.info('DEBUG REMOVE LATER Acquired Response: %s', chat_response)
     except ChatError:
         # chat errors already have responses sent to the websocket
         return
