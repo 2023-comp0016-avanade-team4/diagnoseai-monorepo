@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { getAuth } from "@clerk/nextjs/server";
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { showToastWithRefresh } from '@/components/toast-with-refresh';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -28,6 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json(response.data);
   } catch (error) {
     console.error("Error fetching history:", error);
+    showToastWithRefresh("Error fetching history, please refresh.");
     return res.status(500).json({ error: 'Error fetching history' });
   }
 }

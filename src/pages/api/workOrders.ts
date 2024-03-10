@@ -1,6 +1,7 @@
 import axios from "axios";
 import { getAuth } from "@clerk/nextjs/server";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { showToastWithRefresh } from "@/components/toast-with-refresh";
 
 export default async function handler(
   req: NextApiRequest,
@@ -33,6 +34,7 @@ export default async function handler(
     return res.status(200).json(response.data);
   } catch (error) {
     console.error("Error fetching work orders:", error);
+    showToastWithRefresh("Error fetching work orders, please refresh.");
     return res.status(500).json({ error: "Error fetching work orders" });
   }
 }

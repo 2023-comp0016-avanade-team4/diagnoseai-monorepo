@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
+import { showToastWithRefresh } from "@/components/toast-with-refresh";
 
 export interface WorkOrder {
   order_id: string;
@@ -41,6 +42,9 @@ export const WorkOrderProvider: React.FC<WorkOrderProviderProps> = ({
       }
     } catch (error) {
       console.error("Error fetching WorkOrder:", error);
+      showToastWithRefresh(
+        `Error fetching work order: ${error}, please refresh.`
+      );
     }
   };
 

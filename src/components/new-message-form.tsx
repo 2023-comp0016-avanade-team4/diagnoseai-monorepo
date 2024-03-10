@@ -8,6 +8,7 @@ import { Message } from "./message-component";
 import { v4 as uuidv4 } from "uuid";
 import { useAuth } from "@clerk/nextjs";
 import { useWorkOrder } from "@/contexts/WorkOrderContext";
+import { showToastWithRefresh } from "./toast-with-refresh";
 
 export const NewMessageForm = () => {
   const [play] = useSound("sent.wav");
@@ -41,6 +42,7 @@ export const NewMessageForm = () => {
   const sendMessageToWS = (message: Message) => {
     if (!webSocket || webSocket.readyState !== WebSocket.OPEN) {
       console.error("WebSocket is not ready");
+      showToastWithRefresh("WebSocket is not ready, please refresh.");
       return;
     }
 

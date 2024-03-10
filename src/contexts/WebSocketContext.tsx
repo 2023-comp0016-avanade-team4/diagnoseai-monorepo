@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
+import { showToastWithRefresh } from "@/components/toast-with-refresh";
 // import useAuthToken from "@/hooks/use-auth-token";
 // import { auth } from "@clerk/nextjs";
 
@@ -38,6 +39,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         setWsUrl(wsUrl);
       } catch (error) {
         console.error("Error fetching WebSocket URL:", error);
+        showToastWithRefresh("Error fetching WebSocket URL, please refresh.");
       }
     };
 
