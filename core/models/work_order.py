@@ -1,5 +1,7 @@
 from uuid import uuid4
 from typing import List
+from dataclasses import dataclass
+from dataclasses_json import DataClassJsonMixin
 
 from sqlalchemy import String, ForeignKey, Text, DateTime, func
 from sqlalchemy.orm import (
@@ -46,7 +48,42 @@ class MachineModel(Base):
     work_orders = relationship("WorkOrderModel", back_populates="machine")
 
 
+@dataclass
+class ResponseWorkOrderFormat(DataClassJsonMixin):
+    """
+    Response work order data class.
+    """
+    order_id: str
+    machine_id: str
+    machine_name: str
+    conversation_id: str
+
+    @staticmethod
+    def from_dao_result(
+        work_order: WorkOrderModel, machine_name: str
+    ) -> "ResponseWorkOrderFormat":
+        """
+        Converts a work order model into a response work order format.
+
+        Args:
+            work_order (WorkOrderModel): The work order model
+            machine_name (str): The machine name
+
+        Returns:
+            ResponseWorkOrderFormat: The response work order format
+        """
+        return ResponseWorkOrderFormat(
+            order_id=work_order.order_id,
+            machine_id=work_order.machine_id,
+            machine_name=machine_name,
+            conversation_id=work_order.conversation_id,
+        )
+
+
 class WorkOrderDAO:
+    """
+    Data access object for work orders.
+    """
     @staticmethod
     def get_work_orders_for_user(
         session: Session, user_id: str
