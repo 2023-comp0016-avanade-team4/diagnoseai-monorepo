@@ -16,7 +16,7 @@ DATABASE_URL = os.environ["DatabaseURL"]
 DATABASE_NAME = os.environ["DatabaseName"]
 DATABASE_USERNAME = os.environ["DatabaseUsername"]
 DATABASE_PASSWORD = os.environ["DatabasePassword"]
-DATABASE_SELFSIGNED = os.environ["DatabaseSelfSigned"]
+DATABASE_SELFSIGNED = os.environ.get("DatabaseSelfSigned")
 
 db_session = create_session(
     DATABASE_URL,
