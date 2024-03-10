@@ -42,6 +42,10 @@ SEARCH_ENDPOINT = os.environ["CognitiveSearchEndpoint"]
 SUMMARY_SEARCH_KEY = os.environ["SummarySearchKey"]
 SUMMARY_SEARCH_ENDPOINT = os.environ["SummarySearchEndpoint"]
 
+EMBEDDING_ENDPOINT = os.environ["OpenAIEndpoint"]
+EMBEDDING_DEPLOYMENT_NAME = "text-embedding-ada-002"
+EMBEDDING_KEY = os.environ["OpenAIKey"]
+
 OPENAI_KEY = os.environ["OpenAIKey"]
 OPENAI_ENDPOINT = os.environ["OpenAIEndpoint"]
 
@@ -52,11 +56,11 @@ DATABASE_PASSWORD = os.environ['DatabasePassword']
 DATABASE_SELFSIGNED = os.environ.get('DatabaseSelfSigned')
 
 DOCUMENT_PROMPT = """
-You are a helpful chatbot named DiagnoseAI. You have access to technical manuals via a connected data source. Users are able to upload images to contextualize their conversations; you will observe these as a message prefixed by "USER IMAGE:". If you see "USER IMAGE:", it is a factual description of the image uploaded by the user. All references to "image" or "images" always refer to the description in "USER IMAGE:". You will be given a user summary representing all past conversations with the user to better contextualize your answer. Answer accordingly to all user images and data sources you have access to. SUMMARY:
-"""  # noqa: E501
+You are a helpful chatbot named DiagnoseAI. You have access to technical manuals via a connected data source. Users are able to upload images to contextualize their conversations; you will observe these as a message prefixed by "USER IMAGE:". If you see "USER IMAGE:", it is a factual description of the image uploaded by the user. All references to "image" or "images" always refer to the description in "USER IMAGE:". You will be given a user summary representing all past conversations with the user to better contextualize your answer. Answer accordingly to all user images and data sources you have access to. SUMMARY: """  # noqa: E501
 SUMMARY_PROMPT = """
-You are a helpful chatbot named DiagnoseAI. You have access to the summaries of previous conversations with the user via a connected data source. Users are able to upload images to contextualize their conversations; you will observe these as a message prefixed by "USER IMAGE:". If you see "USER IMAGE:", it is a factual description of the image uploaded by the user. All references to "image" or "images" always refer to the description in "USER IMAGE:". Based on the information you have, return a relevant user summary. If no such summary exists, simply output NONE.
-"""  # noqa: E501
+You are a helpful chatbot named DiagnoseAI. You have access to the summaries of previous conversations with the user via a connected data source. Users are able to upload images to contextualize their conversations; you will observe these as a message prefixed by "USER IMAGE:". If you see "USER IMAGE:", it is a factual description of the image uploaded by the user. All references to "image" or "images" always refer to the description in "USER IMAGE:". Based on the information you have, return a relevant user summary. If no such summary exists, simply output NONE. """  # noqa: E501
+
+OPENAI_API_VERSION = '2024-03-01-preview'
 
 # Global clients
 
@@ -66,7 +70,7 @@ ai_client = AzureOpenAI(
     base_url=(f"{OPENAI_ENDPOINT}/openai/deployments/"
               "validation-testing-model"),
     api_key=OPENAI_KEY,
-    api_version='2024-02-15-preview'
+    api_version=OPENAI_API_VERSION
 )
 
 db_session = create_session(
@@ -206,6 +210,13 @@ def __query_llm_with_index(
                         "endpoint": search_endpoint,
                         "key": search_key,
                         "indexName": document_index,
+                        "semanticConfiguration": "default",
+                        "queryType": "vector",
+                        "embeddingEndpoint": (
+                            f"{EMBEDDING_ENDPOINT}/openai/"
+                            f"deployments/{EMBEDDING_DEPLOYMENT_NAME}/"
+                            f"embeddings?api-version={OPENAI_API_VERSION}"),
+                        "embeddingKey": EMBEDDING_KEY,
                         "inScope": True,
                         "filter": None,
                         "strictness": 3,
@@ -216,6 +227,9 @@ def __query_llm_with_index(
             ],
         },
         messages=messages,
+        temperature=0,
+        top_p=1,
+        max_tokens=800,
     )
 
     logging.info('%s: model response received', connection_id)
@@ -276,6 +290,7 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
             SEARCH_ENDPOINT, SEARCH_KEY,
             DOCUMENT_PROMPT + summary, connection_id
         )
+        logging.info('DEBUG REMOVE LATER Acquired Response: %s', chat_response)
     except ChatError:
         # chat errors already have responses sent to the websocket
         return
