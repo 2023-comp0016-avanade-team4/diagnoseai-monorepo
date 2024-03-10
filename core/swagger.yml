@@ -85,6 +85,12 @@ paths:
           required: true
           schema:
             type: string
+        - name: done
+          in: query
+          description: Whether the conversation ID should be marked done
+          required: true
+          schema:
+            type: boolean
       responses:
         "200":
           description: Conversation was successfully marked done

@@ -38,7 +38,7 @@ class TestChatDone(unittest.TestCase):
         self.request = func.HttpRequest(
             method='POST',
             url='/api/chat_done',
-            params={'conversation_id': '123'},
+            params={'conversation_id': '123', 'done': 'true'},
             body='',
             headers={'Auth-Token': '123'}
         )
@@ -62,6 +62,30 @@ class TestChatDone(unittest.TestCase):
         sas_mock.assert_called_once()
         authorise_mock.assert_called_once()
         csdao_mock.mark_conversation_completed.assert_called_once()
+        csdao_mock.mark_conversation_not_completed.assert_not_called()
+        vjwt_mock.assert_called_once()
+        gui_mock.assert_called_once()
+
+    @patch('core.chat_done.chat_done.summarize_and_store')
+    @patch('core.chat_done.chat_done.authorise_user', return_value=True)
+    @patch('core.chat_done.chat_done.ConversationStatusDAO')
+    @patch('core.chat_done.chat_done.verify_token', return_value=True)
+    @patch('core.chat_done.chat_done.get_user_id', return_value='123')
+    def test_main_happy_undone(self, gui_mock, vjwt_mock, csdao_mock,
+                               authorise_mock, sas_mock):
+        """Parses the expected ChatMessage from input"""
+        main(func.HttpRequest(
+            method='POST',
+            url='/api/chat_done',
+            params={'conversation_id': '123', 'done': 'false'},
+            body='',
+            headers={'Auth-Token': '123'}
+        ))
+
+        sas_mock.assert_called_once()
+        authorise_mock.assert_called_once()
+        csdao_mock.mark_conversation_completed.assert_not_called()
+        csdao_mock.mark_conversation_not_completed.assert_called_once()
         vjwt_mock.assert_called_once()
         gui_mock.assert_called_once()
 
@@ -79,6 +103,7 @@ class TestChatDone(unittest.TestCase):
         sas_mock.assert_not_called()
         authorise_mock.assert_not_called()
         csdao_mock.mark_conversation_completed.assert_not_called()
+        csdao_mock.mark_conversation_not_completed.assert_not_called()
         vjwt_mock.assert_called_once()
         gui_mock.assert_not_called()
 
@@ -101,6 +126,30 @@ class TestChatDone(unittest.TestCase):
         sas_mock.assert_not_called()
         authorise_mock.assert_not_called()
         csdao_mock.mark_conversation_completed.assert_not_called()
+        vjwt_mock.assert_called_once()
+        gui_mock.assert_not_called()
+
+    @patch('core.chat_done.chat_done.summarize_and_store')
+    @patch('core.chat_done.chat_done.authorise_user', return_value=False)
+    @patch('core.chat_done.chat_done.ConversationStatusDAO')
+    @patch('core.chat_done.chat_done.verify_token', return_value=True)
+    @patch('core.chat_done.chat_done.get_user_id', return_value='123')
+    def test_main_no_done(self, gui_mock, vjwt_mock, csdao_mock,
+                          authorise_mock, sas_mock):
+        """Parses the expected ChatMessage from input"""
+        response = main(func.HttpRequest(
+            method='POST',
+            url='/api/chat_done',
+            params={'conversation_id': '123'},
+            body='',
+            headers={'Auth-Token': '123'}
+        ))
+
+        self.assertEqual(response.status_code, 400)
+        sas_mock.assert_not_called()
+        authorise_mock.assert_not_called()
+        csdao_mock.mark_conversation_completed.assert_not_called()
+        csdao_mock.mark_conversation_not_completed.assert_not_called()
         vjwt_mock.assert_called_once()
         gui_mock.assert_not_called()
 

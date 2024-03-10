@@ -158,7 +158,7 @@ def summarize_and_store(user_id: str, conversation_id: str) -> None:
 
 
 def __guards(req: func.HttpRequest
-             ) -> tuple[Optional[func.HttpResponse], str, str]:
+             ) -> tuple[Optional[func.HttpResponse], str, str, bool]:
     """
     Guards for the chat done endpoint.
 
@@ -166,28 +166,40 @@ def __guards(req: func.HttpRequest
         req (func.HttpRequest): The HTTP request
 
     Returns:
-        tuple[Optional[func.HttpResponse], str, str]: The guard
-                                                      response, the
-                                                      user ID, and the
-                                                      conversation ID
+        tuple[Optional[func.HttpResponse], str, str, bool]:
+            The guard response, the user ID, and the conversation ID
     """
     if not verify_token(req.headers['Auth-Token']):
         return func.HttpResponse(
             'Missing auth token', status_code=401
-        ), '', ''
+        ), '', '', False
 
     if 'conversation_id' not in req.params:
         return func.HttpResponse(
             'Missing conversation ID', status_code=400
-        ), '', ''
+        ), '', '', False
+
+    if 'done' not in req.params:
+        return func.HttpResponse(
+            'Missing done parameter', status_code=400
+        ), '', '', False
 
     user_id = get_user_id(req.headers['Auth-Token'])
     conversation_id = req.params['conversation_id']
+
+    try:
+        done = req.params['done'].lower() == 'true'
+    except ValueError:
+        logging.error('Cannot turn doen to boolean')
+        return func.HttpResponse(
+            'Invalid parameters', status_code=400
+        ), '', '', False
+
     if not authorise_user(db_session, conversation_id, user_id):
         return func.HttpResponse(
             'Conversation does not belong to user', status_code=401
-        ), '', ''
-    return None, user_id, conversation_id
+        ), '', '', False
+    return None, user_id, conversation_id, done
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
@@ -197,13 +209,17 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     Args:
         req (func.HttpRequest): The HTTP request
     """
-    guard_res, user_id, conversation_id = __guards(req)
+    guard_res, user_id, conversation_id, done = __guards(req)
     if guard_res:
         return guard_res
 
     logging.info('Chat Done called with %s', req.method)
-    ConversationStatusDAO.mark_conversation_completed(
-        req.params['conversation_id'], db_session)
+    if done:
+        ConversationStatusDAO.mark_conversation_completed(
+            req.params['conversation_id'], db_session)
+    else:
+        ConversationStatusDAO.mark_conversation_not_completed(
+            req.params['conversation_id'], db_session)
     summarize_and_store(user_id, conversation_id)
     return func.HttpResponse(
         '', status_code=200
