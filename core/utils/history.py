@@ -13,4 +13,3 @@ class ChatHistoryResponse(DataClassJsonMixin):
     Represents the response from the chat history endpoint.
     """
     messages: list[BidirectionalChatMessage]
-    conversation_done: bool

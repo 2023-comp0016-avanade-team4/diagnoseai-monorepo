@@ -31,7 +31,7 @@ paths:
   /chat_history:
     get:
       summary: Gets the chat history for a given conversation ID
-      description: Gets the chat history for a given conversation ID
+      description: Gets the chat history for a given conversation ID (todo, this should eventually be authenticated as well)
       parameters:
         - name: conversation_id
           in: query
@@ -129,15 +129,9 @@ components:
           type: integer
           description: The time to live for the WebSocket URL in minutes. Ideally, when WebSocket requesting moves to another endpoint, the client will re-request a new websocket URL
     ChatHistoryResponse:
-      type: object
-      properties:
-        messages:
-          type: array
-          items:
-            $ref: "#/components/schemas/Message"
-        conversation_done:
-          type: boolean
-          description: If the conversation is done
+      type: array
+      items:
+        $ref: "#/components/schemas/Message"
     WorkOrderResponse:
       type: object
       properties:
