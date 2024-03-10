@@ -33,13 +33,8 @@ def __fetch_work_orders_for_user(
         db_session,
         user_id
     )
-    return [
-        ResponseWorkOrderFormat.from_dao_result(
-            wo,
-            WorkOrderDAO.get_machine_name_for_machine_id(
-                db_session, wo.machine_id
-            ))
-        for wo in work_orders]
+    return [ResponseWorkOrderFormat.from_dao_result(wo)
+            for wo in work_orders]
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:

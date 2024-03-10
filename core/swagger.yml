@@ -147,6 +147,12 @@ components:
         conversation_id:
           type: string
           description: Identifier for the conversation associated with the work order
+        resolved:
+          type: string
+          enum:
+            - "completed"
+            - "not_completed"
+          description: Whether the conversation has been resolved
 
   securitySchemes:
     api_key:

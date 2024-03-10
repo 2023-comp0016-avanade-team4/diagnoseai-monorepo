@@ -7,7 +7,7 @@ import logging
 from uuid import uuid4
 
 from sqlalchemy import Column, Enum, String
-from sqlalchemy.orm import Mapped, Session, mapped_column
+from sqlalchemy.orm import Mapped, Session, mapped_column, relationship
 from sqlalchemy.orm.exc import NoResultFound
 
 from .common import Base
@@ -29,6 +29,9 @@ class ConversationStatusModel(Base):
     conversation_id: Mapped[str] = mapped_column(String(36), primary_key=True,
                                                  default=uuid4)
     status: Column = Column(Enum(ConversationCompletedStatus))
+
+    work_orders = relationship("WorkOrderModel", back_populates="conversation",
+                               uselist=False)
 
     @staticmethod
     def make_conversation_status(
