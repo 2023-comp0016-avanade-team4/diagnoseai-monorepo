@@ -13,11 +13,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'conversationId is required' });
   }
 
+  if (!('done' in req.query)) {
+    return res.status(400).json({ error: 'done is required' });
+  }
+
   const config = {
     method: "post",
     url: process.env.CHAT_DONE_URL,
     params: {
-      'conversation_id': req.query['conversationId']
+      'conversation_id': req.query['conversationId'],
+      'done': req.query['done'],
     },
     headers: {
       "Ocp-Apim-Subscription-Key": process.env.OCP_APIM_SUBSCRIPTION_KEY,
@@ -33,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         error: 'Error fetching WebSocket URL'
       });
     }
-    return res.status(200).json({ message: 'Conversation marked as completed' });
+    return res.status(200).json({ message: 'Conversation marked' });
   } catch (error) {
     return res.status(500).json({ error: 'Cannot mark conversation as completed' });
   }

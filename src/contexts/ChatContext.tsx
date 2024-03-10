@@ -23,7 +23,6 @@ export const ChatContext = createContext({
   setMessages: (_state: Message[], _message: Message[]) => {},
   addMessage: (_message: Message) => {},
   fetchHistory: (_conversationId: string) => {},
-  markConversationDone: (_conversationId: string) => {},
 });
 
 type ChatProviderProps = {
@@ -60,17 +59,9 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     }
   }, []);
 
-  const markConversationDone = useCallback(async (conversationId: string) => {
-    try {
-      await axios.post(`/api/chatDone?conversationId=${conversationId}`);
-    } catch (error) {
-      console.error("Error marking conversation done:", error);
-    }
-  }, []);
-
   return (
     <ChatContext.Provider
-      value={{ messages, setMessages, addMessage, fetchHistory, markConversationDone }}
+      value={{ messages, setMessages, addMessage, fetchHistory }}
     >
       {children}
     </ChatContext.Provider>
