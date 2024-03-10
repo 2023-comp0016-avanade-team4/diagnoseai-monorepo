@@ -67,7 +67,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     if get_user_id(req.headers["Auth-Token"]) != user_id:
         return func.HttpResponse("Unathorised", status_code=401)
 
-    work_orders_data = __fetch_work_orders_for_user(user_id)
+    work_orders_data = [wo.to_dict()
+                        for wo in __fetch_work_orders_for_user(user_id)]
 
     return func.HttpResponse(
         json.dumps(work_orders_data),

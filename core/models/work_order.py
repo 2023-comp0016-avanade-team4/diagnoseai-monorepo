@@ -37,6 +37,7 @@ class WorkOrderModel(Base):
     machine = relationship("MachineModel", back_populates="work_orders")
 
 
+# pylint: disable=too-few-public-methods
 class MachineModel(Base):
     __tablename__ = "machines"
     machine_id: Mapped[str] = mapped_column(
