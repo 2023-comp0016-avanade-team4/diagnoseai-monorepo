@@ -7,12 +7,12 @@ import React, {
 } from "react";
 import axios from "axios";
 import { Message } from "../components/MessageComponent";
-import { useSelector } from "react-redux";
 
 type WebSocketContextState = {
   wsUrl: string | null;
   messages: Message[];
   addMessage: (message: Message) => void;
+  isSocketReady: boolean;
   webSocket: WebSocket | null;
 };
 
@@ -20,6 +20,7 @@ export const WebSocketContext = createContext<WebSocketContextState>({
   wsUrl: null,
   messages: [],
   addMessage: () => {},
+  isSocketReady: false,
   webSocket: null,
 });
 
@@ -33,10 +34,17 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   const [wsUrl, setWsUrl] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [webSocket, setWebSocket] = useState<WebSocket | null>(null);
+  const [isReady, setIsReady] = useState(false);
 
   const addMessage = useCallback((message: Message) => {
     setMessages((prevMessages) => [...prevMessages, message]);
   }, []);
+
+  useEffect(() => {
+    // Whenever the websocket object changes, we are either reconnecting
+    // or cleaning up the websocket
+    setIsReady(false);
+  }, [webSocket])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -55,6 +63,10 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   useEffect(() => {
     if (wsUrl && !webSocket) {
       const ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        setIsReady(true);
+      }
 
       ws.onmessage = (event) => {
         try {
@@ -79,6 +91,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     wsUrl,
     messages,
     addMessage,
+    isSocketReady: isReady,
     webSocket, // Provide the WebSocket instance in context
   };
 
