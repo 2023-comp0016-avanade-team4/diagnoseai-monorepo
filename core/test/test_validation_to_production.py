@@ -20,7 +20,7 @@ os.environ['CognitiveSearchEndpoint'] = 'mock-endpoint'
 os.environ['ProductionIndexName'] = 'mock-index'
 
 # pylint: disable=wrong-import-position
-from core.validation_to_production import main  # noqa: E402
+from core.functions.validation_to_production import main  # noqa: E402
 
 
 class TestValidationToProduction(unittest.TestCase):
@@ -36,8 +36,8 @@ class TestValidationToProduction(unittest.TestCase):
         }
     )
 
-    @patch('core.validation_to_production.productionClient')
-    @patch('core.validation_to_production.cognitiveSearchClient')
+    @patch('core.functions.validation_to_production.productionClient')
+    @patch('core.functions.validation_to_production.cognitiveSearchClient')
     def test_main(self, cog_search_client_patch, prod_client_patch):
         """
         Tests that the endpoint returns a 200 when authorized and validation
@@ -59,7 +59,7 @@ class TestValidationToProduction(unittest.TestCase):
                 status_code=200
         )
 
-    @patch('core.validation_to_production.cognitiveSearchClient')
+    @patch('core.functions.validation_to_production.cognitiveSearchClient')
     def test_validation_index_not_found(self, cog_search_client_patch):
         """
         Tests that the endpoint returns a 404 when validation index not found
@@ -75,7 +75,7 @@ class TestValidationToProduction(unittest.TestCase):
                 status_code=404
         )
 
-    @patch('core.validation_to_production.cognitiveSearchClient')
+    @patch('core.functions.validation_to_production.cognitiveSearchClient')
     def test_failed_delete_index(self, cog_search_client_patch):
         """
         Tests that the endpoint returns a 500 when deleting the validation

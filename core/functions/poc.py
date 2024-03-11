@@ -13,8 +13,6 @@ from langchain.document_loaders.pdf import DocumentIntelligenceParser
 from langchain.embeddings import AzureOpenAIEmbeddings
 from langchain.vectorstores.azuresearch import AzureSearch
 
-app = func.FunctionApp()
-
 # Loading required variables from the environment
 
 DOCUMENT_ENDPOINT = os.environ["DocumentEndpoint"]

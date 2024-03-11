@@ -4,6 +4,7 @@ Triggers upon an upload to the verification document storage
 import logging
 import os
 
+import azure.functions as func
 from azure.functions import InputStream
 from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.core.credentials import AzureKeyCredential
@@ -38,16 +39,15 @@ embeddings = AzureOpenAIEmbeddings(
 )
 
 
-
-def main(myblob: InputStream):
+def main(blob: InputStream):
     """
     Entrypoint to process blob storage event
     """
     logging.info("Python blob trigger function processed blob \n"
                  "Name: %s\n"
-                 "Blob Size: %d bytes", myblob.name, myblob.length)
+                 "Blob Size: %d bytes", blob.name, blob.length)
 
-    SEARCH_INDEX = myblob.name.split('/')[-1]
+    SEARCH_INDEX = blob.name.split('/')[-1]
 
     logging.info(f"Index name: %s \n", SEARCH_INDEX)
 
@@ -59,6 +59,6 @@ def main(myblob: InputStream):
         index_name=SEARCH_INDEX,
         embedding_function=embeddings.embed_query
     )
-    documents = loader.lazy_parse(Blob.from_data(myblob.read()))
+    documents = loader.lazy_parse(Blob.from_data(blob.read()))
     logging.info('Sending to vector store...')
     vector_store.add_documents(documents=list(documents))

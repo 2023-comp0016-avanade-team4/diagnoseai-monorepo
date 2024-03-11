@@ -29,7 +29,7 @@ os.environ["CognitiveSearchEndpoint"] = ''
 
 # This import must come after the global patches
 # pylint: disable=wrong-import-position
-from core.ProofOfConcept.poc import main, document_client  # noqa: E402
+from core.functions.poc import main, document_client  # noqa: E402
 
 
 class TestProofOfConcept(unittest.TestCase):

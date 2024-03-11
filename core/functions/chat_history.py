@@ -12,8 +12,6 @@ from utils.db import create_session
 from utils.image_utils import get_preauthenticated_blob_url
 from utils.history import ChatHistoryResponse
 
-app = func.FunctionApp()
-
 DATABASE_URL = os.environ['DatabaseURL']
 DATABASE_NAME = os.environ['DatabaseName']
 DATABASE_USERNAME = os.environ['DatabaseUsername']

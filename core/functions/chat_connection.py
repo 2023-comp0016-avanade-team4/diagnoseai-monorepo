@@ -12,8 +12,6 @@ from utils.conversation import (ChatConnectionRequest,
                                 ChatConnectionResponse)
 from utils.verify_token import verify_token
 
-app = func.FunctionApp()
-
 WPBSS_CONNECTION_STRING = os.environ['WebPubSubConnectionString']
 WPBSS_HUB_NAME = os.environ['WebPubSubHubName']
 

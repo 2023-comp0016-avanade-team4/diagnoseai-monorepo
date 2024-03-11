@@ -31,7 +31,7 @@ environ_patch = patch.dict(os.environ, {
 
 # This import must come after the global patches
 # pylint: disable=wrong-import-position
-from core.fileUploadTrigger import main  # noqa: E402
+from core.functions.file_upload_trigger import main  # noqa: E402
 
 
 class TestFileUploadTrigger(unittest.TestCase):

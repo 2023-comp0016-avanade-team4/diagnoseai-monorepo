@@ -6,7 +6,7 @@ import unittest
 import os
 import json
 from unittest.mock import patch
-from work_order.api import (  # pylint: disable=E0401
+from core.functions.work_order import (  # pylint: disable=E0401
     main,
 )
 import azure.functions as func  # pylint: disable=E0401

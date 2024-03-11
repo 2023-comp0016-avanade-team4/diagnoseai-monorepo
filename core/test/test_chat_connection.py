@@ -26,8 +26,8 @@ os.environ['CLERK_SECRET_KEY'] = 'test'
 os.environ['CLERK_AZP_LIST'] = 'test'
 
 # pylint: disable=wrong-import-position
-from core.chat_connection.api import (generate_wss_url,  # noqa: E402, E501
-                                      main, service)
+from core.functions.chat_connection import (generate_wss_url,  # noqa: E402, E501
+                                            main, service)
 from core.utils.conversation import ChatConnectionRequest  # noqa: E402, E501
 
 
@@ -42,7 +42,7 @@ class TestChatConnection(unittest.TestCase):
             user_id='123'
         ).to_json()
 
-        with patch('core.chat_connection.api.generate_wss_url') as fn:
+        with patch('core.functions.chat_connection.generate_wss_url') as fn:
             main(req)
             fn.assert_called_once()
             self.assertEqual(fn.call_args[0][0].user_id, '123')
@@ -52,7 +52,7 @@ class TestChatConnection(unittest.TestCase):
         req = create_autospec(HttpRequest)
         req.get_body.return_value = 'not json'
 
-        with patch('core.chat_connection.api.generate_wss_url') as fn:
+        with patch('core.functions.chat_connection.generate_wss_url') as fn:
             response = main(req)
             fn.assert_not_called()
             self.assertEqual(response.status_code, 500)

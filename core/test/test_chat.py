@@ -49,9 +49,9 @@ os.environ['GPT4V_DEPLOYMENT_NAME'] = ''
 
 # This import must come after the global patches
 # pylint: disable=wrong-import-position
-from core.Chat.chat import (ai_client, main, process_message,  # noqa: E402
-                            ws_log_and_send_error, ws_send_message,
-                            shadow_msg_to_db, image_summary)
+from core.functions.chat import (ai_client, main, process_message,  # noqa: E402
+                                 ws_log_and_send_error, ws_send_message,
+                                 shadow_msg_to_db, image_summary)
 from core.utils.chat_message import ChatMessage  # noqa: E402
 from core.utils.web_pub_sub_interfaces import WebPubSubConnectionContext  # pylint: disable=line-too-long # noqa: E402, E501
 from core.utils.web_pub_sub_interfaces import WebPubSubRequest  # pylint: disable= line-too-long wrong-import-position # noqa: E402, E501
@@ -72,7 +72,7 @@ class TestChat(unittest.TestCase):
         cm = ChatMessage('hello', '123', "mock_token", datetime.now())
         req = WebPubSubRequest(cm.to_json(),
                                WebPubSubConnectionContext('456'))
-        with patch('core.Chat.chat.process_message') as m:
+        with patch('core.functions.chat.process_message') as m:
             main(req.to_json())
 
             # datetime handled by the dataclass json framework is a
@@ -88,7 +88,7 @@ class TestChat(unittest.TestCase):
         """
         req = WebPubSubRequest('{}',
                                WebPubSubConnectionContext('456'))
-        with patch('core.Chat.chat.ws_log_and_send_error') as m:
+        with patch('core.functions.chat.ws_log_and_send_error') as m:
             main(req.to_json())
             m.assert_called_once()
             self.assertEqual(m.call_args[0][1], '456')
@@ -138,8 +138,8 @@ class TestChat(unittest.TestCase):
         mocked_create, message = self.__create_mock_chat_completion(
             'hi', True, None)
 
-        with patch('core.Chat.chat.ws_send_message') as m:
-            with patch('core.Chat.chat.shadow_msg_to_db') as shadow:
+        with patch('core.functions.chat.ws_send_message') as m:
+            with patch('core.functions.chat.shadow_msg_to_db') as shadow:
                 process_message(message, '123')
                 m.assert_called_once()
                 self.assertEqual(shadow.call_count, 2)
@@ -168,7 +168,7 @@ class TestChat(unittest.TestCase):
         mocked_create, message = self.__create_mock_chat_completion(
             'hi', True, 'other-index')
 
-        with patch('core.Chat.chat.ws_send_message') as m:
+        with patch('core.functions.chat.ws_send_message') as m:
             process_message(message, '123')
             m.assert_called_once()
 
@@ -190,11 +190,11 @@ class TestChat(unittest.TestCase):
         mocked_create, message = self.__create_mock_chat_completion(
             'hi', True, 'other-index', True)
         message.message = 'data:/image/png;base64,Y2x1ZWxlc3M='
-        with patch('core.Chat.chat.ws_send_message') as m, \
-             patch('core.Chat.chat.compress_image') as n, \
-             patch('core.Chat.chat.save_to_blob') as s, \
-             patch('core.Chat.chat.is_url_encoded_image') as v, \
-             patch('core.Chat.chat.shadow_msg_to_db') as shadow:
+        with patch('core.functions.chat.ws_send_message') as m, \
+             patch('core.functions.chat.compress_image') as n, \
+             patch('core.functions.chat.save_to_blob') as s, \
+             patch('core.functions.chat.is_url_encoded_image') as v, \
+             patch('core.functions.chat.shadow_msg_to_db') as shadow:
             n.return_value = b'compressed'
             v.return_value = True
             image_summary.get_image_summary.return_value = 'summary'
@@ -221,8 +221,8 @@ class TestChat(unittest.TestCase):
         mocked_create, message = self.__create_mock_chat_completion(
             'hi', True, 'other-index', True)
         message.message = 'data:/image/png;base64,Y2x1ZWxlc3M='
-        with patch('core.Chat.chat.ws_send_message'), \
-             patch('core.Chat.chat.compress_image') as n, \
+        with patch('core.functions.chat.ws_send_message'), \
+             patch('core.functions.chat.compress_image') as n, \
              self.assertRaisesRegex(RuntimeError, 'not a URL encoded'):
             n.return_value = b'compressed'
             process_message(message, '123')
@@ -237,9 +237,9 @@ class TestChat(unittest.TestCase):
         mocked_create, message = self.__create_mock_chat_completion(
             'hi', True, 'other-index', True)
         message.message = 'data:/image/png;base64,Y2x1ZWxlc3M='
-        with patch('core.Chat.chat.ws_send_message'), \
-             patch('core.Chat.chat.compress_image') as n, \
-             patch('core.Chat.chat.is_url_encoded_image') as v, \
+        with patch('core.functions.chat.ws_send_message'), \
+             patch('core.functions.chat.compress_image') as n, \
+             patch('core.functions.chat.is_url_encoded_image') as v, \
              self.assertRaises(OSError):
             v.return_value = True
             n.side_effect = OSError('trigger error')
@@ -255,11 +255,11 @@ class TestChat(unittest.TestCase):
         mocked_create, message = self.__create_mock_chat_completion(
             'hi', True, 'other-index', True)
         message.message = 'data:/image/png;base64,Y2x1ZWxlc3M='
-        with patch('core.Chat.chat.ws_send_message'), \
-             patch('core.Chat.chat.compress_image') as n, \
-             patch('core.Chat.chat.save_to_blob'), \
-             patch('core.Chat.chat.is_url_encoded_image') as v, \
-             patch('core.Chat.chat.shadow_msg_to_db'), \
+        with patch('core.functions.chat.ws_send_message'), \
+             patch('core.functions.chat.compress_image') as n, \
+             patch('core.functions.chat.save_to_blob'), \
+             patch('core.functions.chat.is_url_encoded_image') as v, \
+             patch('core.functions.chat.shadow_msg_to_db'), \
              self.assertRaises(RuntimeError):
             image_summary.get_image_summary.side_effect = RuntimeError(
                 "some error")
@@ -278,7 +278,7 @@ class TestChat(unittest.TestCase):
         mocked_create, message = self.__create_mock_chat_completion(
             'hi', False, None)
 
-        with patch('core.Chat.chat.ws_log_and_send_error') as m:
+        with patch('core.functions.chat.ws_log_and_send_error') as m:
             process_message(message, '123')
             m.assert_called_once()
 
@@ -291,7 +291,7 @@ class TestChat(unittest.TestCase):
         mocked_create, message = self.__create_mock_chat_completion(
             'hi', False, None)
 
-        with patch('core.Chat.chat.ws_log_and_send_error') as m:
+        with patch('core.functions.chat.ws_log_and_send_error') as m:
             process_message(message, '123')
             m.assert_called_once()
 
@@ -303,7 +303,7 @@ class TestChat(unittest.TestCase):
         ws_send_message after logging
         """
         with patch('logging.error') as logerror:
-            with patch('core.Chat.chat.ws_send_message') as m:
+            with patch('core.functions.chat.ws_send_message') as m:
                 ws_log_and_send_error('1', '2')
                 m.assert_called_once()
                 logerror.assert_called_once()
@@ -327,6 +327,6 @@ class TestChat(unittest.TestCase):
         """
         # It doesn't matter what arguments are passed to it; the
         # virtue of it being called is enough
-        with patch('core.Chat.chat.ChatMessageDAO.save_message') as m:
+        with patch('core.functions.chat.ChatMessageDAO.save_message') as m:
             shadow_msg_to_db('123', 'blah', True, False)
             m.assert_called_once()

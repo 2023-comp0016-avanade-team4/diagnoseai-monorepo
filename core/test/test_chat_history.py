@@ -25,8 +25,8 @@ os.environ['ImageBlobContainer'] = ''
 
 # This import must come after the global patches
 # pylint: disable=wrong-import-position
-from core.chat_history.api import (get_history_from_db, main,  # noqa: E402
-                                   handle_request_by_conversation_id)
+from core.functions.chat_history import (get_history_from_db, main,  # noqa: E402
+                                         handle_request_by_conversation_id)
 
 
 class TestChatHistory(unittest.TestCase):
@@ -38,7 +38,7 @@ class TestChatHistory(unittest.TestCase):
         Reads from the conversation ID parameter
         """
         with patch(
-                'core.chat_history.api.handle_request_by_conversation_id'
+                'core.functions.chat_history.handle_request_by_conversation_id'
         ) as m:
             mocked_output = ChatHistoryResponse.from_dict({
                 'messages': [
@@ -107,7 +107,7 @@ class TestChatHistory(unittest.TestCase):
                 'models.chat_message.ChatMessageDAO'
                 '.get_all_messages_for_conversation'
         ) as m, patch(
-            'core.chat_history.api.get_preauthenticated_blob_url'
+            'core.functions.chat_history.get_preauthenticated_blob_url'
         ) as n:
             m.return_value = [ChatMessageModel(
                 conversation_id='123',
