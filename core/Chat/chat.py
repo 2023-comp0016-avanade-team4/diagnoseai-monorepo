@@ -283,7 +283,7 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
     # purposes of validation.  Since they do not store state
     # (i.e. chat history), we can assume the all users are authorised
     # to use ethereal chats.
-    ethereal_conversation = message.conversation_id == -1
+    ethereal_conversation = message.conversation_id == '-1'
     if not ethereal_conversation and \
        not authorise_user(db_session, message.conversation_id, curr_user):
         ws_log_and_send_error(
