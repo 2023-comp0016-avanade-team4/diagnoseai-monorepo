@@ -14,10 +14,8 @@ const Page = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const res = await axios.post('/api/createWorkOrder', {
-      order_id,
       user_id,
       machine_id,
-      conversation_id,
       task_name,
       task_desc,
     });
@@ -26,48 +24,36 @@ const Page = () => {
 
   return (
     <div>
-        <form onSubmit={handleSubmit}>
-            <input
-            type="text"
-            value={order_id}
-            onChange={(e) => setOrder_id(e.target.value)}
-            placeholder="order_id"
-            />
-            <input
-            type="text"
-            value={user_id}
-            onChange={(e) => setUser_id(e.target.value)}
-            placeholder="user_id"
-            />
-            <input
-            type="text"
-            value={machine_id}
-            onChange={(e) => setMachine_id(e.target.value)}
-            placeholder="machine_id"
-            />
-            <input
-            type="text"
-            value={conversation_id}
-            onChange={(e) => setConversation_id(e.target.value)}
-            placeholder="conversation_id"
-            />
-            <input
-            type="text"
-            value={task_name}
-            onChange={(e) => setTask_name(e.target.value)}
-            placeholder="task_name"
-            />
-            <input
-            type="text"
-            value={task_desc}
-            onChange={(e) => setTask_desc(e.target.value)}
-            placeholder="task_desc"
-            />
-            <button type="submit">Submit</button>
-        </form>
-        <div>{response.message}</div>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          value={user_id}
+          onChange={(e) => setUser_id(e.target.value)}
+          placeholder="user_id"
+        />
+        <input
+          type="text"
+          value={machine_id}
+          onChange={(e) => setMachine_id(e.target.value)}
+          placeholder="machine_id"
+        />
+        <input
+          type="text"
+          value={task_name}
+          onChange={(e) => setTask_name(e.target.value)}
+          placeholder="task_name"
+        />
+        <input
+          type="text"
+          value={task_desc}
+          onChange={(e) => setTask_desc(e.target.value)}
+          placeholder="task_desc"
+        />
+        <button type="submit">Submit</button>
+      </form>
+      <div>{response.message}</div>
     </div>
- );
+  );
 };
 
 export default Page;
