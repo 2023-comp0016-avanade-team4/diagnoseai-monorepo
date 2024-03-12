@@ -11,24 +11,17 @@ from azure.core.exceptions import HttpResponseError
 
 from utils.verify_token import verify_token
 
-# Get the service endpoint and API key from the environment
+# Environment Variables
 
-CognitiveSearchServiceEndpoint = os.environ["CognitiveSearchEndpoint"]
-CognitiveSearchApiKey = os.environ["CognitiveSearchKey"]
-ProductionIndexName = os.environ["ProductionIndexName"]
+COGNITIVE_SERVICE_ENDPOINT = os.environ["CognitiveSearchEndpoint"]
+COGNITIVE_SEARCH_API_KEY = os.environ["CognitiveSearchKey"]
 
-# Create required clients
+# Global Clients
 
-credential = AzureKeyCredential(CognitiveSearchApiKey)
-
-productionClient = SearchClient(
-    endpoint=CognitiveSearchServiceEndpoint,
-    index_name=ProductionIndexName,
-    credential=credential
-)
+credential = AzureKeyCredential(COGNITIVE_SEARCH_API_KEY)
 
 cognitiveSearchClient = SearchIndexClient(
-    endpoint=CognitiveSearchServiceEndpoint,
+    endpoint=COGNITIVE_SERVICE_ENDPOINT,
     credential=credential
 )
 
@@ -39,21 +32,26 @@ def check_index_exists(index_name: str) -> bool:
     return index_name in index_names
 
 
-def migrate_documents(validation_index_name: str) -> None:
+def migrate_documents(validation_index_name: str,
+                      production_index_name: str) -> None:
     """Migrate documents from validation to production index"""
-    # Create validation index client
     validation_index_client = SearchClient(
-        endpoint=CognitiveSearchServiceEndpoint,
+        endpoint=COGNITIVE_SERVICE_ENDPOINT,
         index_name=validation_index_name,
         credential=credential
     )
 
-    # Migrate documents from validation to production index
+    production_client = SearchClient(
+        endpoint=COGNITIVE_SERVICE_ENDPOINT,
+        index_name=production_index_name,
+        credential=credential
+    )
+
     documents: list[dict] = list(
         list(*validation_index_client.search(search_text="*").by_page())
     )
     logging.info(documents)
-    productionClient.upload_documents(documents)
+    production_client.upload_documents(documents)
 
 
 def index_not_found_error(validation_index_name: str) -> HttpResponse:
@@ -84,12 +82,16 @@ def main(req: HttpRequest) -> HttpResponse:
             status_code=401
         )
 
-    validation_index_name = req_body.get('validationIndexName')
+    validation_index_name = req_body.get('validation_index_name')
+    production_index_name = req_body.get('production_index_name')
 
     if not check_index_exists(validation_index_name):
         return index_not_found_error(validation_index_name)
 
-    migrate_documents(validation_index_name)
+    if not check_index_exists(production_index_name):
+        return index_not_found_error(production_index_name)
+
+    migrate_documents(validation_index_name, production_index_name)
 
     try:
         cognitiveSearchClient.delete_index(validation_index_name)

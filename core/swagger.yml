@@ -74,6 +74,21 @@ paths:
           description: Unauthorized, invalid or missing Auth-Token
       security:
         - auth_token: []
+  /validation_to_production:
+    post:
+      summary: Moves an index from validation to production
+      description: Moves an index from the validation index to the production index.
+      requestBody:
+        description: Request for a pre-authenticated chat connection
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ValidationToProductionRequest"
+      responses:
+        "200":
+          description: The Validation Index has been moved successfully
+        "401":
+          description: Unauthorized access
 
 components:
   schemas:
@@ -127,6 +142,15 @@ components:
         conversation_id:
           type: string
           description: Identifier for the conversation associated with the work order
+    ValidationToProductionRequest:
+      type: object
+      properties:
+        validation_index_name:
+          type: string
+          description: The Validation Index Name
+        production_index_name:
+          type: string
+          description: The Production Index Name
 
   securitySchemes:
     api_key:
