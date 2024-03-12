@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import axios from "axios";
 import { Message } from "../components/MessageComponent";
+import { showToastWithRefresh } from "../components/toast-with-refresh";
 import { useSelector } from "react-redux";
 
 type WebSocketContextState = {
@@ -46,6 +47,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         setWsUrl(wsUrl);
       } catch (error) {
         console.error("Error fetching WebSocket URL:", error);
+        showToastWithRefresh("Error fetching WebSocket URL");
       }
     };
 

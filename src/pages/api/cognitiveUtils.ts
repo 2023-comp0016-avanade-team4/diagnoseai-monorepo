@@ -1,8 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import {
-  SearchIndexClient,
-  AzureKeyCredential,
-} from "@azure/search-documents";
+import { SearchIndexClient, AzureKeyCredential } from "@azure/search-documents";
+import { showToastWithRefresh } from "../../app/components/toast-with-refresh";
 
 require("dotenv").config();
 
@@ -21,7 +19,7 @@ if (!AZURE_COGNITIVE_SERVICE_API_KEY) {
 
 export const indexClient = new SearchIndexClient(
   AZURE_COGNITIVE_SERVICE_ENDPOINT!,
-  new AzureKeyCredential(AZURE_COGNITIVE_SERVICE_API_KEY!)
+  new AzureKeyCredential(AZURE_COGNITIVE_SERVICE_API_KEY!),
 );
 
 async function hasIndex(searchIndex: string): Promise<boolean> {
@@ -44,13 +42,16 @@ export function checkSearchIndexMiddleware(
   fn: (
     req: NextApiRequest,
     res: NextApiResponse,
-    searchIndex: string
-  ) => Promise<void>
+    searchIndex: string,
+  ) => Promise<void>,
 ) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
     const { searchIndex } = req.query;
     if (!searchIndex) {
       console.error("Required parameter (searchIndex) was not specified");
+      showToastWithRefresh(
+        "Required parameter (searchIndex) was not specified",
+      );
       res.status(400).json({
         message: "Required parameter (searchIndex) was not specified",
       });
@@ -59,6 +60,9 @@ export function checkSearchIndexMiddleware(
 
     if (searchIndex instanceof Array) {
       console.error("Required parameter (searchIndex) cannot be an array");
+      showToastWithRefresh(
+        "Required parameter (searchIndex) cannot be an array",
+      );
       res.status(400).json({
         message: "Required parameter (searchIndex) cannot be an array",
       });
@@ -67,6 +71,7 @@ export function checkSearchIndexMiddleware(
 
     if (!(await hasIndex(searchIndex))) {
       console.error("Search index is invalid.");
+      showToastWithRefresh("Search index is invalid.");
       res.status(400).json({
         message: "Invalid search index",
       });

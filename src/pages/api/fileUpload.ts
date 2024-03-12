@@ -7,6 +7,7 @@ import { authGuard } from "./authGuard";
 import { clerkClient } from "@clerk/nextjs";
 import { User, getAuth } from "@clerk/nextjs/server";
 import { Machine } from "../../models/workOrderModel";
+import { showToastWithRefresh } from "../../app/components/toast-with-refresh";
 
 require("dotenv").config();
 
@@ -53,6 +54,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         }
 
         if (error) {
+          showToastWithRefresh("Error parsing form data");
           throw error;
         }
         const AZURE_STORAGE_CONNECTION_STRING =
