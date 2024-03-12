@@ -5,7 +5,9 @@ import 'tedious'; // to force build to package tedious
 import dotenv from "dotenv";
 dotenv.config();
 const { DB_HOST, DB_USER, DB_PASSWORD, DB_NAME } = process.env;
-console.log(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
+if (!DB_HOST || !DB_USER || !DB_PASSWORD || !DB_NAME) {
+  throw new Error('Database connection details are not provided');
+}
 
 const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
   host: DB_HOST,
