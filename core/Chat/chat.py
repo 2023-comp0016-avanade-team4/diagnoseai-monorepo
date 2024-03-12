@@ -93,6 +93,10 @@ class ChatError(Exception):
 def ws_send_message(text: str, connection_id: str) -> None:
     """
     Sends a message over WebSockets.
+
+    Args:
+        text (str): The text to send
+        connection_id (str): The connection ID to send to
     """
     # WebPubSubServiceClient DOES have from_connection_string, dunno
     # why PyLint refuses to acknowledge it.
@@ -109,8 +113,18 @@ def ws_send_message(text: str, connection_id: str) -> None:
 def shadow_msg_to_db(
         conversation_id: str, message: str, sender_is_bot: bool) -> None:
     """
-    Shadows the message to the database
+    Shadows the message to the database.
+
+    Args:
+        conversation_id (str): The conversation ID
+        message (str): The message
+        sender_is_bot (bool): Whether the sender is the bot
     """
+    # Ethereal messages; don't store history
+    if conversation_id == '-1':
+        logging.info('Ethereal conversation, not storing history')
+        return
+
     ChatMessageDAO.save_message(
         db_session,
         ChatMessageModel.from_bidirectional_chat_message(
@@ -264,7 +278,14 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
         return
 
     curr_user = get_user_id(message.auth_token)
-    if not authorise_user(db_session, message.conversation_id, curr_user):
+    # Ethereal Conversations are denoted with a -1. They are
+    # converesations that do not store history, and exists for the
+    # purposes of validation.  Since they do not store state
+    # (i.e. chat history), we can assume the all users are authorised
+    # to use ethereal chats.
+    ethereal_conversation = message.conversation_id == -1
+    if not ethereal_conversation and \
+       not authorise_user(db_session, message.conversation_id, curr_user):
         ws_log_and_send_error(
             ('User not authorised.'
              f' for debugging purposes, you were {connection_id}'),
@@ -278,13 +299,16 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
     summary_index = get_search_index_for_user_id(curr_user)
 
     try:
-        summary = __index_guard(summary_index,
-                                lambda: strip_all_citations(
-                                    __query_llm_with_index(
-                                        messages, summary_index,
-                                        SUMMARY_SEARCH_ENDPOINT,
-                                        SUMMARY_SEARCH_KEY,
-                                        SUMMARY_PROMPT, connection_id)))
+        if ethereal_conversation:
+            summary = ''
+        else:
+            summary = __index_guard(summary_index,
+                                    lambda: strip_all_citations(
+                                        __query_llm_with_index(
+                                            messages, summary_index,
+                                            SUMMARY_SEARCH_ENDPOINT,
+                                            SUMMARY_SEARCH_KEY,
+                                            SUMMARY_PROMPT, connection_id)))
         chat_response = __query_llm_with_index(
             messages, message.index,
             SEARCH_ENDPOINT, SEARCH_KEY,
