@@ -27,6 +27,35 @@ const Validate = () => {
   const index = params?.get("index");
   const machine = params?.get("machine");
 
+  const onValidateClick = async () => {
+    // HACK: We do this for now. In the future, we should use a JS
+    // component for confirmations
+    if (!window.confirm("Submit confirmation?")) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    const response = await fetch("/api/confirmValidation", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        validation_index_name: index,
+        production_index_name: selectedMachine?.machine_id,
+      }),
+    });
+
+    if (response.status !== 200) {
+      console.error("Error moving validation index");
+      // return; // HACK: Redirect anyway
+    }
+
+    router.replace("/verificationsuccess");
+  };
+
+
   useEffect(() => {
     if (index === null || machine === null || index === "" || machine === "") {
       router.replace("/?");
@@ -94,6 +123,7 @@ const Validate = () => {
             <Button
               className="my-3 max-w-xs flex-0 place-self-center"
               color="primary"
+              onClick={onValidateClick}
             >
               Confirm Validation
             </Button>
