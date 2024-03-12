@@ -8,6 +8,17 @@ from azure.search.documents import SearchClient
 from azure.search.documents.indexes import SearchIndexClient
 from azure.core.credentials import AzureKeyCredential
 from azure.core.exceptions import HttpResponseError
+from azure.search.documents.indexes.models import (
+    SearchIndex,
+    SearchField,
+    SearchFieldDataType,
+    SimpleField,
+    SearchableField,
+    SearchIndex,
+    SearchField,
+    VectorSearch,
+    HnswVectorSearchAlgorithmConfiguration
+)
 
 from utils.verify_token import verify_token
 
@@ -24,6 +35,25 @@ cognitiveSearchClient = SearchIndexClient(
     endpoint=COGNITIVE_SERVICE_ENDPOINT,
     credential=credential
 )
+
+
+def create_index(index_name: str) -> None:
+    """Create an index in the search service"""
+    fields = [
+        SimpleField(name="id", type=SearchFieldDataType.String, key=True, sortable=True, filterable=True, facetable=True),
+        SearchableField(name="content", sortable=True, filterable=True, facetable=True),
+        SearchField(name="content_vector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single), searchable=True, vector_search_dimensions=1536, vector_search_profile_name="vector-search"),
+        SimpleField(name="metadata", sortable=True, filterable=False, facetable=False),
+        SimpleField(name="filepath", sortable=True, filterable=True, facetable=False),
+    ]
+
+    vector_search = VectorSearch(
+        algorithm_configurations=[HnswVectorSearchAlgorithmConfiguration(name='vector-search')]
+    )
+
+    cognitiveSearchClient.create_index(
+        SearchIndex(name=index_name, fields=fields, vector_search=vector_search)
+    )
 
 
 def check_index_exists(index_name: str) -> bool:
@@ -47,11 +77,10 @@ def migrate_documents(validation_index_name: str,
         credential=credential
     )
 
-    documents: list[dict] = list(
-        list(*validation_index_client.search(search_text="*").by_page())
-    )
-    logging.info(documents)
-    production_client.upload_documents(documents)
+    for page in validation_index_client.search(search_text="*").by_page():
+        documents = list(page)
+        logging.info(documents)
+        production_client.upload_documents(documents)
 
 
 def index_not_found_error(validation_index_name: str) -> HttpResponse:
@@ -89,7 +118,7 @@ def main(req: HttpRequest) -> HttpResponse:
         return index_not_found_error(validation_index_name)
 
     if not check_index_exists(production_index_name):
-        return index_not_found_error(production_index_name)
+        create_index(production_index_name)
 
     migrate_documents(validation_index_name, production_index_name)
 
