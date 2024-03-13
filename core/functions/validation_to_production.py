@@ -8,29 +8,52 @@ from azure.search.documents import SearchClient
 from azure.search.documents.indexes import SearchIndexClient
 from azure.core.credentials import AzureKeyCredential
 from azure.core.exceptions import HttpResponseError
+from azure.search.documents.indexes.models import (
+    SearchIndex,
+    SearchField,
+    SearchFieldDataType,
+    SimpleField,
+    SearchableField,
+    SearchIndex,
+    SearchField,
+    VectorSearch,
+    HnswVectorSearchAlgorithmConfiguration
+)
 
 from utils.verify_token import verify_token
 
-# Get the service endpoint and API key from the environment
+# Environment Variables
 
-CognitiveSearchServiceEndpoint = os.environ["CognitiveSearchEndpoint"]
-CognitiveSearchApiKey = os.environ["CognitiveSearchKey"]
-ProductionIndexName = os.environ["ProductionIndexName"]
+COGNITIVE_SERVICE_ENDPOINT = os.environ["CognitiveSearchEndpoint"]
+COGNITIVE_SEARCH_API_KEY = os.environ["CognitiveSearchKey"]
 
-# Create required clients
+# Global Clients
 
-credential = AzureKeyCredential(CognitiveSearchApiKey)
-
-productionClient = SearchClient(
-    endpoint=CognitiveSearchServiceEndpoint,
-    index_name=ProductionIndexName,
-    credential=credential
-)
+credential = AzureKeyCredential(COGNITIVE_SEARCH_API_KEY)
 
 cognitiveSearchClient = SearchIndexClient(
-    endpoint=CognitiveSearchServiceEndpoint,
+    endpoint=COGNITIVE_SERVICE_ENDPOINT,
     credential=credential
 )
+
+
+def create_index(index_name: str) -> None:
+    """Create an index in the search service"""
+    fields = [
+        SimpleField(name="id", type=SearchFieldDataType.String, key=True, sortable=True, filterable=True, facetable=True),
+        SearchableField(name="content", sortable=True, filterable=True, facetable=True),
+        SearchField(name="content_vector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single), searchable=True, vector_search_dimensions=1536, vector_search_profile_name="vector-search"),
+        SimpleField(name="metadata", sortable=True, filterable=False, facetable=False),
+        SimpleField(name="filepath", sortable=True, filterable=True, facetable=False),
+    ]
+
+    vector_search = VectorSearch(
+        algorithm_configurations=[HnswVectorSearchAlgorithmConfiguration(name='vector-search')]
+    )
+
+    cognitiveSearchClient.create_index(
+        SearchIndex(name=index_name, fields=fields, vector_search=vector_search)
+    )
 
 
 def check_index_exists(index_name: str) -> bool:
@@ -39,26 +62,25 @@ def check_index_exists(index_name: str) -> bool:
     return index_name in index_names
 
 
-def migrate_documents(validation_index_name: str) -> None:
+def migrate_documents(validation_index_name: str,
+                      production_index_name: str) -> None:
     """Migrate documents from validation to production index"""
-    # Create validation index client
     validation_index_client = SearchClient(
-        endpoint=CognitiveSearchServiceEndpoint,
+        endpoint=COGNITIVE_SERVICE_ENDPOINT,
         index_name=validation_index_name,
         credential=credential
     )
 
-    # Migrate documents from validation to production index
-    documents: list[dict] = list(
-        list(*validation_index_client.search(search_text="*").by_page())
+    production_client = SearchClient(
+        endpoint=COGNITIVE_SERVICE_ENDPOINT,
+        index_name=production_index_name,
+        credential=credential
     )
 
-    # add filepath to files (same as index name)
-    for doc in documents:
-        doc['filepath'] = validation_index_name
-
-    logging.info(documents)
-    productionClient.upload_documents(documents)
+    for page in validation_index_client.search(search_text="*").by_page():
+        documents = list(page)
+        logging.info(documents)
+        production_client.upload_documents(documents)
 
 
 def index_not_found_error(validation_index_name: str) -> HttpResponse:
@@ -89,12 +111,16 @@ def main(req: HttpRequest) -> HttpResponse:
             status_code=401
         )
 
-    validation_index_name = req_body.get('validationIndexName')
+    validation_index_name = req_body.get('validation_index_name')
+    production_index_name = req_body.get('production_index_name')
 
     if not check_index_exists(validation_index_name):
         return index_not_found_error(validation_index_name)
 
-    migrate_documents(validation_index_name)
+    if not check_index_exists(production_index_name):
+        create_index(production_index_name)
+
+    migrate_documents(validation_index_name, production_index_name)
 
     try:
         cognitiveSearchClient.delete_index(validation_index_name)
