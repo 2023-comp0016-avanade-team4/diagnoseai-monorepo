@@ -41,6 +41,7 @@ class BidirectionalChatMessage(DataClassJsonMixin):
     sent_at: datetime = field(metadata=config(field_name="sentAt"))
     is_image: bool = field(
         default=False, metadata=config(field_name="isImage"))
+    sender: Literal['bot', 'user'] = field(metadata=config(field_name="sender"))
     index: str = field(default='validation-index')
     sender: Literal['bot', 'user'] = 'bot'
 

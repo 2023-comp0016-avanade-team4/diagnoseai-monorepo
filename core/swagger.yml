@@ -74,6 +74,32 @@ paths:
           description: Unauthorized, invalid or missing Auth-Token
       security:
         - auth_token: []
+  /chat_done:
+    post:
+      summary: Marks a conversation as completed
+      description: Marks a conversation as completed
+      parameters:
+        - name: conversation_id
+          in: query
+          description: The conversation ID to mark done
+          required: true
+          schema:
+            type: string
+        - name: done
+          in: query
+          description: Whether the conversation ID should be marked done
+          required: true
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Conversation was successfully marked done
+        "400":
+          description: Bad request. Conversation ID is probably missing
+        "401":
+          description: Unauthorized, invalid or missing Auth-Token
+      security:
+        - auth_token: []
 
 components:
   schemas:
@@ -127,6 +153,12 @@ components:
         conversation_id:
           type: string
           description: Identifier for the conversation associated with the work order
+        resolved:
+          type: string
+          enum:
+            - "completed"
+            - "not_completed"
+          description: Whether the conversation has been resolved
 
   securitySchemes:
     api_key:

@@ -9,7 +9,7 @@ The module defines the following classes:
 
 """
 
-from typing import List
+from typing import List, Optional, Literal, cast
 from uuid import uuid4
 
 from sqlalchemy import (DateTime,  # noqa: E501 pylint: disable=E0401
@@ -18,24 +18,15 @@ from sqlalchemy.orm import (Mapped, Session,  # pylint: disable=E0401
                             mapped_column, relationship)
 
 from .common import Base
+from .conversation_status import ConversationStatusModel
+from dataclasses import dataclass
+from dataclasses_json import DataClassJsonMixin
 
 
+# pylint: disable=too-few-public-methods
 class WorkOrderModel(Base):
     """
     Represents a work order in the system.
-
-    Attributes:
-        order_id (str): The unique identifier for the work order.
-        user_id (str): The identifier of the user associated with the work
-        order.
-        conversation_id (str): The identifier of the conversation related to
-        the work order.
-        machine_id (str): The identifier of the machine associated with the
-        work order.
-        task_name (str): The name of the task for the work order.
-        task_desc (str): The description of the task for the work order.
-        created_at (DateTime): The timestamp when the work order was created.
-        machine (MachineModel): The machine associated with the work order.
     """
 
     __tablename__ = "work_orders"
@@ -46,20 +37,26 @@ class WorkOrderModel(Base):
         String(36)
     )  # Assuming user_id is string from clerk
     conversation_id: Mapped[str] = mapped_column(
-        String(36), default=lambda: str(uuid4())
-    )
+        String(36), ForeignKey("conversation_status.conversation_id"))
+
     machine_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("machines.machine_id")
     )
     task_name: Mapped[str] = mapped_column(String(255))
     task_desc: Mapped[str] = mapped_column(Text)
     created_at: Mapped[DateTime] = mapped_column(
-        DateTime, default=func.now
+        DateTime, default=func.now()  # pylint: disable=not-callable
     )  # Automatically sets to current time
 
-    machine = relationship("MachineModel", back_populates="work_orders")
+    conversation: Mapped["ConversationStatusModel"] = relationship(
+        "ConversationStatusModel",
+        back_populates="work_orders",
+        uselist=False)
+    machine: Mapped["MachineModel"] = relationship(
+        "MachineModel", back_populates="work_orders")
 
 
+# pylint: disable=too-few-public-methods
 class MachineModel(Base):
     """
     Represents a machine in the system.
@@ -72,9 +69,51 @@ class MachineModel(Base):
     manufacturer: Mapped[str] = mapped_column(String(255))
     model: Mapped[str] = mapped_column(String(255))
 
-    work_orders = relationship("WorkOrderModel", back_populates="machine")
+    work_orders: Mapped[List["WorkOrderModel"]] = relationship(
+        "WorkOrderModel", back_populates="machine")
     pending_uploads = relationship("PendingUploadsModel",
                                    back_populates="machine")
+
+    def get_machine_name(self) -> str:
+        """
+        Gets the canonical machine name
+        """
+        return f"{self.manufacturer} {self.model}"
+
+
+@dataclass
+class ResponseWorkOrderFormat(DataClassJsonMixin):
+    """
+    Response work order data class.
+    """
+    order_id: str
+    machine_id: str
+    machine_name: str
+    conversation_id: str
+    resolved: Literal['not_completed', 'completed']
+
+    @staticmethod
+    def from_dao_result(work_order: WorkOrderModel
+                        ) -> "ResponseWorkOrderFormat":
+        """
+        Converts a work order model into a response work order format.
+
+        Args:
+            work_order (WorkOrderModel): The work order model
+
+        Returns:
+            ResponseWorkOrderFormat: The response work order format
+        """
+        return ResponseWorkOrderFormat(
+            order_id=work_order.order_id,
+            machine_id=work_order.machine_id,
+            machine_name=cast(MachineModel,
+                              work_order.machine).get_machine_name(),
+            conversation_id=work_order.conversation_id,
+            resolved=cast(Literal['not_completed', 'completed'],
+                          cast(ConversationStatusModel,
+                               work_order.conversation).status.name)
+        )
 
 
 class WorkOrderDAO:
@@ -105,7 +144,7 @@ class WorkOrderDAO:
     @staticmethod
     def get_machine_name_for_machine_id(
         session: Session, machine_id: str
-    ) -> str:
+    ) -> Optional[str]:
         """
         Gets the machine name for a specific machine ID.
 
@@ -114,7 +153,7 @@ class WorkOrderDAO:
             machine_id (str): The machine ID
 
         Returns:
-            str: The machine name
+            Optional[str]: The machine name
         """
         machine = session.query(MachineModel).get(machine_id)
         return f"{machine.manufacturer} {machine.model}" if machine else None
@@ -122,7 +161,7 @@ class WorkOrderDAO:
     @staticmethod
     def get_user_id_for_conversation_id(
         session: Session, conversation_id: str
-    ) -> str:
+    ) -> Optional[str]:
         """
         Gets the user ID for a specific conversation ID.
 
@@ -131,7 +170,7 @@ class WorkOrderDAO:
             conversation_id (str): The conversation ID
 
         Returns:
-            str: The user ID
+            Optional[str]: The user ID
         """
         work_order = (
             session.query(WorkOrderModel)

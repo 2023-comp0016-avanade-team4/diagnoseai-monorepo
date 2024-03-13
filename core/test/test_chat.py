@@ -7,6 +7,7 @@ import unittest
 from datetime import datetime
 from typing import Optional, Tuple
 from unittest.mock import MagicMock, PropertyMock, create_autospec, patch
+from azure.core.exceptions import ResourceNotFoundError
 
 from openai.types.chat.chat_completion import (ChatCompletion,
                                                ChatCompletionMessage, Choice)
@@ -19,8 +20,10 @@ db_session_patch = patch('utils.db.create_session') \
 bsc_patch = patch(
     'azure.storage.blob.BlobServiceClient.from_connection_string') \
     .start()
-image_summary_patch = patch('utils.image_summary.ImageSummary')
-image_summary_patch.start()
+image_summary_patch = patch('utils.image_summary.ImageSummary') \
+    .start()
+sic_patch = patch('azure.search.documents.indexes.SearchIndexClient') \
+    .start()
 
 os.environ['WebPubSubConnectionString'] = ''
 os.environ['WebPubSubHubName'] = ''
@@ -28,14 +31,10 @@ os.environ['OpenAIKey'] = ''
 os.environ['OpenAIEndpoint'] = ''
 os.environ['CLERK_PUBLIC_KEY'] = 'test'
 os.environ['CLERK_AZP_LIST'] = 'test'
-
-# patching the verify_token function
-
-vjwt_patch = patch('utils.verify_token.verify_token').start()
-vjwt_patch.return_value = True
-
 os.environ['CognitiveSearchKey'] = ''
 os.environ['CognitiveSearchEndpoint'] = ''
+os.environ['SummarySearchKey'] = ''
+os.environ['SummarySearchEndpoint'] = ''
 os.environ['DatabaseURL'] = ''
 os.environ['DatabaseName'] = ''
 os.environ['DatabaseUsername'] = ''
@@ -49,9 +48,10 @@ os.environ['GPT4V_DEPLOYMENT_NAME'] = ''
 
 # This import must come after the global patches
 # pylint: disable=wrong-import-position
-from core.functions.chat import (ai_client, main, process_message,  # noqa: E402
+from core.functions.chat import (ai_client, main, process_message,  # pylint: disable=line-too-long # noqa: E402, E501
                                  ws_log_and_send_error, ws_send_message,
-                                 shadow_msg_to_db, image_summary)
+                                 shadow_msg_to_db, image_summary,
+                                 strip_all_citations)
 from core.utils.chat_message import ChatMessage  # noqa: E402
 from core.utils.web_pub_sub_interfaces import WebPubSubConnectionContext  # pylint: disable=line-too-long # noqa: E402, E501
 from core.utils.web_pub_sub_interfaces import WebPubSubRequest  # pylint: disable= line-too-long wrong-import-position # noqa: E402, E501
@@ -62,45 +62,57 @@ class TestChat(unittest.TestCase):
     Tests the Chat WebSocket API
     """
     def setUp(self):
+        self.verifyjwt_mock = patch('core.functions.chat.verify_token',
+                                    return_value=True).start()
+        self.get_user_id_mock = patch('core.functions.chat.get_user_id',
+                                      return_value='123').start()
+        self.authorize_mock = patch('core.functions.chat.authorise_user',
+                                    return_value=True).start()
         image_summary_patch.start()
 
     def tearDown(self):
+        self.verifyjwt_mock.stop()
+        self.get_user_id_mock.stop()
         image_summary_patch.stop()
 
-    def test_main_happy(self):
+    @staticmethod
+    def tearDownClass():
+        patch.stopall()
+
+    @patch('core.functions.chat.process_message')
+    def test_main_happy(self, m):
         """Parses the expected ChatMessage from input"""
         cm = ChatMessage('hello', '123', "mock_token", datetime.now())
         req = WebPubSubRequest(cm.to_json(),
                                WebPubSubConnectionContext('456'))
-        with patch('core.functions.chat.process_message') as m:
-            main(req.to_json())
+        main(req.to_json())
 
-            # datetime handled by the dataclass json framework is a
-            # little weird, so we bypass that
-            m.assert_called_once()
-            self.assertEqual(m.call_args[0][0].to_json(), cm.to_json())
-            self.assertEqual(m.call_args[0][1], '456')
+        # datetime handled by the dataclass json framework is a
+        # little weird, so we bypass that
+        m.assert_called_once()
+        self.assertEqual(m.call_args[0][0].to_json(), cm.to_json())
+        self.assertEqual(m.call_args[0][1], '456')
 
-    def test_main_sad_1(self):
+    @patch('core.functions.chat.ws_log_and_send_error')
+    def test_main_sad_1(self, m):
         """
         If anything fails during parsing, an error should go through
         the websocket
         """
         req = WebPubSubRequest('{}',
                                WebPubSubConnectionContext('456'))
-        with patch('core.functions.chat.ws_log_and_send_error') as m:
-            main(req.to_json())
-            m.assert_called_once()
-            self.assertEqual(m.call_args[0][1], '456')
+        main(req.to_json())
+        m.assert_called_once()
+        self.assertEqual(m.call_args[0][1], '456')
 
-    def test_main_sad_2(self):
+    @patch('logging.fatal')
+    def test_main_sad_2(self, m):
         """
         If anything fails during parsing, an error should go through
         the websocket
         """
-        with patch('logging.fatal') as m:
-            main('')
-            m.assert_called_once()
+        main('')
+        m.assert_called_once()
 
     def __create_mock_chat_completion(
             self,
@@ -125,59 +137,90 @@ class TestChat(unittest.TestCase):
         ai_client.chat.completions.create = mock_create  # type: ignore[method-assign] # noqa: E501
 
         if index_name is not None:
-            return mock_create, ChatMessage('blah', '123', 'mock_token',
-                                            datetime.now(), is_image,
-                                            index_name)
-        return mock_create, ChatMessage('blah', '123', 'mock_token',
-                                        datetime.now(), is_image)
+            return mock_create, ChatMessage(message='blah',
+                                            conversation_id='123',
+                                            auth_token='mock_token',
+                                            sent_at=datetime.now(),
+                                            is_image=is_image,
+                                            index=index_name)
+        return mock_create, ChatMessage(
+            message='blah',
+            conversation_id='123',
+            sent_at=datetime.now(),
+            is_image=is_image,
+            auth_token="mock_token")
 
-    def test_process_message_happy_no_index(self):
+    @patch('core.functions.chat.get_search_index_for_user_id',
+           return_value='validation-index')
+    @patch('core.functions.chat.ws_send_message')
+    @patch('core.functions.chat.shadow_msg_to_db')
+    def test_process_message_happy_no_index(self, shadow, m, _hasher):
         """
         Message is sent to the chat model cleanly. The default index is used
         """
         mocked_create, message = self.__create_mock_chat_completion(
             'hi', True, None)
 
-        with patch('core.functions.chat.ws_send_message') as m:
-            with patch('core.functions.chat.shadow_msg_to_db') as shadow:
-                process_message(message, '123')
-                m.assert_called_once()
-                self.assertEqual(shadow.call_count, 2)
+        process_message(message, '123')
+        m.assert_called_once()
+        self.assertEqual(shadow.call_count, 2)
 
-                # 'blah' is from the user, 'hi' is from the bot
-                expected_calls = (('123', 'blah', False, False),
-                                  ('123', 'hi', True, False))
-                self.assertEqual(
-                    tuple(map(lambda x: x.args, shadow.call_args_list)),
-                    expected_calls)
+        # 'blah' is from the user, 'hi' is from the bot
+        expected_calls = (('123', 'blah', False, False),
+                          ('123', 'hi', True, False))
+        self.assertEqual(
+            tuple(map(lambda x: x.args, shadow.call_args_list)),
+            expected_calls)
 
-            self.assertIn('hi', m.call_args[0][0])
-            self.assertEqual(m.call_args[0][1], '123')
-            self.assertEqual(ai_client.chat.completions.create
-                             .call_args_list[0]
-                             .kwargs['extra_body']['dataSources'][0]
-                             ['parameters']['indexName'], 'validation-index')
+        self.assertIn('hi', m.call_args[0][0])
+        self.assertEqual(m.call_args[0][1], '123')
+        self.assertEqual(ai_client.chat.completions.create.call_count, 2)
+        self.assertEqual(ai_client.chat.completions.create
+                         .call_args_list[0]
+                         .kwargs['extra_body']['data_sources'][0]
+                         ['parameters']['indexName'], 'validation-index')
+
+        # check that summary is used
+        self.assertIn('in',
+                      ai_client.chat.completions.create.call_args_list[1]
+                      .kwargs['extra_body']['data_sources']
+                      [0]['parameters']['roleInformation'])
+        self.assertEqual('blah',
+                         ai_client.chat.completions.create.call_args_list[1]
+                         .kwargs['messages'][0]['content'])
 
         # reset for other tests to use
         mocked_create.reset_mock()
 
-    def test_process_message_happy_with_index(self):
+    @patch('core.functions.chat.get_search_index_for_user_id',
+           return_value='other-index')
+    @patch('core.functions.chat.ws_send_message')
+    def test_process_message_happy_with_index(self, m, _hasher):
         """
         Message is sent to the chat model cleanly. The default index is used
         """
         mocked_create, message = self.__create_mock_chat_completion(
             'hi', True, 'other-index')
 
-        with patch('core.functions.chat.ws_send_message') as m:
-            process_message(message, '123')
-            m.assert_called_once()
+        process_message(message, '123')
+        m.assert_called_once()
 
-            self.assertIn('hi', m.call_args[0][0])
-            self.assertEqual(m.call_args[0][1], '123')
-            self.assertEqual(ai_client.chat.completions.create
-                             .call_args_list[0]
-                             .kwargs['extra_body']['dataSources'][0]
-                             ['parameters']['indexName'], 'other-index')
+        self.assertIn('hi', m.call_args[0][0])
+        self.assertEqual(m.call_args[0][1], '123')
+        self.assertEqual(ai_client.chat.completions.create.call_count, 2)
+        self.assertEqual(ai_client.chat.completions.create
+                         .call_args_list[0]
+                         .kwargs['extra_body']['data_sources'][0]
+                         ['parameters']['indexName'], 'other-index')
+
+        # check that summary is used
+        self.assertIn('in',
+                      ai_client.chat.completions.create.call_args_list[1]
+                      .kwargs['extra_body']['data_sources']
+                      [0]['parameters']['roleInformation'])
+        self.assertEqual('blah',
+                         ai_client.chat.completions.create.call_args_list[1]
+                         .kwargs['messages'][0]['content'])
 
         # reset for other tests to use
         mocked_create.reset_mock()
@@ -212,7 +255,6 @@ class TestChat(unittest.TestCase):
 
         # reset for other tests to use
         mocked_create.reset_mock()
-        image_summary.reset_mock()
 
     def test_process_message_sad_image_1(self):
         """
@@ -268,32 +310,60 @@ class TestChat(unittest.TestCase):
             process_message(message, '123')
 
         # reset for other tests to use
-        image_summary.reset_mock()
         mocked_create.reset_mock()
 
-    def test_process_message_sad_1(self):
+    @patch('core.functions.chat.get_search_index_for_user_id',
+           return_value='other-index')
+    @patch('core.functions.chat.ws_send_message')
+    def test_process_message_happy_summary_index_not_found(self, m, _hasher):
+        """
+        Message is sent to the chat model cleanly. The default index is used,
+        but the summary index is not found.
+        """
+        mocked_create, message = self.__create_mock_chat_completion(
+            'hi', True, 'other-index')
+
+        sic_patch.return_value.get_index.side_effect = ResourceNotFoundError
+        process_message(message, '123')
+        m.assert_called_once()
+
+        self.assertIn('hi', m.call_args[0][0])
+        self.assertEqual(m.call_args[0][1], '123')
+        self.assertEqual(ai_client.chat.completions.create.call_count, 1)
+        self.assertEqual(ai_client.chat.completions.create
+                         .call_args_list[0]
+                         .kwargs['extra_body']['data_sources'][0]
+                         ['parameters']['indexName'], 'other-index')
+
+        # reset for other tests to use
+        sic_patch.return_value.get_index.side_effect = None
+        mocked_create.reset_mock()
+
+    @patch('core.functions.chat.ws_log_and_send_error')
+    def test_process_message_sad_1(self, m):
         """
         No response from chat model, should respond with errors
         """
         mocked_create, message = self.__create_mock_chat_completion(
-            'hi', False, None)
+            '', False, None)
 
-        with patch('core.functions.chat.ws_log_and_send_error') as m:
-            process_message(message, '123')
-            m.assert_called_once()
+        process_message(message, '123')
+        m.assert_called_once()
+        self.assertIn('no response', m.call_args[0][0])
 
         mocked_create.reset_mock()
 
-    def test_process_message_sad_2(self):
+    @patch('core.functions.chat.ws_log_and_send_error')
+    def test_process_message_sad_2(self, m):
         """
         No message content, should respond with errors
         """
         mocked_create, message = self.__create_mock_chat_completion(
-            'hi', False, None)
+            '', True, None)
 
-        with patch('core.functions.chat.ws_log_and_send_error') as m:
-            process_message(message, '123')
-            m.assert_called_once()
+        process_message(message, '123')
+        m.assert_called_once()
+        self.assertIn('empty response', m.call_args[0][0])
 
         mocked_create.reset_mock()
 
@@ -330,3 +400,14 @@ class TestChat(unittest.TestCase):
         with patch('core.functions.chat.ChatMessageDAO.save_message') as m:
             shadow_msg_to_db('123', 'blah', True, False)
             m.assert_called_once()
+
+    def test_strip_all_citations(self):
+        """
+        This function should remove all citations from a message
+        """
+        self.assertEqual(strip_all_citations(
+            'blah blah blah [doc1] blah blah [doc2]'),
+                         'blah blah blah blah blah')
+        self.assertEqual(strip_all_citations(
+            'blah blah blah [doc1]. blah blah [doc2]'),
+                         'blah blah blah. blah blah')

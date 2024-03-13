@@ -33,6 +33,18 @@ class TestChatHistory(unittest.TestCase):
     """
     Tests the Chat History API
     """
+
+    @staticmethod
+    def setUpClass():
+        # Token verification mock. This is torn down in tearDownClass
+        patch('core.functions.chat_history.verify_token').start()
+        patch('core.functions.chat_history.authorise_user').start()
+
+
+    @staticmethod
+    def tearDownClass():
+        patch.stopall()
+
     def test_main_happy(self):
         """
         Reads from the conversation ID parameter
@@ -57,6 +69,7 @@ class TestChatHistory(unittest.TestCase):
                 func.HttpRequest(
                     'GET', "/api/chat/history",
                     params={'conversation_id': '123'},
+                    headers={'Auth-Token': 'test_token'},
                     body=b''))
 
             m.assert_called_once()
@@ -73,6 +86,7 @@ class TestChatHistory(unittest.TestCase):
             func.HttpRequest(
                 'GET', '/api/chat/history',
                 params={},
+                headers={'Auth-Token': 'test_token'},
                 body=b''
             )
         )

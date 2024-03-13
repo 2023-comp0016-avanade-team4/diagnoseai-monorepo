@@ -147,7 +147,7 @@ code because the SQL instance on Azure should already come with a
 database name):
 
 ``` text
-docker exec -it <container name> -- bash -c /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P Strong@Passw0rd123!
+docker exec -it <container name> bash -c "/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P Strong@Passw0rd123!"
 1> CREATE DATABASE db;
 2> GO
 ```

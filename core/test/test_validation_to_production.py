@@ -12,8 +12,10 @@ from azure.core.exceptions import HttpResponseError
 akc_patch = patch('azure.core.credentials.AzureKeyCredential').start()
 sc_patch = patch('azure.search.documents.SearchClient').start()
 sic_patch = patch('azure.search.documents.indexes.SearchIndexClient').start()
-http_response_patch = patch('azure.functions.HttpResponse').start()
 verify_token_patch = patch('utils.verify_token.verify_token').start()
+http_response_patch = patch('azure.functions.HttpResponse')
+
+http_response_patch.start()
 
 os.environ['CognitiveSearchKey'] = 'mock-key'
 os.environ['CognitiveSearchEndpoint'] = 'mock-endpoint'
@@ -21,6 +23,10 @@ os.environ['ProductionIndexName'] = 'mock-index'
 
 # pylint: disable=wrong-import-position
 from core.functions.validation_to_production import main  # noqa: E402
+
+# TODO: When we do Core cleanup, the patches all need a better way
+# to prevent side-effects with other tests
+http_response_patch.stop()
 
 
 class TestValidationToProduction(unittest.TestCase):

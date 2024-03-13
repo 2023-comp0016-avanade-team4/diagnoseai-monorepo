@@ -5,9 +5,10 @@ Module to test the work_order endpoint
 import unittest
 import os
 import json
-from unittest.mock import patch
+from unittest.mock import patch, create_autospec
 import azure.functions as func  # pylint: disable=E0401
-from models.work_order import WorkOrderModel  # pylint: disable=E0401
+from models.work_order import (WorkOrderModel,
+                               MachineModel)  # pylint: disable=E0401
 
 db_session_patch = patch("utils.db.create_session").start()
 
@@ -51,32 +52,29 @@ class TestWorkOrder(unittest.TestCase):
         Test getting work orders for a user successfully
         """
         mock_work_orders = [
-            WorkOrderModel(
-                order_id="order1",
-                user_id="user123",
-                machine_id="machine1",
-                conversation_id="conv1",
-            ),
-            WorkOrderModel(
-                order_id="order2",
-                user_id="user123",
-                machine_id="machine2",
-                conversation_id="conv2",
-            ),
+            create_autospec(WorkOrderModel, spec_set=True),
+            create_autospec(WorkOrderModel, spec_set=True),
         ]
 
-        mock_machine_names = {
-            "machine1": "BrandX ModelY",
-            "machine2": "BrandA ModelB"
-        }
+        mock_work_orders[0].order_id = "order1"
+        mock_work_orders[0].user_id = "user123"
+        mock_work_orders[0].machine_id = "machine1"
+        mock_work_orders[0].conversation_id = "conv1"
+        mock_work_orders[0].machine = create_autospec(MachineModel)
+        mock_work_orders[0].machine.get_machine_name.return_value \
+            = "BrandX ModelY"
+
+        mock_work_orders[1].order_id = "order2"
+        mock_work_orders[1].user_id = "user123"
+        mock_work_orders[1].machine_id = "machine2"
+        mock_work_orders[1].conversation_id = "conv2"
+        mock_work_orders[1].machine = create_autospec(MachineModel)
+        mock_work_orders[1].machine.get_machine_name.return_value \
+            = "BrandA ModelB"
 
         with patch(
             "models.work_order.WorkOrderDAO.get_work_orders_for_user",
             return_value=mock_work_orders,
-        ), patch(
-            "models.work_order.WorkOrderDAO.get_machine_name_for_machine_id",
-            side_effect=lambda session, machine_id:
-                mock_machine_names[machine_id]
         ):
 
             # mock HTTP request
@@ -98,12 +96,14 @@ class TestWorkOrder(unittest.TestCase):
                         "machine_id": "machine1",
                         "machine_name": "BrandX ModelY",
                         "conversation_id": "conv1",
+                        "resolved": [],
                     },
                     {
                         "order_id": "order2",
                         "machine_id": "machine2",
                         "machine_name": "BrandA ModelB",
                         "conversation_id": "conv2",
+                        "resolved": [],
                     },
                 ]
             )
