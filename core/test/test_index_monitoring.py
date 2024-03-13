@@ -27,8 +27,8 @@ os.environ['UploaderBaseURL'] = ''
 
 # This import must come after the global patches
 # pylint: disable=wrong-import-position
-from core.index_monitoring.monitoring import (main,  # noqa: E402
-                                              process_outstanding_index)
+from core.functions.index_monitoring import (main,  # noqa: E402
+                                             process_outstanding_index)
 
 
 class TestIndexMonitoring(unittest.TestCase):
@@ -46,8 +46,8 @@ class TestIndexMonitoring(unittest.TestCase):
         db_session_patch.reset_mock()
         sc_patch.reset_mock()
 
-    @patch('core.index_monitoring.monitoring.is_index_ready')
-    @patch('core.index_monitoring.monitoring.send_file_processed_mail')
+    @patch('core.functions.index_monitoring.is_index_ready')
+    @patch('core.functions.index_monitoring.send_file_processed_mail')
     @patch('models.pending_uploads.PendingUploadsDAO.delete_for_filename')
     def test_process_outstanding_index_done(self,
                                             delete_for_filename_mock,
@@ -67,8 +67,8 @@ class TestIndexMonitoring(unittest.TestCase):
         delete_for_filename_mock.assert_called_once_with(
             db_session_patch.return_value, 'test.pdf')
 
-    @patch('core.index_monitoring.monitoring.is_index_ready')
-    @patch('core.index_monitoring.monitoring.send_file_processed_mail')
+    @patch('core.functions.index_monitoring.is_index_ready')
+    @patch('core.functions.index_monitoring.send_file_processed_mail')
     @patch('models.pending_uploads.PendingUploadsDAO.delete_for_filename')
     def test_process_outstanding_index_not_done(self,
                                                 delete_for_filename_mock,
@@ -89,7 +89,7 @@ class TestIndexMonitoring(unittest.TestCase):
     @patch(
         ('models.pending_uploads.PendingUploadsDAO'
          '.get_all_unprocessed_filenames'))
-    @patch('core.index_monitoring.monitoring.process_outstanding_index')
+    @patch('core.functions.index_monitoring.process_outstanding_index')
     def test_main(self,
                   process_outstanding_index_mock,
                   get_all_unprocessed_filenames_mock):

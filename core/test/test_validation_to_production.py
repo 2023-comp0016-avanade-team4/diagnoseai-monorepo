@@ -36,6 +36,10 @@ class TestValidationToProduction(unittest.TestCase):
         }
     )
 
+    @staticmethod
+    def tearDownClass():
+        patch.stopall()
+
     @patch('core.functions.validation_to_production.productionClient')
     @patch('core.functions.validation_to_production.cognitiveSearchClient')
     def test_main(self, cog_search_client_patch, prod_client_patch):
