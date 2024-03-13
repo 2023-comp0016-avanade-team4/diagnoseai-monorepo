@@ -15,8 +15,6 @@ from utils.authorise_conversation import authorise_user
 from utils.get_user_id import get_user_id
 from utils.verify_token import verify_token
 
-app = func.FunctionApp()
-
 DATABASE_URL = os.environ["DatabaseURL"]
 DATABASE_NAME = os.environ["DatabaseName"]
 DATABASE_USERNAME = os.environ["DatabaseUsername"]
