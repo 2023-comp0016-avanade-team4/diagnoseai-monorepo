@@ -19,6 +19,7 @@ from functions.poc import main as poc
 from functions.validation_to_production import main as validation_to_production
 from functions.work_order import main as work_order
 from functions.index_monitoring import main as index_monitoring
+from functions.chat_done import main as chat_done
 
 bp = func.Blueprint()
 
@@ -80,6 +81,11 @@ def __work_order(req: func.HttpRequest) -> func.HttpResponse:
                   name="index_monitoring")
 def __index_monitoring(ticker: func.TimerRequest) -> None:
     index_monitoring(ticker)
+
+@bp.function_name("chat_done")
+@bp.route(methods=["POST"])
+def __chat_done(req: func.HttpRequest) -> func.HttpResponse:
+    return chat_done(req)
 
 
 app = func.FunctionApp()
