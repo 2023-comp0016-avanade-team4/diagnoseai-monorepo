@@ -5,9 +5,10 @@ Module to test the get_preauthenticated_blob_url function.
 import unittest
 from unittest.mock import patch, MagicMock
 from utils.get_preauthenticated_blob_url import get_preauthenticated_blob_url
+from base_test_case import BaseTestCase
 
 
-class TestGetPreauthenticatedBlobUrl(unittest.TestCase):
+class TestGetPreauthenticatedBlobUrl(BaseTestCase):
     def test_preauthenticated_blob_url_generates_tokens(self):
         """
         Ensures that generate_blob_sas is called.

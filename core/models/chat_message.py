@@ -41,7 +41,7 @@ class ChatMessageModel(Base):
     sent_at: Mapped[datetime] = mapped_column()
     is_image: Mapped[bool] = mapped_column(default=False)
     sender: Column = Column(Enum(SenderTypes))
-    citations: Column = Column(JSON, nullable=True)
+    citations: Column = Column(JSON, default=[])
 
     # If image, additional context is the text interpretation of the image
     additional_context: Mapped[str] = mapped_column(default='')

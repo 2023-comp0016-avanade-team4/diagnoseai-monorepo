@@ -5,6 +5,7 @@ Module to test the chat being done
 import os
 import unittest
 from unittest.mock import patch
+from base_test_case import BaseTestCase
 
 import azure.functions as func
 
@@ -29,7 +30,7 @@ os.environ['SummarySearchEndpoint'] = ''
 from core.chat_done.chat_done import main, summarize_and_store  # noqa: E402
 
 
-class TestChatDone(unittest.TestCase):
+class TestChatDone(BaseTestCase):
     """
     Tests the Chat Done API
     """
@@ -42,12 +43,6 @@ class TestChatDone(unittest.TestCase):
             body='',
             headers={'Auth-Token': '123'}
         )
-
-    @staticmethod
-    def tearDownClass():
-        db_session_patch.stop()
-        aoie_patch.stop()
-        as_patch.stop()
 
     @patch('core.chat_done.chat_done.summarize_and_store')
     @patch('core.chat_done.chat_done.authorise_user', return_value=True)

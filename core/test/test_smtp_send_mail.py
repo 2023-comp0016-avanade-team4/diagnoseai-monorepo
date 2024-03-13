@@ -6,13 +6,14 @@ import unittest
 from email.mime.multipart import MIMEMultipart
 from smtplib import SMTPException
 from unittest.mock import patch
+from base_test_case import BaseTestCase
 
 from core.utils.smtp_send_mail import (create_mail, create_mail_text,
                                        make_validation_link,
                                        send_file_processed_mail, send_mail)
 
 
-class TestSendMail(unittest.TestCase):
+class TestSendMail(BaseTestCase):
     """
     Tests the functions in send_mail.py
     """

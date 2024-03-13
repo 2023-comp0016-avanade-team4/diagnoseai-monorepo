@@ -5,6 +5,7 @@ Tests the proof of concept function
 import os
 import unittest
 from unittest.mock import MagicMock, patch
+from base_test_case import BaseTestCase
 
 # Globals patching
 dip_patch = \
@@ -15,9 +16,6 @@ dac_patch = patch('azure.ai.formrecognizer.DocumentAnalysisClient') \
 aoae_patch = patch('langchain.embeddings.AzureOpenAIEmbeddings') \
     .start()
 as_patch = patch('langchain.vectorstores.azuresearch.AzureSearch') \
-    .start()
-blob_patch = \
-    patch('langchain.document_loaders.blob_loaders.schema.Blob.from_data') \
     .start()
 
 os.environ["DocumentEndpoint"] = ''
@@ -32,18 +30,18 @@ os.environ["CognitiveSearchEndpoint"] = ''
 from core.functions.poc import main, document_client  # noqa: E402
 
 
-class TestProofOfConcept(unittest.TestCase):
+class TestProofOfConcept(BaseTestCase):
     """
     Tests the proof of concept function (trivial test)
     """
-    def test_blob_trigger(self):
+    @patch('core.functions.poc.Blob.from_data')
+    def test_blob_trigger(self, blob):
         """
         Invokes a false blob trigger
         """
         fake_input_stream = MagicMock()
-        # TODO: Preserved for our eventual transition to V2
-        # main.build().get_user_function()(fake_input_stream)
         main(fake_input_stream)
         dip_patch.assert_called_once_with(client=document_client,
                                           model='prebuilt-document')
+        blob.assert_called_once_with(fake_input_stream.read())
         as_patch.assert_called_once()

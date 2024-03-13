@@ -5,12 +5,13 @@ Testing the get_image_summary function in image_summary.py
 import unittest
 from unittest.mock import Mock, patch
 from core.utils.image_summary import ImageSummary
+from base_test_case import BaseTestCase
 
 post_patch = patch('requests.post')
 loads_patch = patch('json.loads')
 
 
-class TestImageSummary(unittest.TestCase):
+class TestImageSummary(BaseTestCase):
     """
     Tests the get_image_summary function in image_summary.py
     """

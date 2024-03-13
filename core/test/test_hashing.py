@@ -5,9 +5,10 @@ Trivially tests the hashing package
 import unittest
 
 from core.utils.hashing import get_search_index_for_user_id
+from base_test_case import BaseTestCase
 
 
-class TestHashing(unittest.TestCase):
+class TestHashing(BaseTestCase):
     """
     Tests the hashing package
     """

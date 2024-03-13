@@ -7,11 +7,12 @@ Only valuable functions are tested
 import unittest
 from typing import Tuple
 from unittest.mock import MagicMock, patch
+from base_test_case import BaseTestCase
 
 from core.models.chat_message import ChatMessageDAO
 
 
-class TestDB(unittest.TestCase):
+class TestDB(BaseTestCase):
     """
     Tests some parts of the DAO that is cannot be covered by any
     existing endpoints.

@@ -4,12 +4,13 @@ Tests the proof of concept function
 
 import unittest
 from unittest.mock import MagicMock
+from base_test_case import BaseTestCase
 
 from azure.core.exceptions import ResourceNotFoundError
 from core.utils.search_utils import is_index_ready
 
 
-class TestSearchUtils(unittest.TestCase):
+class TestSearchUtils(BaseTestCase):
     """
     Tests the search utils
     """

@@ -5,6 +5,7 @@ Module to test the chat history endpoint
 import os
 import unittest
 from unittest.mock import patch
+from base_test_case import BaseTestCase
 
 import azure.functions as func  # type: ignore[import-untyped]
 from core.utils.history import ChatHistoryResponse
@@ -29,7 +30,7 @@ from core.functions.chat_history import (get_history_from_db, main,  # noqa: E40
                                          handle_request_by_conversation_id)
 
 
-class TestChatHistory(unittest.TestCase):
+class TestChatHistory(BaseTestCase):
     """
     Tests the Chat History API
     """
@@ -39,11 +40,6 @@ class TestChatHistory(unittest.TestCase):
         # Token verification mock. This is torn down in tearDownClass
         patch('core.functions.chat_history.verify_token').start()
         patch('core.functions.chat_history.authorise_user').start()
-
-
-    @staticmethod
-    def tearDownClass():
-        patch.stopall()
 
     def test_main_happy(self):
         """
@@ -128,6 +124,7 @@ class TestChatHistory(unittest.TestCase):
                 message='hello world',
                 sent_at=123,
                 sender='bot',
+                citations=[],
                 is_image=True
             )]
             # need to list it to consume the map
@@ -148,7 +145,9 @@ class TestChatHistory(unittest.TestCase):
                 conversation_id='123',
                 message='hello world',
                 sent_at=123,
-                sender='bot'
+                citations=[],
+                sender='bot',
+                is_image=False
             )]
             response = handle_request_by_conversation_id('123')
             m.assert_called_once()

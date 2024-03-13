@@ -9,6 +9,7 @@ from unittest.mock import patch, create_autospec
 import azure.functions as func  # pylint: disable=E0401
 from models.work_order import (WorkOrderModel,
                                MachineModel)  # pylint: disable=E0401
+from base_test_case import BaseTestCase
 
 db_session_patch = patch("utils.db.create_session").start()
 
@@ -25,15 +26,10 @@ os.environ["CLERK_AZP_LIST"] = ""
 from core.functions.work_order import main  # noqa: E402 pylint: disable=C0413
 
 
-class TestWorkOrder(unittest.TestCase):
+class TestWorkOrder(BaseTestCase):
     """
     Tests the Work Orders API
     """
-
-    @staticmethod
-    def tearDownClass():
-        patch.stopall()
-
     def setUp(self):
         self.verifyjwt_patch = patch('core.functions.work_order.verify_token') \
             .start()

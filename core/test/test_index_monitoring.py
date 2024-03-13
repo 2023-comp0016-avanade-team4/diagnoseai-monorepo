@@ -4,6 +4,7 @@ Tests the index monitoring function
 import os
 import unittest
 from unittest.mock import patch
+from base_test_case import BaseTestCase
 
 import azure.functions as func  # type: ignore[import-untyped]
 from core.models.pending_uploads import PendingUploadsModel
@@ -31,7 +32,7 @@ from core.functions.index_monitoring import (main,  # noqa: E402
                                              process_outstanding_index)
 
 
-class TestIndexMonitoring(unittest.TestCase):
+class TestIndexMonitoring(BaseTestCase):
     """
     Tests the index monitoring function
     """

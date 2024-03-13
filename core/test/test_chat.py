@@ -8,6 +8,7 @@ from datetime import datetime
 from typing import Optional, Tuple
 from unittest.mock import MagicMock, PropertyMock, create_autospec, patch
 from azure.core.exceptions import ResourceNotFoundError
+from base_test_case import BaseTestCase
 
 from openai.types.chat.chat_completion import (ChatCompletion,
                                                ChatCompletionMessage, Choice)
@@ -57,7 +58,7 @@ from core.utils.web_pub_sub_interfaces import WebPubSubConnectionContext  # pyli
 from core.utils.web_pub_sub_interfaces import WebPubSubRequest  # pylint: disable= line-too-long wrong-import-position # noqa: E402, E501
 
 
-class TestChat(unittest.TestCase):
+class TestChat(BaseTestCase):
     """
     Tests the Chat WebSocket API
     """
@@ -74,10 +75,6 @@ class TestChat(unittest.TestCase):
         self.verifyjwt_mock.stop()
         self.get_user_id_mock.stop()
         image_summary_patch.stop()
-
-    @staticmethod
-    def tearDownClass():
-        patch.stopall()
 
     @patch('core.functions.chat.process_message')
     def test_main_happy(self, m):

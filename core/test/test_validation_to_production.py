@@ -3,6 +3,7 @@
 import os
 import unittest
 from unittest.mock import patch
+from base_test_case import BaseTestCase
 
 from azure.functions import HttpRequest
 from azure.core.exceptions import HttpResponseError
@@ -23,7 +24,7 @@ os.environ['ProductionIndexName'] = 'mock-index'
 from core.functions.validation_to_production import main  # noqa: E402
 
 
-class TestValidationToProduction(unittest.TestCase):
+class TestValidationToProduction(BaseTestCase):
     """
     Tests the validation_to_production endpoint
     """
@@ -35,10 +36,6 @@ class TestValidationToProduction(unittest.TestCase):
             'Auth-Token': 'test'
         }
     )
-
-    @staticmethod
-    def tearDownClass():
-        patch.stopall()
 
     @patch('core.functions.validation_to_production.productionClient')
     @patch('core.functions.validation_to_production.cognitiveSearchClient')
@@ -59,7 +56,7 @@ class TestValidationToProduction(unittest.TestCase):
         prod_client_patch.upload_documents.assert_called()
         verify_token_patch.assert_called_with('test')
         http_response_patch.assert_called_with(
-                'Documents moved to production index',
+                'Documents moved to production index with filepath added',
                 status_code=200
         )
 
@@ -95,8 +92,8 @@ class TestValidationToProduction(unittest.TestCase):
                 status_code=500
         )
 
-    @patch('core.validation_to_production.SearchIndexClient')
-    @patch('core.validation_to_production.SearchClient')
+    @patch('core.functions.validation_to_production.SearchIndexClient')
+    @patch('core.functions.validation_to_production.SearchClient')
     def test_filepath_added_to_documents(
         self, mock_search_client, mock_search_index_client
     ):
@@ -105,8 +102,10 @@ class TestValidationToProduction(unittest.TestCase):
         """
         validation_index_name = "test"
         documents = [
-            {"id": "1", "content": "Example 1"},
-            {"id": "2", "content": "Example 2"}
+            {"id": "1", "content": "Example 1",
+             "filepath": validation_index_name},
+            {"id": "2", "content": "Example 2",
+             "filepath": validation_index_name}
         ]
 
         verify_token_patch.return_value = True

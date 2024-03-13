@@ -6,6 +6,7 @@ import unittest
 from unittest.mock import create_autospec, patch
 
 from azure.functions import HttpRequest
+from base_test_case import BaseTestCase
 
 
 #patching the verify_token function
@@ -31,7 +32,7 @@ from core.functions.chat_connection import (generate_wss_url,  # noqa: E402, E50
 from core.utils.conversation import ChatConnectionRequest  # noqa: E402, E501
 
 
-class TestChatConnection(unittest.TestCase):
+class TestChatConnection(BaseTestCase):
     """
     Tests the Chat Connection REST API
     """

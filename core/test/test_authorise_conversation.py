@@ -2,9 +2,10 @@ import unittest
 from unittest.mock import MagicMock
 from sqlalchemy.orm import Session
 from utils.authorise_conversation import authorise_user
+from base_test_case import BaseTestCase
 
 
-class TestAuthoriseUser(unittest.TestCase):
+class TestAuthoriseUser(BaseTestCase):
     """
     Tests the authorise_user function.
     """
