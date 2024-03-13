@@ -18,6 +18,7 @@ from functions.file_upload_trigger import main as file_upload_trigger
 from functions.poc import main as poc
 from functions.validation_to_production import main as validation_to_production
 from functions.work_order import main as work_order
+from functions.index_monitoring import main as index_monitoring
 
 bp = func.Blueprint()
 
@@ -72,6 +73,13 @@ def __validation_to_production(req: func.HttpRequest) -> func.HttpResponse:
 @bp.route(methods=["GET"])
 def __work_order(req: func.HttpRequest) -> func.HttpResponse:
     return work_order(req)
+
+
+@bp.function_name("index_monitoring")
+@bp.timer_trigger("timer_ticker", "0 */5 * * * *",
+                  name="index_monitoring")
+def __index_monitoring(ticker: func.TimerRequest) -> None:
+    index_monitoring(ticker)
 
 
 app = func.FunctionApp()
