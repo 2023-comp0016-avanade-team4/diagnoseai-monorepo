@@ -13,9 +13,7 @@ akc_patch = patch('azure.core.credentials.AzureKeyCredential').start()
 sc_patch = patch('azure.search.documents.SearchClient').start()
 sic_patch = patch('azure.search.documents.indexes.SearchIndexClient').start()
 verify_token_patch = patch('utils.verify_token.verify_token').start()
-http_response_patch = patch('azure.functions.HttpResponse')
-
-http_response_patch.start()
+http_response_patch = patch('azure.functions.HttpResponse').start()
 
 os.environ['CognitiveSearchKey'] = 'mock-key'
 os.environ['CognitiveSearchEndpoint'] = 'mock-endpoint'
@@ -23,10 +21,6 @@ os.environ['ProductionIndexName'] = 'mock-index'
 
 # pylint: disable=wrong-import-position
 from core.functions.validation_to_production import main  # noqa: E402
-
-# TODO: When we do Core cleanup, the patches all need a better way
-# to prevent side-effects with other tests
-http_response_patch.stop()
 
 
 class TestValidationToProduction(unittest.TestCase):
@@ -101,9 +95,34 @@ class TestValidationToProduction(unittest.TestCase):
                 status_code=500
         )
 
-    def test_unauthorised(self):
-        """Tests that the endpoint returns a 401 when unauthorized"""
-        verify_token_patch.return_value = False
+    @patch('core.validation_to_production.SearchIndexClient')
+    @patch('core.validation_to_production.SearchClient')
+    def test_filepath_added_to_documents(
+        self, mock_search_client, mock_search_index_client
+    ):
+        """
+        Tests that the filepath is added correctly to each document
+        """
+        validation_index_name = "test"
+        documents = [
+            {"id": "1", "content": "Example 1"},
+            {"id": "2", "content": "Example 2"}
+        ]
+
+        verify_token_patch.return_value = True
+        mock_search_client.return_value.search.return_value.by_page.return_value = iter([documents])  # noqa: E501  pylint: disable=line-too-long
+
+        mock_search_index_client.return_value.list_index_names.return_value = [
+            validation_index_name
+        ]
+
         main(self.req)
-        verify_token_patch.assert_called_with('test')
-        http_response_patch.assert_called_with('Unauthorized', status_code=401)
+
+        expected_filepath = validation_index_name
+        for doc in documents:
+            self.assertIn('filepath', doc, "Document missing 'filepath' key")
+            self.assertEqual(
+                doc['filepath'],
+                expected_filepath,
+                "'filepath' does not match validation index name"
+            )

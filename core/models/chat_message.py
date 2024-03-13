@@ -7,7 +7,7 @@ from uuid import uuid4
 
 import enum
 from datetime import datetime
-from sqlalchemy import Column, Enum, String, select
+from sqlalchemy import Column, Enum, String, select, JSON
 from sqlalchemy.orm import Mapped, Session, mapped_column
 from utils.chat_message import BidirectionalChatMessage
 
@@ -41,6 +41,7 @@ class ChatMessageModel(Base):
     sent_at: Mapped[datetime] = mapped_column()
     is_image: Mapped[bool] = mapped_column(default=False)
     sender: Column = Column(Enum(SenderTypes))
+    citations: Column = Column(JSON, nullable=True)
 
     # If image, additional context is the text interpretation of the image
     additional_context: Mapped[str] = mapped_column(default='')
@@ -62,7 +63,8 @@ class ChatMessageModel(Base):
             sent_at=message.sent_at,
             is_image=message.is_image,
             sender=SenderTypes(message.sender),
-            additional_context=additional_context
+            citations=[citation.to_dict() for citation in message.citations],
+            additional_context=additional_context,
         )
 
     @staticmethod
@@ -88,7 +90,8 @@ class ChatMessageModel(Base):
             is_image=message.is_image,
             # casted because message.sender (is a str) should
             # become either bot or user
-            sender=cast(Literal['bot', 'user'], message.sender)
+            sender=cast(Literal['bot', 'user'], message.sender),
+            citations=[citation.from_dict() for citation in message.citations]
         )
 
 

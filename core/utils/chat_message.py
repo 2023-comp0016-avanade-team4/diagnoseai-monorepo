@@ -11,6 +11,18 @@ from dataclasses_json import DataClassJsonMixin, config
 
 
 @dataclass
+class Citation(DataClassJsonMixin):
+    """
+    Represents a citation with content, title, URL, filepath, and chunk ID.
+    """
+    content: str
+    title: Optional[str]
+    url: Optional[str]
+    filepath: Optional[str]
+    chunk_id: Optional[str]
+
+
+@dataclass
 class ChatMessage(DataClassJsonMixin):
     """
     The ChatMessage data class. This represents a message object.
@@ -25,6 +37,7 @@ class ChatMessage(DataClassJsonMixin):
     is_image: bool = field(
         default=False, metadata=config(field_name="isImage"))
     index: str = field(default='validation-index')
+    citations: Optional[list[Citation]] = field(default_factory=list)
 
 
 @dataclass
@@ -41,9 +54,10 @@ class BidirectionalChatMessage(DataClassJsonMixin):
     sent_at: datetime = field(metadata=config(field_name="sentAt"))
     is_image: bool = field(
         default=False, metadata=config(field_name="isImage"))
-    sender: Literal['bot', 'user'] = field(metadata=config(field_name="sender"))
+    sender: Literal['bot', 'user'] = field(
+        default='bot', metadata=config(field_name="sender"))
     index: str = field(default='validation-index')
-    sender: Literal['bot', 'user'] = 'bot'
+    citations: Optional[list[Citation]] = field(default_factory=list)
 
 
 @dataclass
@@ -54,6 +68,7 @@ class ResponseChatMessage(DataClassJsonMixin):
     body: str
     conversation_id: str = field(metadata=config(field_name="conversationId"))
     sent_at: datetime = field(metadata=config(field_name="sentAt"))
+    citations: Optional[list[Citation]] = field(default_factory=list)
     type: str = 'message'
 
 

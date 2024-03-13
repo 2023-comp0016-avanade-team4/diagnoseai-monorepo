@@ -52,6 +52,11 @@ def migrate_documents(validation_index_name: str) -> None:
     documents: list[dict] = list(
         list(*validation_index_client.search(search_text="*").by_page())
     )
+
+    # add filepath to files (same as index name)
+    for doc in documents:
+        doc['filepath'] = validation_index_name
+
     logging.info(documents)
     productionClient.upload_documents(documents)
 
@@ -97,6 +102,6 @@ def main(req: HttpRequest) -> HttpResponse:
         return error_deleting_index(err)
 
     return HttpResponse(
-        "Documents moved to production index",
+        "Documents moved to production index with filepath added",
         status_code=200
     )
