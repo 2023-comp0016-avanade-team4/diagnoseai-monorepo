@@ -29,6 +29,8 @@ from utils.image_summary import ImageSummary
 from utils.image_utils import compress_image, is_url_encoded_image
 from utils.web_pub_sub_interfaces import WebPubSubRequest
 from utils.verify_token import verify_token
+from utils.get_user_id import get_user_id
+from utils.authorise_conversation import authorise_user
 
 # Load required variables from the environment
 
@@ -248,6 +250,13 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
              f' for debugging purposes, you were {connection_id}'),
             connection_id)
         return
+
+    curr_user = get_user_id(message.auth_token)
+    if not authorise_user(db_session, message.conversation_id, curr_user):
+        ws_log_and_send_error(
+            ('User not authorised.'
+             f' for debugging purposes, you were {connection_id}'),
+            connection_id)
 
     logging.info('%s: sending to model', connection_id)
     messages = db_history_to_ai_history(message.conversation_id)

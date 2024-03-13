@@ -11,20 +11,28 @@ from models.chat_message import ChatMessageDAO, ChatMessageModel
 from utils.db import create_session
 from utils.image_utils import get_preauthenticated_blob_url
 from utils.history import ChatHistoryResponse
+from utils.authorise_conversation import authorise_user
+from utils.get_user_id import get_user_id
+from utils.verify_token import verify_token
 
-DATABASE_URL = os.environ['DatabaseURL']
-DATABASE_NAME = os.environ['DatabaseName']
-DATABASE_USERNAME = os.environ['DatabaseUsername']
-DATABASE_PASSWORD = os.environ['DatabasePassword']
-DATABASE_SELFSIGNED = os.environ.get('DatabaseSelfSigned')
+app = func.FunctionApp()
+
+DATABASE_URL = os.environ["DatabaseURL"]
+DATABASE_NAME = os.environ["DatabaseName"]
+DATABASE_USERNAME = os.environ["DatabaseUsername"]
+DATABASE_PASSWORD = os.environ["DatabasePassword"]
+DATABASE_SELFSIGNED = os.environ.get("DatabaseSelfSigned")
 
 IMAGE_BLOB_CONNECTION_STRING = os.environ["ImageBlobConnectionString"]
 IMAGE_BLOB_CONTAINER = os.environ["ImageBlobContainer"]
 
 # Global clients
 db_session = create_session(
-    DATABASE_URL, DATABASE_NAME, DATABASE_USERNAME, DATABASE_PASSWORD,
-    bool(DATABASE_SELFSIGNED)
+    DATABASE_URL,
+    DATABASE_NAME,
+    DATABASE_USERNAME,
+    DATABASE_PASSWORD,
+    bool(DATABASE_SELFSIGNED),
 )
 
 blob_service_client = BlobServiceClient.from_connection_string(
@@ -52,8 +60,7 @@ def __transform_chat_message_helper(model: ChatMessageModel):
     return bidirectional_chat_message
 
 
-def get_history_from_db(
-        convesation_id: str) -> map:
+def get_history_from_db(convesation_id: str) -> map:
     """
     Gets the last 50 messages of the chat history from the database.
 
@@ -69,7 +76,8 @@ def get_history_from_db(
 
 
 def handle_request_by_conversation_id(
-        conversation_id: str) -> ChatHistoryResponse:
+    conversation_id: str
+) -> ChatHistoryResponse:
     """
     Handles the request by conversation ID.
 
@@ -79,8 +87,9 @@ def handle_request_by_conversation_id(
     Returns:
         ChatHistoryResponse: The chat history response
     """
-    return ChatHistoryResponse.from_dict({
-        'messages': list(get_history_from_db(conversation_id))})
+    return ChatHistoryResponse.from_dict(
+        {"messages": list(get_history_from_db(conversation_id))}
+    )
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
@@ -90,15 +99,22 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     Args:
         req (func.HttpRequest): The HTTP request
     """
-    logging.info('Chat History called with %s', req.method)
-    if 'conversation_id' not in req.params:
+    logging.info("Chat History called with %s", req.method)
+    if "conversation_id" not in req.params:
+        return func.HttpResponse("", status_code=400)
+
+    conversation_id = req.params.get("conversation_id")
+    if not verify_token(req.headers['Auth-Token']):
         return func.HttpResponse(
-            '', status_code=400
+            '', status_code=401
         )
 
-    conversation_id = req.params.get('conversation_id')
+    curr_user = get_user_id(req.headers["Auth-Token"])
+    if not authorise_user(db_session, conversation_id, curr_user):
+        return func.HttpResponse("User not authorised.", status_code=401)
+
     return func.HttpResponse(
         handle_request_by_conversation_id(conversation_id).to_json(),
         status_code=200,
-        mimetype='application/json'
+        mimetype="application/json",
     )

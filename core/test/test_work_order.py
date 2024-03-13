@@ -6,30 +6,45 @@ import unittest
 import os
 import json
 from unittest.mock import patch
-from core.functions.work_order import (  # pylint: disable=E0401
-    main,
-)
 import azure.functions as func  # pylint: disable=E0401
 from models.work_order import WorkOrderModel  # pylint: disable=E0401
 
 db_session_patch = patch("utils.db.create_session").start()
 
-os.environ["DatabaseURL"] = "localhost"
-os.environ["DatabaseName"] = "master"
-os.environ["DatabaseUsername"] = "SA"
-os.environ["DatabasePassword"] = "Strong@Passw0rd123!"
-os.environ["DatabaseSelfSigned"] = "true"
+os.environ["DatabaseURL"] = ""
+os.environ["DatabaseName"] = ""
+os.environ["DatabaseUsername"] = ""
+os.environ["DatabasePassword"] = ""
+os.environ["DatabaseSelfSigned"] = ""
+os.environ["CLERK_PUBLIC_KEY"] = ""
+os.environ["CLERK_AZP_LIST"] = ""
+
+# This import must come after the global patches
+# pylint: disable=wrong-import-position
+from core.functions.work_order import main  # noqa: E402 pylint: disable=C0413
 
 
-class TestWorkOrders(unittest.TestCase):
+class TestWorkOrder(unittest.TestCase):
     """
     Tests the Work Orders API
     """
 
+    @staticmethod
+    def tearDownClass():
+        patch.stopall()
+
     def setUp(self):
-        self.mock_session = (
-            db_session_patch.return_value.__enter__.return_value
-        )
+        self.verifyjwt_patch = patch('core.functions.work_order.verify_token') \
+            .start()
+        self.get_user_id_patch = patch('core.functions.work_order.get_user_id') \
+            .start()
+
+        self.verifyjwt_patch.return_value = True
+        self.get_user_id_patch.return_value = "test_id"
+
+    def tearDown(self) -> None:
+        self.verifyjwt_patch.stop()
+        self.get_user_id_patch.stop()
 
     def test_get_work_orders_for_user_happy_path(self):
         """
@@ -49,6 +64,7 @@ class TestWorkOrders(unittest.TestCase):
                 conversation_id="conv2",
             ),
         ]
+
         mock_machine_names = {
             "machine1": "BrandX ModelY",
             "machine2": "BrandA ModelB"
@@ -67,7 +83,8 @@ class TestWorkOrders(unittest.TestCase):
             req = func.HttpRequest(
                 method="GET",
                 url="/api/work_order",
-                params={"user_id": "user123"},
+                headers={"Auth-Token": "test"},
+                params={"user_id": "test_id"},
                 body=b"",
             )
 
@@ -102,8 +119,9 @@ class TestWorkOrders(unittest.TestCase):
         req = func.HttpRequest(
             method="GET",
             url="/api/work_order",
+            headers={"Auth-Token": "test"},
             params={},
-            body=b""
+            body=b"",
         )
 
         response = main(req)
@@ -113,9 +131,3 @@ class TestWorkOrders(unittest.TestCase):
             "Pass a user_id on the query string or in the request body",
             response.get_body().decode(),
         )
-
-
-# pylint disable=all
-@classmethod
-def tearDownClass(cls):
-    patch.stopall()

@@ -9,15 +9,13 @@ The module defines the following classes:
 
 """
 
-from uuid import uuid4
 from typing import List
-from sqlalchemy import String, ForeignKey, Text, DateTime, func  # noqa: E501 pylint: disable=E0401
-from sqlalchemy.orm import (  # pylint: disable=E0401
-    Mapped,
-    relationship,
-    mapped_column,
-    Session,
-)
+from uuid import uuid4
+
+from sqlalchemy import (DateTime,  # noqa: E501 pylint: disable=E0401
+                        ForeignKey, String, Text, func)
+from sqlalchemy.orm import (Mapped, Session,  # pylint: disable=E0401
+                            mapped_column, relationship)
 
 from .common import Base
 
@@ -56,7 +54,7 @@ class WorkOrderModel(Base):
     task_name: Mapped[str] = mapped_column(String(255))
     task_desc: Mapped[str] = mapped_column(Text)
     created_at: Mapped[DateTime] = mapped_column(
-        DateTime, default=func.now()
+        DateTime, default=func.now
     )  # Automatically sets to current time
 
     machine = relationship("MachineModel", back_populates="work_orders")
@@ -120,3 +118,24 @@ class WorkOrderDAO:
         """
         machine = session.query(MachineModel).get(machine_id)
         return f"{machine.manufacturer} {machine.model}" if machine else None
+
+    @staticmethod
+    def get_user_id_for_conversation_id(
+        session: Session, conversation_id: str
+    ) -> str:
+        """
+        Gets the user ID for a specific conversation ID.
+
+        Args:
+            session (Session): The database session
+            conversation_id (str): The conversation ID
+
+        Returns:
+            str: The user ID
+        """
+        work_order = (
+            session.query(WorkOrderModel)
+            .filter(WorkOrderModel.conversation_id == conversation_id)
+            .first()
+        )
+        return work_order.user_id if work_order else None

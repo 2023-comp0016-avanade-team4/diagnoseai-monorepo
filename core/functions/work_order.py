@@ -1,14 +1,11 @@
-"""
-Work Order API endpoint.
-"""
-
 import os
 import json
 import logging
-import azure.functions as func  # noqa: E501 type: ignore[import-untyped] pylint: disable=E0401
+import azure.functions as func  # type: ignore[import-untyped]
 from utils.db import create_session
+from models.work_order import WorkOrderDAO
 from utils.verify_token import verify_token
-from models.work_order import WorkOrderDAO  # pylint: disable=E0401
+from utils.get_user_id import get_user_id
 
 
 DATABASE_URL = os.environ["DatabaseURL"]
@@ -40,6 +37,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             "Pass a user_id on the query string or in the request body",
             status_code=400
         )
+
+    if get_user_id(req.headers["Auth-Token"]) != user_id:
+        return func.HttpResponse("Unathorised", status_code=401)
 
     with create_session(
         DATABASE_URL,
