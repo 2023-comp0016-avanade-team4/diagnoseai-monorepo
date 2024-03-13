@@ -77,8 +77,7 @@ def __work_order(req: func.HttpRequest) -> func.HttpResponse:
 
 
 @bp.function_name("index_monitoring")
-@bp.timer_trigger("timer_ticker", "0 */5 * * * *",
-                  name="index_monitoring")
+@bp.timer_trigger("ticker", "0 */5 * * * *")
 def __index_monitoring(ticker: func.TimerRequest) -> None:
     index_monitoring(ticker)
 
