@@ -411,3 +411,20 @@ class TestChat(unittest.TestCase):
         self.assertEqual(strip_all_citations(
             'blah blah blah [doc1]. blah blah [doc2]'),
                          'blah blah blah. blah blah')
+
+    @patch('core.Chat.chat.get_search_index_for_user_id',
+           return_value='validation-index')
+    @patch('core.Chat.chat.ws_send_message')
+    @patch('core.Chat.chat.ChatMessageDAO.save_message')
+    def test_ethereal_conversation_does_not_save_message(self, dao_save_msg,
+                                                         _m1, _m2):
+        """
+        If the conversation id is '-1', the message should not be saved
+        """
+        mocked_create, message = self.__create_mock_chat_completion(
+            'hi', True, None)
+        message.conversation_id = '-1'
+        process_message(message, '123')
+        dao_save_msg.assert_not_called()
+
+        mocked_create.reset_mock()
