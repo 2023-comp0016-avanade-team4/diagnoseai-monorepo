@@ -1,0 +1,11 @@
+{
+  "scriptFile": "monitoring.py",
+  "bindings": [
+    {
+      "schedule": "0 */5 * * * *",
+      "name": "ticker",
+      "type": "timerTrigger",
+      "direction": "in"
+    }
+  ]
+}

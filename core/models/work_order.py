@@ -75,6 +75,8 @@ class MachineModel(Base):
     model: Mapped[str] = mapped_column(String(255))
 
     work_orders = relationship("WorkOrderModel", back_populates="machine")
+    pending_uploads = relationship("PendingUploadsModel",
+                                   back_populates="machine")
 
 
 class WorkOrderDAO:
