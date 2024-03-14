@@ -30,9 +30,12 @@ export const MessageList = () => {
   const { current } = useWorkOrder();
 
   useEffect(() => {
-    if (entry?.target) {
-      entry.target.scrollIntoView({ behavior: "smooth", block: "end" });
-    }
+    setTimeout(() => {
+      entry?.target?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    }, 200);
   }, [messages?.length, entry?.target]);
 
   useEffect(() => {

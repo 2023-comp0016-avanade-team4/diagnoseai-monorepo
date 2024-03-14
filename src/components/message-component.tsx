@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
+import BotImg from "../../assets/bot.png";
 
 export type citationObject = {
   filepath: string;
@@ -23,6 +24,7 @@ interface Props {
 
 export const MessageComponent = ({ message }: Props) => {
   const { user } = useUser();
+
   // TODO: Eventually, we should be checking User ID.
   const [messageBody, setMessageBody] = useState<React.ReactNode>(<></>);
 
@@ -79,16 +81,14 @@ export const MessageComponent = ({ message }: Props) => {
 
   return (
     <div
-      className={`flex flex-col relative space-x-1 space-y-1 ${
-        message.username === "some_user" ? "text-right" : "text-left"
-      }`}
+      className={`flex flex-col relative space-x-1 space-y-1 ${message.username === "some_user" ? "text-right" : "text-left"
+        }`}
     >
       <div
-        className={`flex relative space-x-1 ${
-          message.username === "some_user"
-            ? "flex-row-reverse space-x-reverse"
-            : "flex-row"
-        }`}
+        className={`flex relative space-x-1 ${message.username === "some_user"
+          ? "flex-row-reverse space-x-reverse"
+          : "flex-row"
+          }`}
       >
         {user?.imageUrl && message.username === "some_user" && (
           <div className="w-12 h-12 overflow-hidden flex-shrink-0 rounded">
@@ -98,19 +98,26 @@ export const MessageComponent = ({ message }: Props) => {
                 height={50}
                 src={user?.imageUrl}
                 alt={message.username}
-                title={message.username}
+              />
+            </a>
+          </div>
+        )}
+        {message.username === "bot" && (
+          <div className="w-12 h-12 overflow-hidden flex-shrink-0 rounded">
+            <a target="_blank" rel="noopener noreferrer">
+              <Image
+                width={50}
+                height={50}
+                src={BotImg}
+                alt="Bot"
               />
             </a>
           </div>
         )}
         <span
-          className={`inline-flex rounded space-x-2 items-start p-3 text-white ${
-            message.username === "some_user" ? "bg-[#4a9c6d]" : "bg-[#363739]"
-          } `}
+          className={`inline-flex rounded space-x-2 items-start p-3 text-white ${message.username === "some_user" ? "bg-[#4a9c6d]" : "bg-[#363739]"
+            } `}
         >
-          {message.username !== "some_user" && (
-            <span className="font-bold">{message.username}:&nbsp;</span>
-          )}
           {message.isImage ? (
             <Image
               className="w-[300px] h-auto"
@@ -120,7 +127,7 @@ export const MessageComponent = ({ message }: Props) => {
               height={0}
             />
           ) : (
-            <span className="max-w-sm"> {messageBody} </span>
+            <span className="max-w-sm">{messageBody}</span>
           )}
         </span>
       </div>
