@@ -29,12 +29,14 @@ describe("WorkOrderContext", () => {
         machine_id: "mocked-machine-id",
         machine_name: "mocked-machine-name",
         conversation_id: "mocked-conversation-id",
+        resolved: "COMPLETED"
       },
       {
         order_id: "mocked-order-id-2",
         machine_id: "mocked-machine-id-2",
         machine_name: "mocked-machine-name-2",
         conversation_id: "mocked-conversation-id-2",
+        resolved: "NOT_COMPLETED",
       },
     ];
 
@@ -75,6 +77,82 @@ describe("WorkOrderContext", () => {
       expect(axios.get).toHaveBeenCalledWith("/api/workOrders");
       expect(errorSpy.mock.calls[0][0]).toMatch("Error fetching WorkOrder:");
       expect(screen.queryByText("Nothing")).toBeInTheDocument();
+    });
+  });
+
+  it("marks a work order as done", async () => {
+    const DummyComponentMarkAsDone = () => {
+      const { current, markWorkOrderAsDone } = useWorkOrder();
+      React.useEffect(() => {
+        if (current) {
+          markWorkOrderAsDone(current.order_id);
+        }
+      }, [current, markWorkOrderAsDone]);
+      return <p>done</p>;
+    };
+
+    const mockWorkOrders: WorkOrder[] = [
+      {
+        order_id: "mocked-order-id-1",
+        machine_id: "mocked-machine-id",
+        machine_name: "mocked-machine-name",
+        conversation_id: "mocked-conversation-id",
+        resolved: "NOT_COMPLETED",
+      },
+    ];
+
+    axios.get = jest.fn().mockResolvedValue({ data: mockWorkOrders });
+    axios.post = jest.fn().mockResolvedValue({ data: "done" });
+
+    render(
+      <WorkOrderProvider>
+        <DummyComponentMarkAsDone />
+      </WorkOrderProvider>,
+    );
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith(
+        "/api/chatDone?conversationId=mocked-conversation-id&done=true",
+      );
+      expect(screen.getByText("done")).toBeInTheDocument();
+    });
+  })
+
+  it("marks a work order as undone", async () => {
+    const DummyComponentMarkAsUndone = () => {
+      const { current, markWorkOrderAsNotDone } = useWorkOrder();
+      React.useEffect(() => {
+        if (current) {
+          markWorkOrderAsNotDone(current.order_id);
+        }
+      }, [current, markWorkOrderAsNotDone]);
+      return <p>done</p>;
+    };
+
+    const mockWorkOrders: WorkOrder[] = [
+      {
+        order_id: "mocked-order-id-1",
+        machine_id: "mocked-machine-id",
+        machine_name: "mocked-machine-name",
+        conversation_id: "mocked-conversation-id",
+        resolved: "COMPLETED",
+      },
+    ];
+
+    axios.get = jest.fn().mockResolvedValue({ data: mockWorkOrders });
+    axios.post = jest.fn().mockResolvedValue({ data: "done" });
+
+    render(
+      <WorkOrderProvider>
+        <DummyComponentMarkAsUndone />
+      </WorkOrderProvider>,
+    );
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith(
+        "/api/chatDone?conversationId=mocked-conversation-id&done=false",
+      );
+      expect(screen.getByText("done")).toBeInTheDocument();
     });
   });
 });

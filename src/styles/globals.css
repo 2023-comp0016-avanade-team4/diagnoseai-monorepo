@@ -25,4 +25,8 @@ div#__next > div {
   }
 }
 
-
+@layer utilities {
+  .svg-not-selected {
+    filter: invert(46%) sepia(36%) saturate(260%) hue-rotate(176deg) brightness(89%) contrast(94%);
+  }
+}

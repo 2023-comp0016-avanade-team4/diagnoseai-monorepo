@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import Image from "next/image";
 import useSound from "use-sound";
 import { useChatProvider } from "@/contexts/ChatContext";
@@ -19,6 +19,15 @@ export const NewMessageForm = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { getToken } = useAuth();
   const { current } = useWorkOrder();
+
+  const inputsDisabled = useMemo(() => {
+    return (
+      !webSocket ||
+      webSocket.readyState !== WebSocket.OPEN ||
+      selectedFile ||
+      current?.resolved === "COMPLETED"
+    );
+  }, [webSocket, selectedFile, current]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -125,29 +134,26 @@ export const NewMessageForm = () => {
           type="file"
           accept=".png, .jpg, .jpeg"
           onChange={handleFileChange}
+          disabled={inputsDisabled}
         />
       </div>
 
       <input
         autoFocus
+        data-testid="message-input"
         id="message"
         name="message"
-        placeholder="Write a message..."
+        placeholder={inputsDisabled ? "Inputs are disabled" : "Write a message..."}
         value={body}
         onChange={(e) => setBody(e.target.value)}
         className="flex-1 h-12 px-3 rounded bg-[#222226] border border-[#222226] focus:border-[#222226] focus:outline-none text-white placeholder-white"
         autoComplete="off"
-        disabled={
-          !webSocket ||
-          webSocket.readyState !== WebSocket.OPEN ||
-          !!selectedFile ||
-          isProcessingImage
-        }
+        disabled={inputsDisabled}
       />
       <button
         type="submit"
         className="bg-[#222226] rounded h-12 font-medium text-white w-24 text-lg border border-transparent hover:bg-[#363739] transition cursor-pointer"
-        disabled={!body && !selectedFile}
+        disabled={!body && !selectedFile && !inputsDisabled}
       >
         Send
       </button>
