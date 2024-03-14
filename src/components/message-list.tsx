@@ -10,6 +10,7 @@ import {
   citationObject,
 } from "@/components/message-component";
 import { v4 as uuidv4 } from "uuid";
+import { showToastWithRefresh } from "./toast-with-refresh";
 
 export type IntermediateResponseMessage = {
   body: string;
@@ -32,13 +33,13 @@ export const MessageList = () => {
     if (entry?.target) {
       entry.target.scrollIntoView({ behavior: "smooth", block: "end" });
     }
- }, [messages?.length, entry?.target]);
+  }, [messages?.length, entry?.target]);
 
   useEffect(() => {
     const handleIncomingMessages = (event: MessageEvent) => {
       try {
         const messageData = JSON.parse(
-          JSON.parse(event.data) as string,
+          JSON.parse(event.data) as string
         ) as IntermediateResponseMessage;
         if (
           current?.conversation_id !== messageData.conversationId.toString()
@@ -57,6 +58,7 @@ export const MessageList = () => {
         addMessage(responseMessage);
       } catch (error) {
         console.error("Error parsing message data:", error);
+        showToastWithRefresh("Error parsing message data, please refresh.");
       }
     };
 

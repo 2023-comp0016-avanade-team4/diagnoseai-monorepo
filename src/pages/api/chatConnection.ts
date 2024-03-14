@@ -1,3 +1,4 @@
+import { showToastWithRefresh } from '@/components/toast-with-refresh';
 import { getAuth } from '@clerk/nextjs/server';
 import axios from 'axios';
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -30,6 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ wsUrl });
   } catch (error) {
     console.error("Error fetching WebSocket URL:", error);
+    showToastWithRefresh("Error fetching WebSocket URL, please refresh.");
     return res.status(500).json({ error: 'Error fetching WebSocket URL' });
   }
 }
