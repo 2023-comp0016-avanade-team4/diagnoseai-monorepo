@@ -60,7 +60,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
   const fetchHistory = useCallback(async (conversationId: string) => {
     try {
       const response = await axios.get(
-        `/api/chatHistory?conversation_id=${conversationId}`
+        `/api/chatHistory?conversation_id=${conversationId}`,
       );
       const messages = response.data.messages.map(
         (message: IntermediateHistoricalMessage) => {
@@ -71,7 +71,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
             isImage: message.isImage,
             sentAt: message.sentAt / 1000,
           } as Message;
-        }
+        },
       );
 
       setMessages(messages);

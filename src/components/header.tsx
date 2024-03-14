@@ -1,21 +1,25 @@
-// import { signIn, signOut, useSession } from "next-auth/react";
+import React, { useState } from "react";
 import { UserButton } from "@clerk/nextjs";
-import Image from "next/image";
-import SignOutButton from "./sign-out-button";
+import { useWorkOrder } from "@/contexts/WorkOrderContext";
+import SideMenu from "@/components/side-menu";
 
 export function Header() {
-  //const { data: session } = useSession();
+  const [isOpen, setIsOpen] = useState(false);
+  const { current, setCurrent, workOrders } = useWorkOrder();
 
   return (
     <header className="p-6 bg-white/5 border-b border-[#363739]">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center">
+          <SideMenu
+            isOpen={isOpen}
+            setIsOpen={setIsOpen}
+            workOrders={workOrders}
+            current={current}
+            setCurrent={setCurrent}
+          />
           <p className="inline-flex items-center space-x-3">
-            <a
-              href="https://grafbase.com?ref=chatbase"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <a href="/" target="_blank" rel="noopener noreferrer">
               <svg
                 width="20"
                 height="20"
