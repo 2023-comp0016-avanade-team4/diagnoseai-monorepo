@@ -9,17 +9,18 @@ function should all have the docstring.
 """
 
 # pragma: no cover
-
 import azure.functions as func
+from azure.functions.decorators.core import DataType
+
 from functions.chat import main as chat_main
 from functions.chat_connection import main as chat_connection
+from functions.chat_done import main as chat_done
 from functions.chat_history import main as chat_history
 from functions.file_upload_trigger import main as file_upload_trigger
+from functions.index_monitoring import main as index_monitoring
 from functions.poc import main as poc
 from functions.validation_to_production import main as validation_to_production
 from functions.work_order import main as work_order
-from functions.index_monitoring import main as index_monitoring
-from functions.chat_done import main as chat_done
 
 bp = func.Blueprint()
 
@@ -31,13 +32,13 @@ bp = func.Blueprint()
 # WebPubSubTrigger as a real trigger, consider migrating to that
 # trigger.
 @bp.function_name(name='Chat')
-@bp.generic_trigger('req', 'WebPubSubTrigger',
-                    data_type='string',
+@bp.generic_trigger('request', 'WebPubSubTrigger',
                     hub='chat',
+                    data_type=DataType.STRING,
                     eventName='message',
                     eventType='user')
-def __chat_main(req: str) -> None:
-    chat_main(req)
+def __chat_main(request: str) -> None:
+    chat_main(request)
 
 
 @bp.function_name('chat_connection')
