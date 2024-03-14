@@ -13,10 +13,8 @@ const App = ({ Component, pageProps }: AppProps) => {
       <ChatProvider>
         <WebSocketProvider>
           <WorkOrderProvider>
-            {/* <div className="h-full"> */}
             <Component {...pageProps} />
-            <ToastContainer className={"absolute"} />
-            {/* </div> */}
+            <ToastContainer />
           </WorkOrderProvider>
         </WebSocketProvider>
       </ChatProvider>

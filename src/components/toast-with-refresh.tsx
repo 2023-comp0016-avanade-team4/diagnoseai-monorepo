@@ -29,6 +29,6 @@ export const showToastWithRefresh = (errorMessage: string) => {
     closeOnClick: true,
     draggable: true,
     progress: undefined,
-    theme: "light",
+    theme: "dark",
   });
 };
