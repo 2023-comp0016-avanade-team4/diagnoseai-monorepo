@@ -2,6 +2,7 @@
 All data access related functions for chat messages.
 """
 
+from typing import Optional
 from datetime import datetime
 from uuid import uuid4
 
@@ -56,6 +57,13 @@ class PendingUploadsDAO:
     The data access object for an pending upload.
     """
 
+    def setUp(self):
+        self.model = PendingUploadsModel(
+            upload_id='test_id',
+            filename='test.pdf',
+            username='test',
+            user_email='test@example.com')
+
     @staticmethod
     def add_pending_upload(session: Session,
                            model: PendingUploadsModel) -> None:
@@ -98,3 +106,19 @@ class PendingUploadsDAO:
             list[PendingUploadsModel]: The unprocessed filenames and email
         """
         return session.query(PendingUploadsModel).all()
+
+    @staticmethod
+    def get_pending_uploads_on_filename(session: Session, filename: str
+                                        ) -> Optional[PendingUploadsModel]:
+        """
+        Gets all pending uploads on a filename.
+
+        Args:
+            session (Session): The database session
+            filename (str): The filename
+
+        Returns:
+            Optional[PendingUploadsModel]: The pending upload
+        """
+        return session.query(PendingUploadsModel).filter(
+            PendingUploadsModel.filename == filename).one_or_none
