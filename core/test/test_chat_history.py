@@ -4,12 +4,12 @@ Module to test the chat history endpoint
 
 import os
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, create_autospec
 from base_test_case import BaseTestCase
 
 import azure.functions as func  # type: ignore[import-untyped]
 from core.utils.history import ChatHistoryResponse
-from core.models.chat_message import ChatMessageModel
+from core.models.chat_message import ChatMessageModel, Citation
 
 # Globals patching
 db_session_patch = patch('utils.db.create_session') \
@@ -21,6 +21,7 @@ os.environ['DatabaseURL'] = ''
 os.environ['DatabaseName'] = ''
 os.environ['DatabaseUsername'] = ''
 os.environ['DatabasePassword'] = ''
+os.environ['DocumentStorageContainer'] = ''
 os.environ['ImageBlobConnectionString'] = ''
 os.environ['ImageBlobContainer'] = ''
 
@@ -127,6 +128,32 @@ class TestChatHistory(BaseTestCase):
                 citations=[],
                 is_image=True
             )]
+            # need to list it to consume the map
+            list(get_history_from_db('123'))
+            m.assert_called_once()
+            n.assert_called_once()
+
+    def test_get_history_from_db_citations(self):
+        """
+        The get history from DB should call the
+        get_all_messages_for_conversation method. It does not matter
+        what arguments are passed to it; it just needs to call it.
+        """
+        with patch(
+                'models.chat_message.ChatMessageDAO'
+                '.get_all_messages_for_conversation'
+        ) as m, patch(
+            'core.functions.chat_history.translate_citation_urls'
+        ) as n:
+            m.return_value = [ChatMessageModel(
+                conversation_id='123',
+                message='hello world',
+                sent_at=123,
+                sender='bot',
+                citations=[create_autospec(Citation)],
+                is_image=False
+            )]
+            m.return_value[0].citations[0].filepath = 'test'
             # need to list it to consume the map
             list(get_history_from_db('123'))
             m.assert_called_once()

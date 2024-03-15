@@ -6,8 +6,10 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
 from typing import Literal
+from azure.storage.blob import BlobServiceClient
 
 from dataclasses_json import DataClassJsonMixin, config
+from utils.get_preauthenticated_blob_url import get_preauthenticated_blob_url
 
 
 @dataclass
@@ -79,3 +81,27 @@ class ResponseErrorMessage(DataClassJsonMixin):
     """
     body: str
     type: str = 'error'
+
+
+def translate_citation_urls(citations: list[Citation],
+                            blob_service_client: BlobServiceClient,
+                            container: str) -> list[Citation]:
+    """
+    Translates citation URLs to preauthenticated blob URLs to the
+    filepaths of the given citations.
+
+    Args:
+        citations (list[Citation]): The citations to translate
+        blob_service_client (BlobServiceClient): The blob service client
+        container (str): The container to use
+    """
+    for citation in citations:
+        if citation.filepath is None:
+            continue
+
+        citation.filepath = get_preauthenticated_blob_url(
+            blob_service_client,
+            container,
+            citation.filepath
+        )
+    return citations

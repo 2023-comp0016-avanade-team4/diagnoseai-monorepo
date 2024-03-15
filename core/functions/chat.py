@@ -28,7 +28,7 @@ from models.chat_message import ChatMessageDAO, ChatMessageModel, SenderTypes
 from utils.authorise_conversation import authorise_user
 from utils.chat_message import (BidirectionalChatMessage, ChatMessage,
                                 ResponseChatMessage, ResponseErrorMessage,
-                                Citation)
+                                Citation, translate_citation_urls)
 from utils.db import create_session
 from utils.get_user_id import get_user_id
 from utils.hashing import get_search_index_for_user_id
@@ -62,8 +62,8 @@ DATABASE_USERNAME = os.environ['DatabaseUsername']
 DATABASE_PASSWORD = os.environ['DatabasePassword']
 DATABASE_SELFSIGNED = os.environ.get('DatabaseSelfSigned')
 
-DOC_BLOB_CONNECTION_STRING = os.environ["DocBlobConnectionString"]
-DOC_BLOB_CONTAINER = os.environ["DocBlobContainer"]
+DOC_BLOB_CONNECTION_STRING = os.environ["DocumentStorageContainer"]
+DOC_BLOB_CONTAINER = 'production'
 
 doc_blob_service_client = BlobServiceClient.from_connection_string(
     DOC_BLOB_CONNECTION_STRING
@@ -203,22 +203,6 @@ def ws_log_and_send_error(text: str, connection_id: str) -> None:
     """
     logging.error('Cannot parse ChatMessage: %s', text)
     ws_send_message(ResponseErrorMessage(text).to_json(), connection_id)
-
-
-def add_citation_urls(citations: list[Citation]) -> list[Citation]:
-    """
-    Adds preauthenticated blob URLs to the filepaths of the given citations.
-    """
-    for citation in citations:
-        if citation.filepath is None:
-            continue
-
-        citation.filepath = get_preauthenticated_blob_url(
-            doc_blob_service_client,
-            DOC_BLOB_CONTAINER,
-            citation.filepath
-        )
-    return citations
 
 
 def save_to_blob(filename: str, content: bytes):
@@ -402,13 +386,13 @@ def __query_llm_with_index(
             connection_id)
         raise ChatError('no response from AI chat')
 
-    citations: list[Citation] = add_citation_urls([
+    citations: list[Citation] = [
         Citation.from_dict(raw_citation)
         for raw_citation in (
             # Context definitely exists; but the SDK doesn't know it.
             chat_response.choices[0].message.context['citations']  # type: ignore # noqa: E501
         )
-    ])
+    ]
     return chat_response.choices[0].message.content, citations
 
 
@@ -504,7 +488,8 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
         body=chat_response,
         conversation_id=message.conversation_id,
         sent_at=datetime.now(),
-        citations=citations
+        citations=translate_citation_urls(
+            citations, doc_blob_service_client, DOC_BLOB_CONTAINER)
     )
     shadow_msg_to_db(
         message.conversation_id, response.body, True, False,

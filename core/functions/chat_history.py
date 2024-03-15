@@ -5,21 +5,26 @@ Chat History API endpoint.
 import logging
 import os
 
+from typing import cast
 import azure.functions as func  # type: ignore[import-untyped]
 from azure.storage.blob import BlobServiceClient
-from models.chat_message import ChatMessageDAO, ChatMessageModel
+from models.chat_message import ChatMessageDAO, ChatMessageModel, Citation
 from utils.db import create_session
 from utils.image_utils import get_preauthenticated_blob_url
 from utils.history import ChatHistoryResponse
 from utils.authorise_conversation import authorise_user
 from utils.get_user_id import get_user_id
 from utils.verify_token import verify_token
+from utils.chat_message import translate_citation_urls
 
 DATABASE_URL = os.environ["DatabaseURL"]
 DATABASE_NAME = os.environ["DatabaseName"]
 DATABASE_USERNAME = os.environ["DatabaseUsername"]
 DATABASE_PASSWORD = os.environ["DatabasePassword"]
 DATABASE_SELFSIGNED = os.environ.get("DatabaseSelfSigned")
+
+DOC_BLOB_CONNECTION_STRING = os.environ["DocumentStorageContainer"]
+DOC_BLOB_CONTAINER = 'production'
 
 IMAGE_BLOB_CONNECTION_STRING = os.environ["ImageBlobConnectionString"]
 IMAGE_BLOB_CONTAINER = os.environ["ImageBlobContainer"]
@@ -35,6 +40,10 @@ db_session = create_session(
 
 blob_service_client = BlobServiceClient.from_connection_string(
     IMAGE_BLOB_CONNECTION_STRING)
+
+doc_blob_service_client = BlobServiceClient.from_connection_string(
+    DOC_BLOB_CONNECTION_STRING
+)
 
 
 def __transform_chat_message_helper(model: ChatMessageModel):
@@ -55,6 +64,10 @@ def __transform_chat_message_helper(model: ChatMessageModel):
             get_preauthenticated_blob_url(
                 blob_service_client, IMAGE_BLOB_CONTAINER,
                 bidirectional_chat_message.message)
+
+    bidirectional_chat_message.citations = translate_citation_urls(
+        cast(list[Citation], bidirectional_chat_message.citations),
+        doc_blob_service_client, 'production')
     return bidirectional_chat_message
 
 
