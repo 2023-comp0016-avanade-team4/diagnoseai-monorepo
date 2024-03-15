@@ -7,6 +7,7 @@ const nextConfig = {
       "img.clerk.com"
     ],
   },
+  output: "standalone"
 };
 
 module.exports = nextConfig;
