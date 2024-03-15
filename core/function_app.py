@@ -18,7 +18,6 @@ from functions.chat_done import main as chat_done
 from functions.chat_history import main as chat_history
 from functions.file_upload_trigger import main as file_upload_trigger
 from functions.index_monitoring import main as index_monitoring
-from functions.poc import main as poc
 from functions.validation_to_production import main as validation_to_production
 from functions.work_order import main as work_order
 
@@ -57,12 +56,6 @@ def __chat_history(req: func.HttpRequest) -> func.HttpResponse:
 @bp.blob_trigger('blob', 'verification/{fileName}', 'DocumentStorageContainer')
 def __file_upload_trigger(blob: func.InputStream) -> None:
     file_upload_trigger(blob)
-
-
-@bp.function_name('ProofOfConcept')
-@bp.blob_trigger('blob', 'validation-documents', 'BlobBindingConnection')
-def __poc(blob: func.InputStream) -> None:
-    poc(blob)
 
 
 @bp.function_name('validation_to_production')
