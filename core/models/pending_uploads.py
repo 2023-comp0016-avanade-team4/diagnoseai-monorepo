@@ -121,4 +121,4 @@ class PendingUploadsDAO:
             Optional[PendingUploadsModel]: The pending upload
         """
         return session.query(PendingUploadsModel).filter(
-            PendingUploadsModel.filename == filename).one_or_none
+            PendingUploadsModel.filename == filename).one_or_none()

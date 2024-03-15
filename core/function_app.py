@@ -17,7 +17,6 @@ from functions.chat_connection import main as chat_connection
 from functions.chat_done import main as chat_done
 from functions.chat_history import main as chat_history
 from functions.file_upload_trigger import main as file_upload_trigger
-from functions.index_monitoring import main as index_monitoring
 from functions.validation_to_production import main as validation_to_production
 from functions.work_order import main as work_order
 
@@ -69,11 +68,6 @@ def __validation_to_production(req: func.HttpRequest) -> func.HttpResponse:
 def __work_order(req: func.HttpRequest) -> func.HttpResponse:
     return work_order(req)
 
-
-# @bp.function_name("index_monitoring")
-# @bp.timer_trigger("ticker", "0 */5 * * * *")
-# def __index_monitoring(ticker: func.TimerRequest) -> None:
-#     index_monitoring(ticker)
 
 @bp.function_name("chat_done")
 @bp.route(methods=["POST"])

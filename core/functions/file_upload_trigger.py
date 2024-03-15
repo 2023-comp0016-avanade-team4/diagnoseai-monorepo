@@ -89,10 +89,6 @@ def main(blob: InputStream):
     """
     Entrypoint to process blob storage event
     """
-    logging.info("Python blob trigger function processed blob \n"
-                 "Name: %s\n"
-                 "Blob Size: %d bytes", blob.name, blob.length)
-
     search_index = blob.name.split('/')[-1]
 
     logging.info(f"Index name: %s \n", search_index)
