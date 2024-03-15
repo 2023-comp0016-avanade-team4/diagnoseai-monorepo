@@ -1,18 +1,5 @@
-import { Sequelize, DataTypes, Model, Optional } from 'sequelize';
-import 'tedious'; // to force build to package tedious
-
-// Import database connection details from .env file
-import dotenv from "dotenv";
-dotenv.config();
-const { DB_HOST, DB_USER, DB_PASSWORD, DB_NAME } = process.env;
-if (!DB_HOST || !DB_USER || !DB_PASSWORD || !DB_NAME) {
-  throw new Error('Database connection details are not provided');
-}
-
-const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
-  host: DB_HOST,
-  dialect: "mssql",
-});
+import { Sequelize, DataTypes, Model, Optional } from "sequelize";
+import { sequelize } from "../db";
 
 // Define interfaces for model attributes
 interface WorkOrderAttributes {
@@ -44,8 +31,7 @@ interface MachineCreationAttributes
 // Define WorkOrder model
 class WorkOrder
   extends Model<WorkOrderAttributes, WorkOrderCreationAttributes>
-  implements WorkOrderAttributes
-{
+  implements WorkOrderAttributes {
   public order_id!: string;
   public user_id!: string;
   public conversation_id!: string;
@@ -102,8 +88,7 @@ WorkOrder.init(
 // Define Machine model
 class Machine
   extends Model<MachineAttributes, MachineCreationAttributes>
-  implements MachineAttributes
-{
+  implements MachineAttributes {
   public machine_id!: string;
   public manufacturer!: string;
   public model!: string;

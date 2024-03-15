@@ -25,3 +25,14 @@ export const selectMachine = (machine: Machine) => ({
   type: "SELECT_MACHINE",
   payload: machine,
 });
+
+export const selectMachineById = (machines: Machine[], id: string) => {
+  return (dispatch: any) => {
+    const machine = machines.find((machine) => machine.machine_id === id);
+    if (machine === undefined) {
+      console.error(`machine {id} not found`);
+      return;
+    }
+    dispatch(selectMachine(machine));
+  };
+};

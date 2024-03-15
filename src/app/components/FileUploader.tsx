@@ -4,8 +4,9 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FileUploader } from "react-drag-drop-files";
 import { Skeleton, Button } from "@nextui-org/react";
-import { useAppDispatch } from "../../redux/hook";
+import { useAppDispatch, useAppSelector } from "../../redux/hook";
 import { setUUID } from "../../redux/reducers/uuidReducer";
+import { RootState } from "../../redux/store";
 
 const fileTypes = ["PDF", "DOCX"];
 
@@ -19,6 +20,9 @@ export const Uploader = () => {
   };
 
   const dispatch = useAppDispatch();
+  const selectedMachine = useAppSelector(
+    (store: RootState) => store.selectedMachine,
+  );
 
   const uploadBtnClicked = async () => {
     setIsUploading((_) => true);
@@ -31,6 +35,7 @@ export const Uploader = () => {
 
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("machineId", selectedMachine?.machine_id || "");
     const response = await fetch("/api/fileUpload", {
       method: "POST",
       body: formData,
