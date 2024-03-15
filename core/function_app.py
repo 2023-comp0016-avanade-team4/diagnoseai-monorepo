@@ -54,7 +54,7 @@ def __chat_history(req: func.HttpRequest) -> func.HttpResponse:
 
 
 @bp.function_name('file_upload_trigger')
-@bp.blob_trigger('blob', 'verification/{fileName}', 'BlobBindingConnection')
+@bp.blob_trigger('blob', 'verification/{fileName}', 'DocumentStorageContainer')
 def __file_upload_trigger(blob: func.InputStream) -> None:
     file_upload_trigger(blob)
 
