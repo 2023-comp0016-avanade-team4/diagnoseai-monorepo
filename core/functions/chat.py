@@ -27,7 +27,8 @@ from openai.types.chat import ChatCompletionMessageParam
 from models.chat_message import ChatMessageDAO, ChatMessageModel, SenderTypes
 from utils.authorise_conversation import authorise_user
 from utils.chat_message import (BidirectionalChatMessage, ChatMessage,
-                                ResponseChatMessage, ResponseErrorMessage)
+                                ResponseChatMessage, ResponseErrorMessage,
+                                Citation)
 from utils.db import create_session
 from utils.get_user_id import get_user_id
 from utils.hashing import get_search_index_for_user_id
@@ -35,6 +36,7 @@ from utils.image_summary import ImageSummary
 from utils.image_utils import compress_image, is_url_encoded_image
 from utils.verify_token import verify_token
 from utils.web_pub_sub_interfaces import WebPubSubRequest
+from utils.get_preauthenticated_blob_url import get_preauthenticated_blob_url
 
 # Load required variables from the environment
 
@@ -59,6 +61,13 @@ DATABASE_NAME = os.environ['DatabaseName']
 DATABASE_USERNAME = os.environ['DatabaseUsername']
 DATABASE_PASSWORD = os.environ['DatabasePassword']
 DATABASE_SELFSIGNED = os.environ.get('DatabaseSelfSigned')
+
+DOC_BLOB_CONNECTION_STRING = os.environ["DocBlobConnectionString"]
+DOC_BLOB_CONTAINER = os.environ["DocBlobContainer"]
+
+doc_blob_service_client = BlobServiceClient.from_connection_string(
+    DOC_BLOB_CONNECTION_STRING
+)
 
 IMAGE_BLOB_CONNECTION_STRING = os.environ["ImageBlobConnectionString"]
 IMAGE_BLOB_CONTAINER = os.environ["ImageBlobContainer"]
@@ -128,9 +137,13 @@ def ws_send_message(text: str, connection_id: str) -> None:
                                content_type='application/json')
 
 
+# Default value not dangerous, if no citations given, we rather have
+# an empty list than None
+# pylint: disable=too-many-arguments
 def shadow_msg_to_db(
         conversation_id: str, message: str, sender_is_bot: bool,
-        is_image: bool, additional_context: str = ''
+        is_image: bool, citations: list[Citation],
+        additional_context: str = ''
 ) -> None:
     """
     Shadows the message to the database.
@@ -138,7 +151,10 @@ def shadow_msg_to_db(
     Args:
         conversation_id (str): The conversation ID
         message (str): The message
-        sender_is_bot (bool): Whether the sender is the bot
+        sender_is_bot (bool): Whether the sender is a bot
+        is_image (bool): Whether the message is an image
+        citations (list[Citation]): The citations
+        additional_context (str, optional): Additional context. Defaults to ''.
     """
     # Ethereal messages; don't store history
     if conversation_id == '-1':
@@ -153,6 +169,7 @@ def shadow_msg_to_db(
                 conversation_id=conversation_id,
                 sent_at=datetime.now(),
                 is_image=is_image,
+                citations=citations,
                 sender='bot' if sender_is_bot else 'user',
             ),
             additional_context
@@ -186,6 +203,22 @@ def ws_log_and_send_error(text: str, connection_id: str) -> None:
     """
     logging.error('Cannot parse ChatMessage: %s', text)
     ws_send_message(ResponseErrorMessage(text).to_json(), connection_id)
+
+
+def add_citation_urls(citations: list[Citation]) -> list[Citation]:
+    """
+    Adds preauthenticated blob URLs to the filepaths of the given citations.
+    """
+    for citation in citations:
+        if citation.filepath is None:
+            continue
+
+        citation.filepath = get_preauthenticated_blob_url(
+            doc_blob_service_client,
+            DOC_BLOB_CONTAINER,
+            citation.filepath
+        )
+    return citations
 
 
 def save_to_blob(filename: str, content: bytes):
@@ -309,7 +342,7 @@ def __query_llm_with_index(
         search_endpoint: str,
         search_key: str,
         prompt: str,
-        connection_id: str) -> str:
+        connection_id: str) -> tuple[str, list[Citation]]:
     """
     Queries the AI model from the validation document index.
 
@@ -323,7 +356,7 @@ def __query_llm_with_index(
         connection_id (str): The connection ID
 
     Returns:
-        str: The response from the model
+        tuple[str, list[Citation]]: The response and the citations
     """
     chat_response = ai_client.chat.completions.create(
         model='validation-testing-model',
@@ -342,6 +375,9 @@ def __query_llm_with_index(
                             f"deployments/{EMBEDDING_DEPLOYMENT_NAME}/"
                             f"embeddings?api-version={OPENAI_API_VERSION}"),
                         "embeddingKey": EMBEDDING_KEY,
+                        "fieldsMapping": {
+                            "filepath_field": "filepath"
+                        },
                         "inScope": True,
                         "filter": None,
                         "strictness": 3,
@@ -365,7 +401,15 @@ def __query_llm_with_index(
              f' for debugging purposes, you were {connection_id}'),
             connection_id)
         raise ChatError('no response from AI chat')
-    return chat_response.choices[0].message.content
+
+    citations: list[Citation] = add_citation_urls([
+        Citation.from_dict(raw_citation)
+        for raw_citation in (
+            # Context definitely exists; but the SDK doesn't know it.
+            chat_response.choices[0].message.context['citations']  # type: ignore # noqa: E501
+        )
+    ])
+    return chat_response.choices[0].message.content, citations
 
 
 def process_message(message: ChatMessage, connection_id: str) -> None:
@@ -411,10 +455,10 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
         # send the summary as the user, but save it as a bot
         contextualized_summary = f"USER IMAGE: {summary}"
         messages.append({'role': 'user', 'content': contextualized_summary})
-        shadow_msg_to_db(message.conversation_id, filename, False, True,
-                         contextualized_summary)
+        shadow_msg_to_db(message.conversation_id, filename, False, True, [],
+                         additional_context=contextualized_summary)
         shadow_msg_to_db(message.conversation_id, contextualized_summary, True,
-                         False)
+                         False, False)
         ws_send_message(
             ResponseChatMessage(
                 summary,
@@ -424,7 +468,8 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
         return
 
     messages.append({'role': 'user', 'content': message.message})
-    shadow_msg_to_db(message.conversation_id, message.message, False, False)
+    shadow_msg_to_db(message.conversation_id, message.message, False, False,
+                     [])
     summary_index = get_search_index_for_user_id(curr_user)
 
     try:
@@ -437,8 +482,8 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
                                             messages, summary_index,
                                             SUMMARY_SEARCH_ENDPOINT,
                                             SUMMARY_SEARCH_KEY,
-                                            SUMMARY_PROMPT, connection_id)))
-        chat_response = __query_llm_with_index(
+                                            SUMMARY_PROMPT, connection_id)[0]))
+        chat_response, citations = __query_llm_with_index(
             messages, message.index,
             SEARCH_ENDPOINT, SEARCH_KEY,
             DOCUMENT_PROMPT + summary, connection_id
@@ -456,11 +501,14 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
         return
 
     response = ResponseChatMessage(
-        chat_response,
-        message.conversation_id,
-        datetime.now()
+        body=chat_response,
+        conversation_id=message.conversation_id,
+        sent_at=datetime.now(),
+        citations=citations
     )
-    shadow_msg_to_db(message.conversation_id, response.body, True, False)
+    shadow_msg_to_db(
+        message.conversation_id, response.body, True, False,
+        citations)
     ws_send_message(response.to_json(), connection_id)
 
 

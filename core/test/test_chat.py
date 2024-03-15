@@ -40,6 +40,8 @@ os.environ['DatabaseURL'] = ''
 os.environ['DatabaseName'] = ''
 os.environ['DatabaseUsername'] = ''
 os.environ['DatabasePassword'] = ''
+os.environ['DocBlobConnectionString'] = ''
+os.environ['DocBlobContainer'] = ''
 os.environ['ImageBlobConnectionString'] = ''
 os.environ['ImageBlobContainer'] = ''
 os.environ['GPT4V_API_BASE'] = ''
@@ -123,6 +125,7 @@ class TestChat(BaseTestCase):
             mocked_completion_message = create_autospec(ChatCompletionMessage)
             type(mocked_completion_message).content = PropertyMock(
                 return_value=message)
+            type(mocked_completion_message).context = {'citations': []}
             mocked_choice = create_autospec(Choice)
             type(mocked_choice).message = mocked_completion_message
             type(mocked_chat_completion).choices = [mocked_choice]
@@ -163,8 +166,8 @@ class TestChat(BaseTestCase):
         self.assertEqual(shadow.call_count, 2)
 
         # 'blah' is from the user, 'hi' is from the bot
-        expected_calls = (('123', 'blah', False, False),
-                          ('123', 'hi', True, False))
+        expected_calls = (('123', 'blah', False, False, []),
+                          ('123', 'hi', True, False, []))
         self.assertEqual(
             tuple(map(lambda x: x.args, shadow.call_args_list)),
             expected_calls)
@@ -395,7 +398,7 @@ class TestChat(BaseTestCase):
         # It doesn't matter what arguments are passed to it; the
         # virtue of it being called is enough
         with patch('core.functions.chat.ChatMessageDAO.save_message') as m:
-            shadow_msg_to_db('123', 'blah', True, False)
+            shadow_msg_to_db('123', 'blah', True, False, [])
             m.assert_called_once()
 
     def test_strip_all_citations(self):

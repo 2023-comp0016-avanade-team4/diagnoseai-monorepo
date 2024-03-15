@@ -63,7 +63,8 @@ class ChatMessageModel(Base):
             sent_at=message.sent_at,
             is_image=message.is_image,
             sender=SenderTypes(message.sender),
-            citations=[citation.to_dict() for citation in message.citations],
+            citations=([citation.to_dict() for citation in message.citations]
+                       if message.citations else []),
             additional_context=additional_context,
         )
 
@@ -91,7 +92,8 @@ class ChatMessageModel(Base):
             # casted because message.sender (is a str) should
             # become either bot or user
             sender=cast(Literal['bot', 'user'], message.sender),
-            citations=[citation.from_dict() for citation in message.citations]
+            citations=([citation.to_dict() for citation in message.citations]
+                       if message.citations else [])
         )
 
 
