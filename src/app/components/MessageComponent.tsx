@@ -30,9 +30,6 @@ const MessageComponent = ({ message }: Props) => {
             : "bg-slate-400"
             } `}
         >
-          {message.username !== "some_user" && (
-            <span className="font-bold">{message.username}:&nbsp;</span>
-          )}
           <span className="max-w-sm">{message.body}</span>
         </span>
       </div>

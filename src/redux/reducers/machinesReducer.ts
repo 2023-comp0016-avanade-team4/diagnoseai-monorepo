@@ -1,4 +1,4 @@
-import Machine from "../../types/machine";
+import Machine from '../../types/machine';
 
 // Define action types
 
@@ -11,12 +11,9 @@ interface MachinesAction {
 const initialState: Machine[] = [];
 
 // Machines reducer
-export const machinesReducer = (
-  state = initialState,
-  action: MachinesAction,
-): Machine[] => {
+export const machinesReducer = (state = initialState, action: MachinesAction): Machine[] => {
   switch (action.type) {
-    case "SET_MACHINES":
+    case 'SET_MACHINES':
       return action.payload;
     default:
       return state;
@@ -24,6 +21,6 @@ export const machinesReducer = (
 };
 
 export const setMachines = (machines: Machine[]) => ({
-  type: "SET_MACHINES",
+  type: 'SET_MACHINES',
   payload: machines,
 });

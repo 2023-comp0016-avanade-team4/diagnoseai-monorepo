@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
 import useSound from "use-sound";
 import { useWebSocket } from "../contexts/WebSocketContext";
-import { useAppSelector } from "../../redux/hook";
+import { useAuth } from "@clerk/nextjs";
+import { v4 as uuid4 } from "uuid";
+import { useSearchParams } from "next/navigation";
 
 export const NewMessageForm = () => {
   const [play] = useSound("sent.wav");
   const [body, setBody] = useState("");
   const { addMessage, webSocket } = useWebSocket(); // Get WebSocket from context
-  const uuid = useAppSelector((state) => state.uuid.value);
+  const { getToken } = useAuth();
 
   useEffect(() => {
     const handleIncomingMessages = (event: MessageEvent) => {
@@ -17,7 +19,7 @@ export const NewMessageForm = () => {
 
         const responseMessage = {
           id: "2",
-          username: "bot",
+          username: uuid4(),
           body: textResponse,
           createdAt: "1",
         };
@@ -36,13 +38,15 @@ export const NewMessageForm = () => {
     }
   }, [addMessage, webSocket]);
 
-  const addNewMessage = (body: string) => {
+  const addNewMessage = async (body: string, index: string) => {
     if (webSocket && webSocket.readyState === WebSocket.OPEN) {
       const message = {
-        conversationId: "1",
+        // NOTE: Ethereal conversations are implemented as -1
+        conversationId: "-1",
         message: body,
-        sentAt: 1,
-        index: uuid,
+        sentAt: Math.floor(Date.now() / 1000),
+        index,
+        authToken: await getToken()
       };
 
       webSocket.send(JSON.stringify(message));
@@ -59,16 +63,20 @@ export const NewMessageForm = () => {
     }
   };
 
+  const params = useSearchParams();
+  const index = params?.get("index");
+
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        if (body) {
-          addNewMessage(body);
+
+        if (body && index) {
+          addNewMessage(body, index);
           setBody("");
         }
       }}
-      className="flex items-center space-x-3"
+      className="flex items-center space-x-3 w-full"
     >
       <input
         autoFocus
@@ -77,11 +85,11 @@ export const NewMessageForm = () => {
         placeholder="Write a message..."
         value={body}
         onChange={(e) => setBody(e.target.value)}
-        className="flex-1 h-12 px-3 rounded bg-slate-400 border border-bg-slate-400 focus:border-slate-400 focus:outline-none text-black placeholder-black"
+        className="flex-auto h-12 px-3 rounded bg-slate-400 border border-bg-slate-400 focus:border-slate-400 focus:outline-none text-black placeholder-black min-w-0"
       />
       <button
         type="submit"
-        className="bg-slate-400 rounded h-12 p-1 font-medium text-black w-24 text-sm border border-transparent hover:bg-slate-600 transition"
+        className="flex-initial bg-slate-400 rounded h-12 p-1 font-medium text-black w-24 text-sm border border-transparent hover:bg-slate-600 transition"
         disabled={!body}
       >
         Send
