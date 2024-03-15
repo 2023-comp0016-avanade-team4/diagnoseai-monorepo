@@ -86,12 +86,17 @@ const Validate = () => {
     fetch(`/api/indexContent?searchIndex=${searchIndex}`, {
       method: "GET",
     }).then((response) => {
+      if (response.status !== 200) {
+        console.error("Error fetching index content");
+        router.replace('/');
+        return;
+      }
       response.json().then((data) => {
         setExtractedText(data.results.join("\n"));
         setIsLoading(false);
       });
     });
-  }, [params]);
+  }, [params, router]);
 
   // NOTE: We use a separate code path to handle loading, because the
   // skeleton mistakenly affects the height & width of the chat
