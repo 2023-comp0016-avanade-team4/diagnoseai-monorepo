@@ -33,7 +33,7 @@ const ClientPage = ({ users }: { users: User[] }) => {
       task_name,
       task_desc,
     });
-    setResponse(res.data);
+    setResponse(res.data.message);
   };
 
   return (
@@ -67,7 +67,7 @@ const ClientPage = ({ users }: { users: User[] }) => {
         <Input
           type="text"
           value={task_desc}
-          onChange={(e) => setTaskName(e.target.value)}
+          onChange={(e) => setTaskDesc(e.target.value)}
           placeholder="Enter a task description"
         />
         <Button color="primary" type="submit">Submit</Button>
