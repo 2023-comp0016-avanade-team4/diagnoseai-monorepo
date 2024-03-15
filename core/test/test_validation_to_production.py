@@ -14,9 +14,12 @@ akc_patch = patch('azure.core.credentials.AzureKeyCredential').start()
 sic_patch = patch('azure.search.documents.indexes.SearchIndexClient').start()
 verify_token_patch = patch('utils.verify_token.verify_token').start()
 http_response_patch = patch('azure.functions.HttpResponse').start()
+bsc_patch = patch('azure.storage.blob.BlobServiceClient').start()
 
 os.environ['CognitiveSearchKey'] = 'mock-key'
 os.environ['CognitiveSearchEndpoint'] = 'mock-endpoint'
+os.environ['DocumentStorageContainer'] = 'mock-container'
+os.environ['DocumentStorageConnection'] = 'mock-connection'
 
 # pylint: disable=wrong-import-position
 from core.functions.validation_to_production import main  # noqa: E402
@@ -60,6 +63,10 @@ class TestValidationToProduction(BaseTestCase):
         sic_patch.assert_called()
         akc_patch.assert_called()
         akc_patch.assert_called()
+        bsc_patch.from_connection_string.return_value.\
+            get_container_client.return_value.\
+            get_blob_client.return_value.\
+            start_copy_from_url.assert_called()
         cog_search_client_patch.list_index_names.assert_called()
         sc_patch.return_value.upload_documents.assert_called()
         verify_token_patch.assert_called_with('test')

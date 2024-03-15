@@ -18,6 +18,7 @@ from azure.search.documents.indexes.models import (
     VectorSearchProfile,
     HnswAlgorithmConfiguration
 )
+from azure.storage.blob import BlobServiceClient
 
 from utils.verify_token import verify_token
 
@@ -25,6 +26,11 @@ from utils.verify_token import verify_token
 
 COGNITIVE_SERVICE_ENDPOINT = os.environ["CognitiveSearchEndpoint"]
 COGNITIVE_SEARCH_API_KEY = os.environ["CognitiveSearchKey"]
+
+SOURCE_STORAGE_CONNECTION_STRING = os.environ["DocumentStorageContainer"]
+SOURCE_STORAGE_CONTAINER = 'verification'
+DESTINATION_STORAGE_CONNECTION_STRING = os.environ["DocumentStorageContainer"]
+DESTINATION_STORAGE_CONTAINER = 'production'
 
 # Global Clients
 
@@ -35,6 +41,21 @@ cognitiveSearchClient = SearchIndexClient(
     credential=credential
 )
 
+validationBlobServiceClient = BlobServiceClient.from_connection_string(
+    SOURCE_STORAGE_CONNECTION_STRING
+)
+
+productionBlobServiceClient = BlobServiceClient.from_connection_string(
+    DESTINATION_STORAGE_CONNECTION_STRING
+)
+
+validationContainerClient = validationBlobServiceClient.get_container_client(
+    SOURCE_STORAGE_CONTAINER
+)
+
+productionContainerClient = productionBlobServiceClient.get_container_client(
+    DESTINATION_STORAGE_CONTAINER
+)
 
 def create_index(index_name: str) -> None:
     """Create an index in the search service"""
@@ -91,6 +112,17 @@ def migrate_documents(validation_index_name: str,
         production_client.upload_documents(documents)
 
 
+def move_document_to_production(name: str) -> None:
+    """
+    Moves a document from the validation storage container to production
+    """
+    source_client = validationContainerClient.get_blob_client(name)
+    target_client = productionContainerClient.get_blob_client(name)
+
+    target_client.start_copy_from_url(source_client.url)
+    source_client.delete_blob()
+
+
 def index_not_found_error(validation_index_name: str) -> HttpResponse:
     """Return a response indicating that the validation index was not found"""
     return HttpResponse(
@@ -132,6 +164,7 @@ def main(req: HttpRequest) -> HttpResponse:
 
     try:
         cognitiveSearchClient.delete_index(validation_index_name)
+        move_document_to_production(validation_index_name)
     except HttpResponseError as err:
         return error_deleting_index(err)
 
