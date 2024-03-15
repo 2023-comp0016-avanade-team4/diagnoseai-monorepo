@@ -4,11 +4,11 @@ interface UUIDAction {
 }
 
 interface UUIDState {
-  value: string;
+  value: string | null;
 }
 
 const initialState = {
-  value: "test",
+  value: null,
 } as UUIDState;
 
 const uuidReducer = (state = initialState, action: UUIDAction) => {

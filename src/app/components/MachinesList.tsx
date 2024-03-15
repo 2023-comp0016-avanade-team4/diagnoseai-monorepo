@@ -49,7 +49,7 @@ const MachineList = () => {
         onChange={handleMachineChange}
         placeholder="Select a machine"
         items={machines}
-        selectedKeys={[selectedMachine?.machine_id || ""]}
+        selectedKeys={selectedMachine ? [selectedMachine.machine_id] : []}
       >
         {(machine) => (
           <SelectItem

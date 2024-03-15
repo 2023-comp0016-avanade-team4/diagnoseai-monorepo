@@ -80,7 +80,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             const user = await clerkClient.users.getUser(userId || "");
             await addProcessingFileToDB(blobName, machineId[0], user);
             console.log(`Upload block blob ${blobName} successfully`);
-            res.status(200).json({ message: "File uploaded successfully" });
+            res.status(200).json({ uuid: blobName, message: "File uploaded successfully" });
           })
           .catch((error) => {
             console.log("catch inside blockBlobClient.uploadFile");

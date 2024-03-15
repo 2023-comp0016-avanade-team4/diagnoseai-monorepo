@@ -15,4 +15,4 @@ async function getWorkOrders(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-export default getWorkOrders;
+export default authGuard(getWorkOrders);
