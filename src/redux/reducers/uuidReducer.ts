@@ -1,12 +1,11 @@
 interface UUIDAction {
   type: string;
   payload: string;
-};
+}
 
 interface UUIDState {
   value: string;
-};
-
+}
 
 const initialState = {
   value: "test",
@@ -14,7 +13,7 @@ const initialState = {
 
 const uuidReducer = (state = initialState, action: UUIDAction) => {
   switch (action.type) {
-    case 'SET_UUID':
+    case "SET_UUID":
       return {
         ...state,
         value: action.payload,
@@ -25,7 +24,7 @@ const uuidReducer = (state = initialState, action: UUIDAction) => {
 };
 
 export const setUUID = (uuid: string) => ({
-  type: 'SET_UUID',
+  type: "SET_UUID",
   payload: uuid,
 });
 

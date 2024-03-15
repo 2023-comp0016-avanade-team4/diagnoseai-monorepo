@@ -72,16 +72,13 @@ describe("File Uploader", () => {
   it("Tries to submit data to the server upon clicking upload", async () => {
     setUploaderWithFile();
 
-    global.fetch = jest.fn().mockImplementationOnce(() =>
-      Promise.resolve({
+    global.fetch = jest.fn().mockImplementationOnce(() => {
+      return Promise.resolve({
         json: () => Promise.resolve({ error: false }),
-      })
-    );
-
-    await act(async () => {
-      fireEvent.click(screen.getByText("Confirm Upload"));
+      } as Response);
     });
 
+    fireEvent.click(screen.getByText("Confirm Upload"));
     expect(global.fetch).toHaveBeenCalledWith("/api/fileUpload", {
       body: expect.any(FormData),
       method: "POST",
