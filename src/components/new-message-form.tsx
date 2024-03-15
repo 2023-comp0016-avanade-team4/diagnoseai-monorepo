@@ -26,7 +26,7 @@ export const NewMessageForm = () => {
       webSocket.readyState !== WebSocket.OPEN ||
       selectedFile ||
       current?.resolved === "COMPLETED"
-    );
+    ) as boolean;
   }, [webSocket, selectedFile, current]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,6 +63,7 @@ export const NewMessageForm = () => {
       message: message.message,
       isImage: message.isImage,
       sentAt: Date.now() / 1000,
+      citations: []
     });
 
     play();
@@ -79,6 +80,7 @@ export const NewMessageForm = () => {
       authToken: await getToken(),
       isImage: false,
       index: current ? current?.machine_id : "validation-index",
+      citations: []
     } as Message;
 
     if (file) {
@@ -106,6 +108,7 @@ export const NewMessageForm = () => {
           message: "Processing image...",
           isImage: false,
           sentAt: Date.now() / 1000,
+          citations: []
         });
       }, 250);
     } else {
