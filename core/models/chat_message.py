@@ -9,7 +9,7 @@ import enum
 from datetime import datetime
 from sqlalchemy import Column, Enum, String, select, JSON
 from sqlalchemy.orm import Mapped, Session, mapped_column
-from utils.chat_message import BidirectionalChatMessage
+from utils.chat_message import BidirectionalChatMessage, Citation
 
 from .common import Base
 
@@ -92,7 +92,7 @@ class ChatMessageModel(Base):
             # casted because message.sender (is a str) should
             # become either bot or user
             sender=cast(Literal['bot', 'user'], message.sender),
-            citations=([citation.to_dict() for citation in message.citations]
+            citations=(cast(list[Citation], message.citations)
                        if message.citations else [])
         )
 
