@@ -47,8 +47,14 @@ class TestValidationToProduction(BaseTestCase):
         cog_search_client_patch.list_index_names.return_value = [
             'test', 'mock-index']
         akc_patch.return_value = 'mock-key'
-        sc_patch.return_value.search.return_value.by_page.return_value = [
-            'irrelevant']
+        documents = [
+            {"id": "1", "content": "Example 1",
+             "filepath": None},
+            {"id": "2", "content": "Example 2",
+             "filepath": None}
+        ]
+        sc_patch.return_value.search.return_value.by_page.return_value = \
+            iter([documents])
         main(self.req)
         sc_patch.assert_called()
         sic_patch.assert_called()
@@ -90,8 +96,14 @@ class TestValidationToProduction(BaseTestCase):
                                                                  'mock-index']
         cog_search_client_patch.delete_index.side_effect = HttpResponseError(
                 'mock-error')
-        sc_patch.return_value.search.return_value.by_page.return_value = [
-            'irrelevant']
+        documents = [
+            {"id": "1", "content": "Example 1",
+             "filepath": None},
+            {"id": "2", "content": "Example 2",
+             "filepath": None}
+        ]
+        sc_patch.return_value.search.return_value.by_page.return_value = \
+            iter([documents])
         main(self.req)
         sc_patch.assert_called()
         sc_patch.return_value.upload_documents.assert_called()
@@ -100,36 +112,38 @@ class TestValidationToProduction(BaseTestCase):
                 status_code=500
         )
 
-    @patch('core.functions.validation_to_production.SearchIndexClient')
     @patch('core.functions.validation_to_production.SearchClient')
-    def test_filepath_added_to_documents(
-        self, mock_search_client, mock_search_index_client
-    ):
+    def test_filepath_added_to_documents(self, mock_search_client):
         """
         Tests that the filepath is added correctly to each document
         """
         validation_index_name = "test"
         documents = [
             {"id": "1", "content": "Example 1",
-             "filepath": validation_index_name},
+             "filepath": None},
             {"id": "2", "content": "Example 2",
-             "filepath": validation_index_name}
+             "filepath": None}
         ]
 
         verify_token_patch.return_value = True
         mock_search_client.return_value.search.return_value.by_page.return_value = iter([documents])  # noqa: E501  pylint: disable=line-too-long
 
-        mock_search_index_client.return_value.list_index_names.return_value = [
-            validation_index_name
+        sic_patch.return_value.list_index_names.return_value = [
+            validation_index_name,
+            'mock-index'
         ]
 
         main(self.req)
 
-        expected_filepath = validation_index_name
+        mock_search_client.return_value.upload_documents.assert_called()
+        _, args, _ = mock_search_client.return_value.upload_documents\
+                                                    .mock_calls[0]
+        documents = args[0]
+
         for doc in documents:
             self.assertIn('filepath', doc, "Document missing 'filepath' key")
             self.assertEqual(
                 doc['filepath'],
-                expected_filepath,
+                validation_index_name,
                 "'filepath' does not match validation index name"
             )

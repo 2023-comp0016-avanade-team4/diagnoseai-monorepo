@@ -2,8 +2,8 @@
 This file contains the function to vectorise the image summary text and store it in Azure Search
 """
 import os
-from langchain.embeddings import AzureOpenAIEmbeddings
-from langchain.vectorstores.azuresearch import AzureSearch
+from langchain_openai import AzureOpenAIEmbeddings
+from langchain_community.vectorstores.azuresearch import AzureSearch
 from langchain.text_splitter import CharacterTextSplitter
 
 SEARCH_KEY = os.environ["CognitiveSearchKey"]

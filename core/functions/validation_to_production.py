@@ -9,15 +9,14 @@ from azure.search.documents.indexes import SearchIndexClient
 from azure.core.credentials import AzureKeyCredential
 from azure.core.exceptions import HttpResponseError
 from azure.search.documents.indexes.models import (
-    SearchIndex,
-    SearchField,
     SearchFieldDataType,
     SimpleField,
     SearchableField,
     SearchIndex,
     SearchField,
     VectorSearch,
-    HnswVectorSearchAlgorithmConfiguration
+    VectorSearchProfile,
+    HnswAlgorithmConfiguration
 )
 
 from utils.verify_token import verify_token
@@ -42,13 +41,19 @@ def create_index(index_name: str) -> None:
     fields = [
         SimpleField(name="id", type=SearchFieldDataType.String, key=True, sortable=True, filterable=True, facetable=True),
         SearchableField(name="content", sortable=True, filterable=True, facetable=True),
-        SearchField(name="content_vector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single), searchable=True, vector_search_dimensions=1536, vector_search_profile_name="vector-search"),
-        SimpleField(name="metadata", sortable=True, filterable=False, facetable=False),
-        SimpleField(name="filepath", sortable=True, filterable=True, facetable=False),
+        SearchField(name="content_vector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single), searchable=True, vector_search_dimensions=1536, vector_search_profile_name="my-vector-config"),
+        SimpleField(name="metadata", type=SearchFieldDataType.String, sortable=True, filterable=False, facetable=False),
+        SimpleField(name="filepath", type=SearchFieldDataType.String, sortable=True, filterable=True, facetable=False),
     ]
 
     vector_search = VectorSearch(
-        algorithm_configurations=[HnswVectorSearchAlgorithmConfiguration(name='vector-search')]
+        profiles=[
+            VectorSearchProfile(
+                name='my-vector-config',
+                algorithm_configuration_name='my-algorithms-config'
+            )
+        ],
+        algorithms=[HnswAlgorithmConfiguration(name='my-algorithms-config')]
     )
 
     cognitiveSearchClient.create_index(
@@ -79,6 +84,9 @@ def migrate_documents(validation_index_name: str,
 
     for page in validation_index_client.search(search_text="*").by_page():
         documents = list(page)
+        for doc in documents:
+            doc['filepath'] = validation_index_name
+
         logging.info(documents)
         production_client.upload_documents(documents)
 

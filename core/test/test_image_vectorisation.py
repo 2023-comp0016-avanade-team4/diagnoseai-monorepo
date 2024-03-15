@@ -7,8 +7,8 @@ from unittest.mock import  patch
 from base_test_case import BaseTestCase
 
 # Globals patching
-aoie_patch = patch('langchain.embeddings.AzureOpenAIEmbeddings').start()
-as_patch = patch('langchain.vectorstores.azuresearch.AzureSearch').start()
+aoie_patch = patch('langchain_openai.AzureOpenAIEmbeddings').start()
+as_patch = patch('langchain_community.vectorstores.azuresearch.AzureSearch').start()
 cts_patch = patch('langchain.text_splitter.CharacterTextSplitter').start()
 environ_patch = patch.dict(os.environ, {
     "CognitiveSearchKey": "mock_key",

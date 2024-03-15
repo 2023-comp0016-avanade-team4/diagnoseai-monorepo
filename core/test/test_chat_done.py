@@ -10,9 +10,9 @@ from base_test_case import BaseTestCase
 import azure.functions as func
 
 # Globals patching
-aoie_patch = patch('langchain.embeddings.AzureOpenAIEmbeddings') \
+aoie_patch = patch('langchain_openai.AzureOpenAIEmbeddings') \
     .start()
-as_patch = patch('langchain.vectorstores.azuresearch.AzureSearch') \
+as_patch = patch('langchain_community.vectorstores.azuresearch.AzureSearch') \
     .start()
 db_session_patch = patch('utils.db.create_session') \
     .start()

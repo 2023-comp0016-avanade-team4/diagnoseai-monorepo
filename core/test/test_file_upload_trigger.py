@@ -8,13 +8,13 @@ from base_test_case import BaseTestCase
 
 dac_patch = patch('azure.ai.formrecognizer.DocumentAnalysisClient') \
     .start()
-dip_patch = patch('langchain.document_loaders.pdf.DocumentIntelligenceParser') \
+dip_patch = patch('langchain_community.document_loaders.pdf.DocumentIntelligenceParser') \
     .start()
 akc_patch = patch('azure.core.credentials.AzureKeyCredential') \
     .start()
-aoie_patch = patch('langchain.embeddings.AzureOpenAIEmbeddings') \
+aoie_patch = patch('langchain_openai.AzureOpenAIEmbeddings') \
     .start()
-as_patch = patch('langchain.vectorstores.azuresearch.AzureSearch') \
+as_patch = patch('langchain_community.vectorstores.azuresearch.AzureSearch') \
     .start()
 is_patch = patch('azure.functions.InputStream') \
     .start()

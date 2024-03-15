@@ -9,9 +9,9 @@ import azure.functions as func
 from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.core.credentials import AzureKeyCredential
 from langchain.document_loaders.blob_loaders import Blob
-from langchain.document_loaders.pdf import DocumentIntelligenceParser
-from langchain.embeddings import AzureOpenAIEmbeddings
-from langchain.vectorstores.azuresearch import AzureSearch
+from langchain_community.document_loaders.pdf import DocumentIntelligenceParser
+from langchain_openai import AzureOpenAIEmbeddings
+from langchain_community.vectorstores.azuresearch import AzureSearch
 
 # Loading required variables from the environment
 

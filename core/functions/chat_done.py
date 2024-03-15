@@ -12,9 +12,9 @@ from typing import Optional
 
 import azure.functions as func  # type: ignore[import-untyped]
 from langchain.docstore.document import Document
-from langchain.embeddings import AzureOpenAIEmbeddings
+from langchain_openai import AzureOpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores.azuresearch import AzureSearch
+from langchain_community.vectorstores.azuresearch import AzureSearch
 from openai import AzureOpenAI
 from models.chat_message import ChatMessageDAO
 from models.conversation_status import ConversationStatusDAO

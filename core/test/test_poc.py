@@ -9,13 +9,13 @@ from base_test_case import BaseTestCase
 
 # Globals patching
 dip_patch = \
-    patch('langchain.document_loaders.pdf.DocumentIntelligenceParser') \
+    patch('langchain_community.document_loaders.pdf.DocumentIntelligenceParser') \
     .start()
 dac_patch = patch('azure.ai.formrecognizer.DocumentAnalysisClient') \
     .start()
-aoae_patch = patch('langchain.embeddings.AzureOpenAIEmbeddings') \
+aoae_patch = patch('langchain_openai.AzureOpenAIEmbeddings') \
     .start()
-as_patch = patch('langchain.vectorstores.azuresearch.AzureSearch') \
+as_patch = patch('langchain_community.vectorstores.azuresearch.AzureSearch') \
     .start()
 
 os.environ["DocumentEndpoint"] = ''
