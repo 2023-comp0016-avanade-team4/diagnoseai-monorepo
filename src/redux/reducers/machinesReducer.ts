@@ -1,4 +1,7 @@
 import Machine from '../../types/machine';
+import { useAppDispatch } from '../hook';
+import axios from 'axios';
+import { AppDispatch } from '../store';
 
 // Define action types
 
@@ -24,3 +27,8 @@ export const setMachines = (machines: Machine[]) => ({
   type: 'SET_MACHINES',
   payload: machines,
 });
+
+export const fetchMachines = async (dispatch: AppDispatch) => {
+  const response = await axios.get("/api/getMachines");
+  dispatch(setMachines(response.data as Machine[]));
+}

@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import WorkOrder from "../../../types/workOrder";
+import { Select, SelectSection, SelectItem, Input, Button } from "@nextui-org/react";
 
 const Page = () => {
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
@@ -32,21 +33,16 @@ const Page = () => {
   };
 
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        <select value={order_id} onChange={handleWorkOrderChange}>
-          <option value="">Select a work order</option>
-          {workOrders.map((workOrder) => (
-            <option key={workOrder.order_id} value={workOrder.order_id}>
-              {workOrder.task_name}
-            </option>
-          ))}
-        </select>
-
-        <button type="submit">Submit</button>
+    <div className="w-100 h-100 text-center m-5">
+      <form className="flex flex-col gap-4 w-100 h-100 jusity-items-center items-center place-content-center" onSubmit={handleSubmit}>
+        <h1 className="text-4xl py-5">Delete a work order</h1>
+        <Select items={workOrders} label="Work Order" placeholder="Select a work order" isRequired onChange={handleWorkOrderChange}>
+          {(workOrder) => <SelectItem key={workOrder.order_id} value={workOrder.order_id}>{workOrder.order_id.substring(0, 8)}</SelectItem>}
+        </Select>
+        <Button type="submit" color="danger">Delete</Button>
       </form>
       <div>{response}</div>
-    </div>
+    </div >
   );
 };
 
