@@ -139,7 +139,7 @@ const Validate = () => {
       <div className="flex-shrink-0 w-4/12">
         <div className="p-4 bg-gray-300 h-full flex flex-col">
           <h2 className="py-2 text-xl text-center font-extrabold">Chat</h2>
-          <div className="flex-1 h-full relative" style={{ 'max-height': '95%' }}>
+          <div className="flex-1 h-full relative" style={{ 'maxHeight': '95%' }}>
             <WebSocketProvider>
               <Chat />
             </WebSocketProvider>

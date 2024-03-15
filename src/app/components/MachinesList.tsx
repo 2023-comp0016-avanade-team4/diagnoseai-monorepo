@@ -9,6 +9,7 @@ import { RootState } from "../../redux/store";
 import Machine from "../../types/machine";
 import { Skeleton } from "@nextui-org/react";
 import { Select, SelectItem } from "@nextui-org/react";
+import { UnknownAction } from "redux";
 
 const MachineList = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -37,7 +38,7 @@ const MachineList = () => {
           machines.filter(
             (machine) => machine.machine_id === event.target.value,
           )[0],
-        ),
+        ) as unknown as UnknownAction,
       );
   };
 

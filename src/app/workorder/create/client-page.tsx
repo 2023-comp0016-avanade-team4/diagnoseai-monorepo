@@ -72,7 +72,7 @@ const ClientPage = ({ users }: { users: User[] }) => {
         />
         <Button color="primary" type="submit">Submit</Button>
       </form>
-      <div>{response.message}</div>
+      <div>{response}</div>
     </div >
   );
 };
