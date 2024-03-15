@@ -68,7 +68,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
         (message: IntermediateHistoricalMessage) => {
           return {
             id: uuid4(),
-            username: message.sender == "bot" ? "bot" : "some_user",
+            username: message.sender,
             message: message.message,
             isImage: message.isImage,
             sentAt: message.sentAt / 1000,

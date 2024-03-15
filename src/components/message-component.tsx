@@ -81,16 +81,18 @@ export const MessageComponent = ({ message }: Props) => {
 
   return (
     <div
-      className={`flex flex-col relative space-x-1 space-y-1 ${message.username === "some_user" ? "text-right" : "text-left"
-        }`}
+      className={`flex flex-col relative space-x-1 space-y-1 ${
+        message.username !== "bot" ? "text-right" : "text-left"
+      }`}
     >
       <div
-        className={`flex relative space-x-1 ${message.username === "some_user"
-          ? "flex-row-reverse space-x-reverse"
-          : "flex-row"
-          }`}
+        className={`flex relative space-x-1 ${
+          message.username !== "bot"
+            ? "flex-row-reverse space-x-reverse"
+            : "flex-row"
+        }`}
       >
-        {user?.imageUrl && message.username === "some_user" && (
+        {user?.imageUrl && message.username !== "bot" && (
           <div className="w-12 h-12 overflow-hidden flex-shrink-0 rounded">
             <a target="_blank" rel="noopener noreferrer">
               <Image
@@ -105,18 +107,14 @@ export const MessageComponent = ({ message }: Props) => {
         {message.username === "bot" && (
           <div className="w-12 h-12 overflow-hidden flex-shrink-0 rounded">
             <a target="_blank" rel="noopener noreferrer">
-              <Image
-                width={50}
-                height={50}
-                src={BotImg}
-                alt="Bot"
-              />
+              <Image width={50} height={50} src={BotImg} alt="Bot" />
             </a>
           </div>
         )}
         <span
-          className={`inline-flex rounded space-x-2 items-start p-3 text-white ${message.username === "some_user" ? "bg-[#4a9c6d]" : "bg-[#363739]"
-            } `}
+          className={`inline-flex rounded space-x-2 items-start p-3 text-white ${
+            message.username !== "bot" ? "bg-[#4a9c6d]" : "bg-[#363739]"
+          } `}
         >
           {message.isImage ? (
             <Image

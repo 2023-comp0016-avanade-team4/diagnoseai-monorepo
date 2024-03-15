@@ -67,7 +67,10 @@ export const MessageList = () => {
 
     if (webSocket) {
       webSocket.addEventListener("message", handleIncomingMessages);
-      fetchHistory(current ? current?.conversation_id : "1"); // HACK: fallback to 1 if we can't get convesation ID
+
+      // TODO: Probably can use a loading thingy here
+      if (current) fetchHistory(current?.conversation_id);
+      else console.log("Have not received conversation ID yet, skipping history");
 
       return () => {
         webSocket.removeEventListener("message", handleIncomingMessages);
