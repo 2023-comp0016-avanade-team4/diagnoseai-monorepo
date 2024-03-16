@@ -54,7 +54,7 @@ export const NewMessageForm = () => {
         id: uuid4(),
         username: "irrelevant",
         body: body,
-        createdAt: Math.floor(Date.now() / 1000),
+        createdAt: String(Math.floor(Date.now() / 1000)),
       });
 
       play();
