@@ -66,8 +66,8 @@ def __transform_chat_message_helper(model: ChatMessageModel):
                 bidirectional_chat_message.message)
 
     bidirectional_chat_message.citations = translate_citation_urls(
-        cast(list[Citation], [Citation.from_dict(
-            bidirectional_chat_message.citations)]),
+        [Citation.from_dict(citation) for citation in
+         bidirectional_chat_message.citations],
         doc_blob_service_client, 'production')
     return bidirectional_chat_message
 
