@@ -18,8 +18,8 @@ export const NewMessageForm = () => {
         const textResponse = JSON.parse(messageData).body;
 
         const responseMessage = {
-          id: "2",
-          username: uuid4(),
+          id: uuid4(),
+          username: "bot",
           body: textResponse,
           createdAt: "1",
         };
@@ -51,10 +51,10 @@ export const NewMessageForm = () => {
 
       webSocket.send(JSON.stringify(message));
       addMessage({
-        id: "1",
-        username: "some_user",
+        id: uuid4(),
+        username: "irrelevant",
         body: body,
-        createdAt: "1",
+        createdAt: Math.floor(Date.now() / 1000),
       });
 
       play();
@@ -79,6 +79,7 @@ export const NewMessageForm = () => {
       className="flex items-center space-x-3 w-full"
     >
       <input
+        autoComplete="off"
         autoFocus
         id="message"
         name="message"

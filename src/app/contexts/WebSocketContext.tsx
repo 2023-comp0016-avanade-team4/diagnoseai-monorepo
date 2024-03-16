@@ -61,38 +61,50 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   }, []);
 
   useEffect(() => {
-    if (wsUrl && !webSocket) {
+    let attemptReconnect = true;
+    if (!wsUrl) {
+      return;
+    }
+
+    const connectWebSocket = () => {
       const ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
         setIsReady(true);
       }
 
-      ws.onmessage = (event) => {
-        try {
-          const messageData: Message = JSON.parse(event.data);
-          addMessage(messageData);
-        } catch (error) {
-          console.error("Error parsing message data:", error);
+      ws.onclose = () => {
+        if (attemptReconnect) {
+          console.log("WebSocket Disconnected. Attempting to reconnect...");
+          setTimeout(() => {
+            connectWebSocket();
+          }, 1000);
         }
+      };
+
+      ws.onerror = (error) => {
+        console.error("WebSocket Error", error);
       };
 
       setWebSocket(ws);
     }
 
+    connectWebSocket();
+
     return () => {
+      attemptReconnect = false;
       if (webSocket) {
-        webSocket.close(); // Clean up the WebSocket on unmount
+        webSocket.close();
       }
     };
-  }, [wsUrl, webSocket, addMessage]);
+  }, [wsUrl, addMessage]); // intentional: we don't include webSocket
 
   const contextValue = {
     wsUrl,
     messages,
     addMessage,
     isSocketReady: isReady,
-    webSocket, // Provide the WebSocket instance in context
+    webSocket,
   };
 
   return (

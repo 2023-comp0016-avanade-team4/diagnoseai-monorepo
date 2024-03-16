@@ -5,8 +5,8 @@ import uploadsvg from '../../../public/upload.svg'
 import checkcirclesvg from '../../../public/check-circle.svg'
 import { usePathname } from 'next/navigation';
 
-export const ACTIVE_CLASSES = "bg-white flex flex-row items-center justify-start gap-2 text-darkslategray-300 p-5 border border-2 border-blue-500 p-4";
-export const INACTIVE_CLASSES = "bg-white flex flex-row items-center justify-start gap-2 text-darkslategray-300 p-5"
+export const ACTIVE_CLASSES = "bg-white flex flex-row items-center justify-start gap-2 text-darkslategray-300 p-5 border border-2 border-blue-500 p-4 overflow-hidden";
+export const INACTIVE_CLASSES = "bg-slate-400 flex flex-row items-center justify-start gap-2 text-darkslategray-300 p-5 overflow-hidden"
 
 export const getStylesForNavItem = (expectedPath: string, currentPath: string) => {
   const isSamePath = expectedPath == currentPath;
@@ -20,7 +20,7 @@ const Sidebar = () => {
   }
 
   return (
-    <div className="flex-shrink-0 bg-slate-100 text-black w-1/4 p-4">
+    <div className="flex-shrink-0 bg-slate-100 text-black min-w-52 p-4">
       <div className="mb-4">
         <h2 className="text-2xl text-center font-bold">Stages</h2>
       </div>
