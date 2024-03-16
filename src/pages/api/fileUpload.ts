@@ -25,7 +25,7 @@ async function addProcessingFileToDB(
 
   await PendingUploads.create({
     filename,
-    username: user.username || "123",
+    username: user.emailAddresses[0].emailAddress.split('@')[0] || "123",
     user_email: user.emailAddresses[0].emailAddress,
     machine_id,
   });
