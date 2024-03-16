@@ -14,7 +14,7 @@ export const NewMessageForm = () => {
   const [play] = useSound("sent.wav");
   const [body, setBody] = useState("");
   const { webSocket } = useWebSocket();
-  const { addMessage, isProcessingImage, setIsProcessingImage } =
+  const { addMessage, isProcessingImage, setIsProcessingImage, isProviderBusy } =
     useChatProvider();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { getToken } = useAuth();
@@ -25,7 +25,8 @@ export const NewMessageForm = () => {
       !webSocket ||
       webSocket.readyState !== WebSocket.OPEN ||
       selectedFile ||
-      current?.resolved === "COMPLETED"
+      current?.resolved === "COMPLETED" ||
+      isProviderBusy
     ) as boolean;
   };
 

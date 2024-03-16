@@ -27,6 +27,7 @@ type ChatContextType = {
   fetchHistory: (conversationId: string) => void;
   isProcessingImage: boolean;
   setIsProcessingImage: (isProcessing: boolean) => void;
+  isProviderBusy: boolean;
 };
 
 export const ChatContext = createContext<ChatContextType>({
@@ -36,6 +37,7 @@ export const ChatContext = createContext<ChatContextType>({
   fetchHistory: () => {},
   isProcessingImage: false,
   setIsProcessingImage: () => {},
+  isProviderBusy: false
 });
 
 type ChatProviderProps = {
@@ -44,6 +46,7 @@ type ChatProviderProps = {
 
 export const ChatProvider = ({ children }: ChatProviderProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [isProviderBusy, setIsProviderBusy] = useState(false); // for frontend spinners
   const [isProcessingImage, setIsProcessingImage] = useState(false);
 
   const addMessage = useCallback((newMessage: Message) => {
@@ -60,6 +63,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
   }, []);
 
   const fetchHistory = useCallback(async (conversationId: string) => {
+    setIsProviderBusy(true);
     try {
       const response = await axios.get(
         `/api/chatHistory?conversation_id=${conversationId}`
@@ -82,6 +86,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
       console.error("Error fetching chat history:", error);
       showToastWithRefresh("Error fetching chat history, please refresh.");
     }
+    setIsProviderBusy(false);
   }, []);
 
   return (
@@ -93,6 +98,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
         fetchHistory,
         isProcessingImage,
         setIsProcessingImage,
+        isProviderBusy
       }}
     >
       {children}

@@ -4,6 +4,7 @@ import { ButtonWithModalConfirmation } from "./button-with-modal-confirmation";
 import tickIcon from '../../assets/tick.svg';
 import outboxIcon from '../../assets/outbox.svg';
 import { useCallback } from "react";
+import { Skeleton } from "@nextui-org/react";
 
 const menuStyles = {
   bmBurgerButton: {
@@ -35,6 +36,8 @@ const menuStyles = {
     background: "#373a47",
     padding: "2.5em 1.5em 0",
     fontSize: "1.15em",
+    display: "flex",
+    flexDirection: "column",
   },
   bmOverlay: {
     top: "0",
@@ -67,7 +70,7 @@ const SideMenu = ({
   current,
   setCurrent,
 }: SideMenuProps) => {
-  const { markWorkOrderAsDone, markWorkOrderAsNotDone } = useWorkOrder();
+  const { markWorkOrderAsDone, markWorkOrderAsNotDone, isProviderBusy } = useWorkOrder();
 
   const setCardClick = useCallback(
     (workOrder: WorkOrder) => {
@@ -92,7 +95,7 @@ const SideMenu = ({
   );
 
   const renderWorkOrderList = (onlyCompleted: boolean) => {
-    return workOrders
+    const result = workOrders
       .filter(
         (workOrder) =>
           workOrder.resolved ===
@@ -144,6 +147,15 @@ const SideMenu = ({
           </div>
         </a>
       ));
+
+    if (result.length === 0) {
+      return (
+        <div className="flex h-full w-full items-center justify-center">
+          <p className="text-white">No work orders found.</p>
+        </div>
+      );
+    }
+    return result;
   };
 
   return (
@@ -152,15 +164,15 @@ const SideMenu = ({
       onStateChange={(state: { isOpen: boolean }) => setIsOpen(state.isOpen)}
       styles={menuStyles}
     >
-      <div>
+      <div className="flex-1">
         <h2 className="text-white font-bold text-xl pb-3">Work Orders</h2>
-        {renderWorkOrderList(false)}
+        {isProviderBusy ? <Skeleton className="w-full h-52" /> : renderWorkOrderList(false)}
       </div>
-      <div>
+      <div className="flex-1">
         <h2 className="text-white font-bold text-xl pb-3">Archived</h2>
-        {renderWorkOrderList(true)}
+        {isProviderBusy ? <Skeleton className="w-full h-52" /> : renderWorkOrderList(true)}
       </div>
-    </Menu>
+    </Menu >
   );
 };
 

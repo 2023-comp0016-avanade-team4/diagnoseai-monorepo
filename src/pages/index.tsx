@@ -4,11 +4,11 @@ import { NewMessageForm } from "@/components/new-message-form";
 
 export default function Home() {
   return (
-    <div className="flex flex-col bg-cover">
+    <div className="flex flex-col bg-cover dark">
       <Header />
       <div className="flex-1 overflow-y-scroll no-scrollbar p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex justify-between items-center">
+        <div className="max-w-4xl mx-auto h-full">
+          <div className="flex justify-between items-center h-full">
             <MessageList />
           </div>
         </div>

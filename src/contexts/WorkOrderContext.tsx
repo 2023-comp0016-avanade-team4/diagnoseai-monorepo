@@ -18,6 +18,7 @@ type WorkOrderContextState = {
   refreshOrders: () => Promise<void>;
   markWorkOrderAsDone: (workOrderId: string) => Promise<void>;
   markWorkOrderAsNotDone: (workOrderId: string) => Promise<void>;
+  isProviderBusy: boolean;
 };
 
 export const WorkOrderContext = createContext<WorkOrderContextState>({
@@ -27,6 +28,7 @@ export const WorkOrderContext = createContext<WorkOrderContextState>({
   refreshOrders: async () => {},
   markWorkOrderAsDone: async (_workOrderId: string) => {},
   markWorkOrderAsNotDone: async (_workOrderId: string) => {},
+  isProviderBusy: false,
 });
 
 type WorkOrderProviderProps = {
@@ -38,7 +40,9 @@ export const WorkOrderProvider: React.FC<WorkOrderProviderProps> = ({
 }) => {
   const [current, setCurrent] = useState<WorkOrder | null>(null);
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
+  const [isProviderBusy, setIsProviderBusy] = useState(false); // for frontend to show loading
   const refreshOrders = async () => {
+    setIsProviderBusy(true);
     try {
       const response = await axios.get("/api/workOrders");
       const workOrder = response.data;
@@ -52,6 +56,7 @@ export const WorkOrderProvider: React.FC<WorkOrderProviderProps> = ({
         `Error fetching work order: ${error}, please refresh.`
       );
     }
+    setIsProviderBusy(false);
   };
 
   const markWorkOrder = useCallback(async (workOrderId: string, done: boolean) => {
@@ -105,6 +110,7 @@ export const WorkOrderProvider: React.FC<WorkOrderProviderProps> = ({
         refreshOrders,
         markWorkOrderAsDone: id => markWorkOrder(id, true),
         markWorkOrderAsNotDone: id => markWorkOrder(id, false),
+        isProviderBusy
       }}
     >
       {children}
