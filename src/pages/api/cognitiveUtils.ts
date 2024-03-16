@@ -1,8 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import {
-  SearchIndexClient,
-  AzureKeyCredential,
-} from "@azure/search-documents";
+import { SearchIndexClient, AzureKeyCredential } from "@azure/search-documents";
 
 require("dotenv").config();
 
@@ -21,7 +18,7 @@ if (!AZURE_COGNITIVE_SERVICE_API_KEY) {
 
 export const indexClient = new SearchIndexClient(
   AZURE_COGNITIVE_SERVICE_ENDPOINT!,
-  new AzureKeyCredential(AZURE_COGNITIVE_SERVICE_API_KEY!)
+  new AzureKeyCredential(AZURE_COGNITIVE_SERVICE_API_KEY!),
 );
 
 async function hasIndex(searchIndex: string): Promise<boolean> {
@@ -44,8 +41,8 @@ export function checkSearchIndexMiddleware(
   fn: (
     req: NextApiRequest,
     res: NextApiResponse,
-    searchIndex: string
-  ) => Promise<void>
+    searchIndex: string,
+  ) => Promise<void>,
 ) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
     const { searchIndex } = req.query;
