@@ -5,7 +5,7 @@ import { Button } from "@nextui-org/react"
 interface FixedSideMenuProps {
   isOpen: boolean;
   setIsOpen: (state: boolean) => void;
-  className: string;
+  className?: string;
 }
 
 export const SideMenuButton = ({ isOpen, setIsOpen }: FixedSideMenuProps) => {
