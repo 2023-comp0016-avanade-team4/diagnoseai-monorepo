@@ -27,6 +27,12 @@ const ClientPage = ({ users }: { users: User[] }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!user_id || !machine_id || !task_name || !task_desc) {
+      setResponse("Please fill in all fields");
+      return;
+    }
+
     const res = await axios.post('/api/createWorkOrder', {
       user_id,
       machine_id,
@@ -62,12 +68,14 @@ const ClientPage = ({ users }: { users: User[] }) => {
           type="text"
           value={task_name}
           onChange={(e) => setTaskName(e.target.value)}
+          isRequired
           placeholder="Enter a task"
         />
         <Input
           type="text"
           value={task_desc}
           onChange={(e) => setTaskDesc(e.target.value)}
+          isRequired
           placeholder="Enter a task description"
         />
         <Button color="primary" type="submit">Submit</Button>

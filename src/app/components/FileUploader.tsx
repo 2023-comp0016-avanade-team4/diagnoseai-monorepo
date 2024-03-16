@@ -11,8 +11,8 @@ import { RootState } from "../../redux/store";
 const fileTypes = ["PDF"];
 
 interface UploaderInterface {
-  onUploadClick: () => void;
-  onUploadCancel: () => void;
+  onUploadClick?: () => void;
+  onUploadCancel?: () => void;
 }
 
 export const Uploader = ({ onUploadClick, onUploadCancel }: UploaderInterface) => {
@@ -35,11 +35,11 @@ export const Uploader = ({ onUploadClick, onUploadCancel }: UploaderInterface) =
       // TODO: Eventually, we should have a toast within the website
       // to show errors instead of using the alert box
       alert("please choose a file");
-      onUploadCancel();
+      onUploadCancel?.();
       return;
     }
 
-    onUploadClick();
+    onUploadClick?.();
     const formData = new FormData();
     formData.append("file", file);
     formData.append("machineId", selectedMachine?.machine_id || "");
@@ -52,7 +52,7 @@ export const Uploader = ({ onUploadClick, onUploadCancel }: UploaderInterface) =
     if (data.error) {
       alert("cannot upload file");
       setIsUploading((_) => false);
-      onUploadCancel();
+      onUploadCancel?.();
     } else {
       dispatch(setUUID(data.uuid));
       router.push('/uploadsuccess');

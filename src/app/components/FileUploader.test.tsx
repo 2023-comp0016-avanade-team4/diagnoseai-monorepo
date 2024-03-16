@@ -43,7 +43,7 @@ describe("File Uploader", () => {
     expect(screen.getByText("Upload")).toBeInTheDocument();
   });
 
-  it("Only accepts PDFs and DOCXs", () => {
+  it("Only accepts PDFs", () => {
     const uploader = render(
       <Provider store={store}>
         <FileUploader />
@@ -52,7 +52,7 @@ describe("File Uploader", () => {
     const fileInput = uploader.baseElement
       .getElementsByTagName("input")
       .item(0);
-    expect(fileInput).toHaveAttribute("accept", ".pdf,.docx");
+    expect(fileInput).toHaveAttribute("accept", ".pdf");
   });
 
   it("Button is disabled when there are no files selected", () => {

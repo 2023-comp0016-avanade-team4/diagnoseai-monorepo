@@ -22,6 +22,12 @@ const Page = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (order_id === "") {
+      setResponse("Please select a work order to delete");
+      return;
+    }
+
     const res = await axios.delete("/api/deleteWorkOrder", {
       data: { order_id },
     });
