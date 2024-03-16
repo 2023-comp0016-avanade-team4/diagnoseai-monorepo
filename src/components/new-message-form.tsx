@@ -25,6 +25,7 @@ export const NewMessageForm = () => {
       !webSocket ||
       webSocket.readyState !== WebSocket.OPEN ||
       selectedFile ||
+      current === null ||
       current?.resolved === "COMPLETED" ||
       isProviderBusy
     ) as boolean;

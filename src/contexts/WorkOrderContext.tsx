@@ -49,6 +49,9 @@ export const WorkOrderProvider: React.FC<WorkOrderProviderProps> = ({
       setWorkOrders(workOrder as WorkOrder[]);
       if (workOrder.length > 0) {
         setCurrent(workOrder[0]);
+      } else {
+        showToastWithRefresh(
+          "You do not have any work orders! Please contact an administrator to add work orders to your account.");
       }
     } catch (error) {
       console.error("Error fetching WorkOrder:", error);
