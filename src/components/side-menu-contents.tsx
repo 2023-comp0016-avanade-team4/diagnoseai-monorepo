@@ -1,4 +1,3 @@
-import { slide as Menu } from "react-burger-menu";
 import { useWorkOrder, WorkOrder } from "@/contexts/WorkOrderContext";
 import { ButtonWithModalConfirmation } from "./button-with-modal-confirmation";
 import tickIcon from '../../assets/tick.svg';
@@ -6,47 +5,7 @@ import outboxIcon from '../../assets/outbox.svg';
 import { useCallback } from "react";
 import { Skeleton } from "@nextui-org/react";
 
-const menuStyles = {
-  bmBurgerButton: {
-    position: "fixed",
-    width: "20px",
-    height: "20px",
-    left: "20px",
-    top: "26px",
-  },
-  bmCrossButton: {
-    height: "24px",
-    width: "24px",
-  },
-  bmBurgerBars: {
-    background: "#373a47",
-  },
-  bmCross: {
-    background: "#bdc3c7",
-  },
-  bmMenuWrap: {
-    top: "0",
-    left: "0",
-    position: "fixed",
-    height: "100%",
-  },
-  bmMenu: {
-    top: "0",
-    left: "0",
-    background: "#373a47",
-    padding: "2.5em 1.5em 0",
-    fontSize: "1.15em",
-    display: "flex",
-    flexDirection: "column",
-  },
-  bmOverlay: {
-    top: "0",
-    left: "0",
-    background: "rgba(0, 0, 0, 0.3)",
-  },
-};
-
-interface SideMenuProps {
+export interface SideMenuProps {
   isOpen: boolean;
   setIsOpen: (state: boolean) => void;
   workOrders: WorkOrder[];
@@ -63,13 +22,7 @@ const renderStyles = (isCurrent: boolean) => {
   );
 };
 
-const SideMenu = ({
-  isOpen,
-  setIsOpen,
-  workOrders,
-  current,
-  setCurrent,
-}: SideMenuProps) => {
+export const SideMenuContents = ({ setIsOpen, workOrders, current, setCurrent }: SideMenuProps) => {
   const { markWorkOrderAsDone, markWorkOrderAsNotDone, isProviderBusy } = useWorkOrder();
 
   const setCardClick = useCallback(
@@ -91,7 +44,7 @@ const SideMenu = ({
     (workorder_id: string) => {
       markWorkOrderAsNotDone(workorder_id);
     },
-    [markWorkOrderAsDone]
+    [markWorkOrderAsNotDone]
   );
 
   const renderWorkOrderList = (onlyCompleted: boolean) => {
@@ -157,13 +110,8 @@ const SideMenu = ({
     }
     return result;
   };
-
   return (
-    <Menu
-      isOpen={isOpen}
-      onStateChange={(state: { isOpen: boolean }) => setIsOpen(state.isOpen)}
-      styles={menuStyles}
-    >
+    <>
       <div className="flex-1">
         <h2 className="text-white font-bold text-xl pb-3">Work Orders</h2>
         {isProviderBusy ? <Skeleton className="w-full h-52" /> : renderWorkOrderList(false)}
@@ -172,8 +120,6 @@ const SideMenu = ({
         <h2 className="text-white font-bold text-xl pb-3">Archived</h2>
         {isProviderBusy ? <Skeleton className="w-full h-52" /> : renderWorkOrderList(true)}
       </div>
-    </Menu >
+    </>
   );
-};
-
-export default SideMenu;
+}

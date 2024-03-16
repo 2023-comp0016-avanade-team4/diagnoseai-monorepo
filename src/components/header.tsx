@@ -1,23 +1,32 @@
-import React, { useState } from "react";
 import { UserButton } from "@clerk/nextjs";
 import { useWorkOrder } from "@/contexts/WorkOrderContext";
-import SideMenu from "@/components/side-menu";
+import BurgerSideMenu from "@/components/burger-side-menu";
+import { SideMenuButton } from "./fixed-side-menu";
 
-export function Header() {
-  const [isOpen, setIsOpen] = useState(false);
+interface HeaderProps {
+  isOpen: boolean;
+  setIsOpen: (state: boolean) => void;
+}
+
+export function Header({ isOpen, setIsOpen }: HeaderProps) {
   const { current, setCurrent, workOrders } = useWorkOrder();
 
   return (
     <header className="p-6 bg-white/5 border-b border-[#363739]">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center">
-          <SideMenu
-            isOpen={isOpen}
-            setIsOpen={setIsOpen}
-            workOrders={workOrders}
-            current={current}
-            setCurrent={setCurrent}
-          />
+          <div className="md:hidden">
+            <BurgerSideMenu
+              isOpen={isOpen}
+              setIsOpen={setIsOpen}
+              workOrders={workOrders}
+              current={current}
+              setCurrent={setCurrent}
+            />
+          </div>
+          <div className="hidden md:block">
+            <SideMenuButton isOpen={isOpen} setIsOpen={setIsOpen} />
+          </div>
           <p className="inline-flex items-center space-x-3">
             <a href="/" target="_blank" rel="noopener noreferrer">
               <svg
@@ -44,6 +53,6 @@ export function Header() {
           <UserButton />
         </div>
       </div>
-    </header>
+    </header >
   );
 }
