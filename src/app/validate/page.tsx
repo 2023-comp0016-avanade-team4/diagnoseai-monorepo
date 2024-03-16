@@ -110,7 +110,7 @@ const Validate = () => {
       <div className="flex-1 max-h-full">
         <div className="p-4 bg-gray-200 h-full flex">
           <div className="grid grid-cols-1 grid-rows-[auto,1fr,3fr,auto] w-full max-h-full">
-            <h2 className="py-2 text-xl text-center font-extrabold">
+            <h2 className="mb-2 text-2xl text-center font-bold">
               Validate
             </h2>
             <div className="bg-slate-100 flex flex-col">
@@ -138,7 +138,9 @@ const Validate = () => {
 
       <div className="flex-shrink-0 w-4/12">
         <div className="p-4 bg-gray-300 h-full flex flex-col">
-          <h2 className="py-2 text-xl text-center font-extrabold">Chat</h2>
+          <h2 className="mb-2 text-2xl text-center font-bold">
+            Chat
+          </h2>
           <div className="flex-1 h-full relative" style={{ 'maxHeight': '95%' }}>
             <WebSocketProvider>
               <Chat />
