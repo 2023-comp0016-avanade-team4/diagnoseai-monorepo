@@ -11,6 +11,7 @@ import {
 } from "@/components/message-component";
 import { v4 as uuidv4 } from "uuid";
 import { showToastWithRefresh } from "./toast-with-refresh";
+import { Spinner } from "@nextui-org/react";
 
 export type IntermediateResponseMessage = {
   body: string;
@@ -28,6 +29,7 @@ export const MessageList = () => {
   const { webSocket } = useContext(WebSocketContext);
   const { messages, addMessage, fetchHistory } = useContext(ChatContext);
   const { current } = useWorkOrder();
+
 
   useEffect(() => {
     setTimeout(() => {
@@ -78,6 +80,7 @@ export const MessageList = () => {
     }
   }, [addMessage, webSocket, fetchHistory, current]);
 
+
   if (false)
     return (
       <div className="flex items-center justify-center h-full">
@@ -91,26 +94,41 @@ export const MessageList = () => {
     );
 
   return (
-    <div className="flex flex-col w-full space-y-3 overflow-y-scroll no-scrollbar">
-      {!inView && messages?.length && (
-        <div className="py-1.5 w-full px-3 z-10 text-xs absolute flex justify-center bottom-0 mb-[120px] inset-x-0">
-          <button
-            className="py-1.5 px-3 text-xs bg-[#1c1c1f] border border-[#363739] rounded-full text-white font-medium"
-            onClick={() => {
-              entry?.target.scrollIntoView({
-                behavior: "smooth",
-                block: "end",
-              });
-            }}
-          >
-            Scroll to see latest messages
-          </button>
-        </div>
-      )}
-      {messages.map((message) => (
-        <MessageComponent key={message?.id} message={message} />
-      ))}
-      <div ref={scrollRef} />
+    <div className="w-full">
+      {
+        messages.length > 0 ? (
+          <div className="flex flex-col w-full space-y-3 overflow-y-scroll no-scrollbar">
+            {!inView && messages?.length && (
+              <div className="py-1.5 w-full px-3 z-10 text-xs absolute flex justify-center bottom-0 mb-[120px] inset-x-0">
+                <button
+                  className="py-1.5 px-3 text-xs bg-[#1c1c1f] border border-[#363739] rounded-full text-white font-medium"
+                  onClick={() => {
+                    entry?.target.scrollIntoView({
+                      behavior: "smooth",
+                      block: "end",
+                    });
+                  }}
+                >
+                  Scroll to see latest messages
+                </button>
+              </div>
+            )}
+            {
+              messages.map((message) => (
+                <MessageComponent key={message?.id} message={message} />
+              ))
+            }
+            <div ref={scrollRef} />
+          </div>
+        ) : (
+          <div className="flex h-screen items-center justify-center" >
+            <div role="status">
+              <Spinner />
+              <span>Loading...</span>
+            </div>
+          </div>
+        )
+      }
     </div>
   );
 };
