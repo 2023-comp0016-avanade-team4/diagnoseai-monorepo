@@ -8,7 +8,7 @@ import { useAppDispatch, useAppSelector } from "../../redux/hook";
 import { setUUID } from "../../redux/reducers/uuidReducer";
 import { RootState } from "../../redux/store";
 
-const fileTypes = ["PDF", "DOCX"];
+const fileTypes = ["PDF"];
 
 interface UploaderInterface {
   onUploadClick: () => void;
