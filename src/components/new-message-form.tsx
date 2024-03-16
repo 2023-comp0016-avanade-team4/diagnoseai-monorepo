@@ -129,7 +129,7 @@ export const NewMessageForm = () => {
       `}</style>
       <div className="image-upload">
         <label htmlFor="file-input">
-          <Image src={uploadImageIcon} alt="upload image" className="w-6 h-6" />
+          <Image src={uploadImageIcon} alt="upload image" className="w-8 h-8 md:w-6 md:h-6" />
         </label>
         <input
           id="file-input"

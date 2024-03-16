@@ -28,9 +28,8 @@ export const SideMenuContents = ({ setIsOpen, workOrders, current, setCurrent }:
   const setCardClick = useCallback(
     (workOrder: WorkOrder) => {
       setCurrent(workOrder);
-      setIsOpen(false);
     },
-    [setCurrent, setIsOpen],
+    [setCurrent],
   );
 
   const onCompleteClick = useCallback(
