@@ -1,6 +1,7 @@
 import { SideMenuContents } from "./side-menu-contents";
 import { useWorkOrder } from "@/contexts/WorkOrderContext";
 import { Button } from "@nextui-org/react"
+import BurgerSvg from "./BurgerSvg";
 
 interface FixedSideMenuProps {
   isOpen: boolean;
@@ -9,10 +10,7 @@ interface FixedSideMenuProps {
 }
 
 export const SideMenuButton = ({ isOpen, setIsOpen }: FixedSideMenuProps) => {
-  if (isOpen) {
-    return <Button onClick={() => setIsOpen(false)} isIconOnly>&lt;&lt;</Button >
-  }
-  return <Button onClick={() => setIsOpen(true)} isIconOnly>&gt;&gt;</Button >
+  return <BurgerSvg onClick={() => setIsOpen(!isOpen)} />;
 };
 
 export const FixedSideMenu = ({ isOpen, setIsOpen, className }: FixedSideMenuProps) => {
