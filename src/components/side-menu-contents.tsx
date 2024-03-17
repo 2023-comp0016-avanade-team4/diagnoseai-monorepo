@@ -63,10 +63,10 @@ export const SideMenuContents = ({ setIsOpen, workOrders, current, setCurrent }:
           <div className="flex flex-col w-full">
             {current == workOrder ? (
               <>
-                <p>
+                <p className="w-[90%]">
                   <p className="pb-3">
                     <span className="font-bold">Work Order:</span>{" "}
-                    {workOrder.order_id}
+                    {workOrder.task_name}<br />{workOrder.task_desc}
                   </p>
                   <span className="font-bold">Machine:</span>{" "}
                   {workOrder.machine_name}
@@ -93,7 +93,7 @@ export const SideMenuContents = ({ setIsOpen, workOrders, current, setCurrent }:
               </>
             ) : (
               <>
-                {workOrder.machine_name} ({workOrder.order_id})
+                {workOrder.machine_name} ({workOrder.task_name})
               </>
             )}
           </div>

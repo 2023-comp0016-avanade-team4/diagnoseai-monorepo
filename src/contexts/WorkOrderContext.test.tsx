@@ -29,6 +29,8 @@ describe("WorkOrderContext", () => {
         machine_id: "mocked-machine-id",
         machine_name: "mocked-machine-name",
         conversation_id: "mocked-conversation-id",
+        task_name: "mocked-task-name",
+        task_desc: "mocked-task-desc",
         resolved: "COMPLETED"
       },
       {
@@ -36,6 +38,8 @@ describe("WorkOrderContext", () => {
         machine_id: "mocked-machine-id-2",
         machine_name: "mocked-machine-name-2",
         conversation_id: "mocked-conversation-id-2",
+        task_name: "mocked-task-name-2",
+        task_desc: "mocked-task-desc-2",
         resolved: "NOT_COMPLETED",
       },
     ];
@@ -97,6 +101,8 @@ describe("WorkOrderContext", () => {
         machine_id: "mocked-machine-id",
         machine_name: "mocked-machine-name",
         conversation_id: "mocked-conversation-id",
+        task_name: "mocked-task-name",
+        task_desc: "mocked-task-desc",
         resolved: "NOT_COMPLETED",
       },
     ];
@@ -135,6 +141,8 @@ describe("WorkOrderContext", () => {
         machine_id: "mocked-machine-id",
         machine_name: "mocked-machine-name",
         conversation_id: "mocked-conversation-id",
+        task_name: "mocked-task-name",
+        task_desc: "mocked-task-desc",
         resolved: "COMPLETED",
       },
     ];

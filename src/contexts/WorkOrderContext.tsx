@@ -8,6 +8,8 @@ export interface WorkOrder {
   machine_id: string;
   machine_name: string;
   conversation_id: string;
+  task_name: string;
+  task_desc: string;
   resolved: "COMPLETED" | "NOT_COMPLETED";
 }
 
