@@ -50,7 +50,9 @@ export const WorkOrderProvider: React.FC<WorkOrderProviderProps> = ({
       const workOrder = response.data;
       setWorkOrders(workOrder as WorkOrder[]);
       if (workOrder.length > 0) {
-        setCurrent(workOrder[0]);
+        if (current == null) {
+          setCurrent(workOrder[0]);
+        }
       } else {
         showToastWithRefresh(
           "You do not have any work orders! Please contact an administrator to add work orders to your account.");
