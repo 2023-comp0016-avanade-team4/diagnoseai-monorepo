@@ -19,7 +19,7 @@ export default function Home() {
   return (
     <div className="flex flex-row">
       <FixedSideMenu className="hidden md:block" isOpen={isOpen} setIsOpen={setIsOpen} />
-      <div className="flex flex-col bg-cover dark w-full">
+      <div className="flex flex-col bg-cover dark w-full relative">
         <Header isOpen={isOpen} setIsOpen={setIsOpen} />
         <div className="flex-1 overflow-y-scroll no-scrollbar p-6">
           <div className="max-w-4xl mx-auto h-full">
