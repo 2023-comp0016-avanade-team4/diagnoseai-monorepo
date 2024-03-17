@@ -106,7 +106,7 @@ def migrate_documents(validation_index_name: str,
     for page in validation_index_client.search(search_text="*").by_page():
         documents = list(page)
         for doc in documents:
-            doc['filepath'] = validation_index_name
+            doc['filepath'] = f'{validation_index_name}.pdf'
 
         logging.info(documents)
         production_client.upload_documents(documents)
@@ -117,7 +117,7 @@ def move_document_to_production(name: str) -> None:
     Moves a document from the validation storage container to production
     """
     source_client = validationContainerClient.get_blob_client(name)
-    target_client = productionContainerClient.get_blob_client(name)
+    target_client = productionContainerClient.get_blob_client(f'{name}.pdf')
 
     target_client.start_copy_from_url(source_client.url)
     source_client.delete_blob()

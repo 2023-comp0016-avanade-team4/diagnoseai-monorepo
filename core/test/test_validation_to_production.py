@@ -151,6 +151,6 @@ class TestValidationToProduction(BaseTestCase):
             self.assertIn('filepath', doc, "Document missing 'filepath' key")
             self.assertEqual(
                 doc['filepath'],
-                validation_index_name,
+                f"{validation_index_name}.pdf",
                 "'filepath' does not match validation index name"
             )
