@@ -90,6 +90,8 @@ class ResponseWorkOrderFormat(DataClassJsonMixin):
     machine_id: str
     machine_name: str
     conversation_id: str
+    task_name: str
+    task_desc: str
     resolved: Literal['not_completed', 'completed']
 
     @staticmethod
@@ -110,6 +112,8 @@ class ResponseWorkOrderFormat(DataClassJsonMixin):
             machine_name=cast(MachineModel,
                               work_order.machine).get_machine_name(),
             conversation_id=work_order.conversation_id,
+            task_name=work_order.task_name,
+            task_desc=work_order.task_desc,
             resolved=cast(Literal['not_completed', 'completed'],
                           cast(ConversationStatusModel,
                                work_order.conversation).status.name)

@@ -56,6 +56,8 @@ class TestWorkOrder(BaseTestCase):
         mock_work_orders[0].user_id = "user123"
         mock_work_orders[0].machine_id = "machine1"
         mock_work_orders[0].conversation_id = "conv1"
+        mock_work_orders[0].task_name = "task1"
+        mock_work_orders[0].task_desc = "task1 desc"
         mock_work_orders[0].machine = create_autospec(MachineModel)
         mock_work_orders[0].machine.get_machine_name.return_value \
             = "BrandX ModelY"
@@ -64,6 +66,8 @@ class TestWorkOrder(BaseTestCase):
         mock_work_orders[1].user_id = "user123"
         mock_work_orders[1].machine_id = "machine2"
         mock_work_orders[1].conversation_id = "conv2"
+        mock_work_orders[1].task_name = "task2"
+        mock_work_orders[1].task_desc = "task2 desc"
         mock_work_orders[1].machine = create_autospec(MachineModel)
         mock_work_orders[1].machine.get_machine_name.return_value \
             = "BrandA ModelB"
@@ -92,6 +96,8 @@ class TestWorkOrder(BaseTestCase):
                         "machine_id": "machine1",
                         "machine_name": "BrandX ModelY",
                         "conversation_id": "conv1",
+                        "task_name": "task1",
+                        "task_desc": "task1 desc",
                         "resolved": [],
                     },
                     {
@@ -99,6 +105,8 @@ class TestWorkOrder(BaseTestCase):
                         "machine_id": "machine2",
                         "machine_name": "BrandA ModelB",
                         "conversation_id": "conv2",
+                        "task_name": "task2",
+                        "task_desc": "task2 desc",
                         "resolved": [],
                     },
                 ]
