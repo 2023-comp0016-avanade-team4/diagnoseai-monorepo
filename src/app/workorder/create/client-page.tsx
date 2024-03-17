@@ -48,7 +48,7 @@ const ClientPage = ({ users }: { users: User[] }) => {
       <form className="flex flex-col gap-4 w-100 h-100 jusity-items-center items-center place-content-center" onSubmit={handleSubmit}>
         <Select
           items={users}
-          label="User ID"
+          label="User"
           placeholder="Select a user"
           isRequired
           onChange={(e) => setUserId(e.target.value)}
@@ -57,12 +57,12 @@ const ClientPage = ({ users }: { users: User[] }) => {
         </Select>
         <Select
           items={machines}
-          label="Machine ID"
+          label="Machine"
           placeholder="Select a machine"
           isRequired
           onChange={(e) => setMachineId(e.target.value)}
         >
-          {(machine) => <SelectItem key={machine.machine_id} value={machine.machine_id}>{machine.manufacturer} {machine.model}</SelectItem>}
+          {(machine) => <SelectItem key={machine.machine_id} value={machine.machine_id}>{`${machine.manufacturer} ${machine.model}`}</SelectItem>}
         </Select>
         <Input
           type="text"
