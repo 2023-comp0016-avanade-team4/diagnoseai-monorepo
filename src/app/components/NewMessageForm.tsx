@@ -86,11 +86,11 @@ export const NewMessageForm = () => {
         placeholder="Write a message..."
         value={body}
         onChange={(e) => setBody(e.target.value)}
-        className="flex-auto h-12 px-3 rounded bg-slate-400 border border-bg-slate-400 focus:border-slate-400 focus:outline-none text-black placeholder-black min-w-0"
+        className="flex-auto h-12 px-3 rounded bg-slate-300 border border-bg-slate-400 focus:border-slate-400 focus:outline-none text-black placeholder-black min-w-0"
       />
       <button
         type="submit"
-        className="flex-initial bg-slate-400 rounded h-12 p-1 font-medium text-black w-24 text-sm border border-transparent hover:bg-slate-600 transition"
+        className="flex-initial bg-slate-300 rounded h-12 p-1 font-medium text-black w-24 text-sm border border-transparent hover:bg-slate-600 transition"
         disabled={!body}
       >
         Send

@@ -137,7 +137,7 @@ const Validate = () => {
       </div >
 
       <div className="flex-shrink-0 w-4/12">
-        <div className="p-4 bg-gray-300 h-full flex flex-col">
+        <div className="p-4 bg-slate-100 h-full flex flex-col">
           <h2 className="mb-2 text-2xl text-center font-bold">
             Chat
           </h2>
