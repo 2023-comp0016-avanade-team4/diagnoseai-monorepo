@@ -80,7 +80,7 @@ blob_service_client = BlobServiceClient.from_connection_string(
     IMAGE_BLOB_CONNECTION_STRING)
 
 DOCUMENT_PROMPT = """
-You are a helpful chatbot named DiagnoseAI. You also go by "BOT", "the bot". You have access to technical manuals via a connected data source. Users are able to upload images to contextualize their conversations; you will observe these as a message prefixed by "USER IMAGE:". If you see "USER IMAGE:", it is a factual description of the image uploaded by the user. All references to "image" or "images" always refer to the description in "USER IMAGE:". You will be given a user summary representing all past conversations with the user to better contextualize your answer. If using the summary, reference it in the text with [summary]. Answer accordingly to all user images and data sources you have access to. SUMMARY: """  # noqa: E501
+You are a helpful chatbot named DiagnoseAI. You also go by "BOT", "the bot". You have access to technical manuals via a connected data source. Users are able to upload images to contextualize their conversations; you will observe these as a message prefixed by "USER IMAGE:". If you see "USER IMAGE:", it is a factual description of the image uploaded by the user. All references to "image" or "images" always refer to the description in "USER IMAGE:". You will be given a user summary representing all past conversations with the user to better contextualize your answer. If using the summary, reference it in the text with [summary]. If the summary is "The requested information is not available in the retrieved data. Please try another query or topic.", then ignore the summary. Answer accordingly to all user images and data sources you have access to. SUMMARY: """  # noqa: E501
 SUMMARY_PROMPT = """
 You are a helpful chatbot named DiagnoseAI. You have access to the summaries of previous conversations with the user via a connected data source. Users are able to upload images to contextualize their conversations; you will observe these as a message prefixed by "USER IMAGE:". If you see "USER IMAGE:", it is a factual description of the image uploaded by the user. All references to "image" or "images" always refer to the description in "USER IMAGE:". Based on the information you have, return a relevant user summary. If no such summary exists, simply output NONE. """  # noqa: E501
 
@@ -342,44 +342,66 @@ def __query_llm_with_index(
     Returns:
         tuple[str, list[Citation]]: The response and the citations
     """
-    chat_response = ai_client.chat.completions.create(
-        model='validation-testing-model',
-        extra_body={
-            "data_sources": [
-                {
-                    "type": "AzureCognitiveSearch",
-                    "parameters": {
-                        "endpoint": search_endpoint,
-                        "key": search_key,
-                        "indexName": document_index,
-                        "semanticConfiguration": "default",
-                        "queryType": "vector",
-                        "embeddingEndpoint": (
-                            f"{EMBEDDING_ENDPOINT}/openai/"
-                            f"deployments/{EMBEDDING_DEPLOYMENT_NAME}/"
-                            f"embeddings?api-version={OPENAI_API_VERSION}"),
-                        "embeddingKey": EMBEDDING_KEY,
-                        "fieldsMapping": {
-                            "filepath_field": "filepath"
-                        },
-                        "inScope": True,
-                        "filter": None,
-                        "strictness": 1,
-                        "topNDocuments": 5,
-                        "roleInformation": prompt
-                    }
-                }
-            ],
-        },
-        messages=messages,
-        temperature=0,
-        top_p=1,
-        max_tokens=800,
-    )
+    best_response = None
 
+    for max_history in [10, 5, 1]:
+        logging.info('Trying max_history=%d', max_history)
+        chat_response = ai_client.chat.completions.create(
+            model='validation-testing-model',
+            extra_body={
+                "data_sources": [
+                    {
+                        "type": "AzureCognitiveSearch",
+                        "parameters": {
+                            "endpoint": search_endpoint,
+                            "key": search_key,
+                            "indexName": document_index,
+                            "semanticConfiguration": "default",
+                            "queryType": "vector",
+                            "embeddingEndpoint": (
+                                f"{EMBEDDING_ENDPOINT}/openai/"
+                                f"deployments/{EMBEDDING_DEPLOYMENT_NAME}/"
+                                f"embeddings?api-version={OPENAI_API_VERSION}"
+                            ),
+                            "embeddingKey": EMBEDDING_KEY,
+                            "fieldsMapping": {
+                                "filepath_field": "filepath"
+                            },
+                            "inScope": True,
+                            "filter": None,
+                            "strictness": 1,
+                            "topNDocuments": 5,
+                            "roleInformation": prompt
+                        }
+                    }
+                ],
+            },
+            messages=messages[-max_history:],
+            temperature=0,
+            top_p=1,
+            max_tokens=800,
+        )
+
+        if best_response is None:
+            best_response = chat_response
+
+        assert best_response is not None
+        # Subtle note: It is GUARANTEED by the python implementation
+        # of max that in the event of a tie, it will be the first
+        # argument
+        best_response = max(best_response, chat_response,
+                            key=lambda x:
+                            len(x.choices[0].message.context['citations']))  # type: ignore # noqa: E501
+
+        # break early, if there are already citations it should be
+        # quite relevant to the context
+        if len(best_response.choices[0].message.context['citations']) > 0:  # type: ignore # noqa: E501
+            break
+
+    assert best_response is not None
     logging.info('%s: model response received', connection_id)
-    if len(chat_response.choices) == 0 \
-       or chat_response.choices[0].message.content is None:
+    if len(best_response.choices) == 0 \
+       or best_response.choices[0].message.content is None:
         ws_log_and_send_error(
             ('no response from AI chat.'
              f' for debugging purposes, you were {connection_id}'),
@@ -390,10 +412,10 @@ def __query_llm_with_index(
         Citation.from_dict(raw_citation)
         for raw_citation in (
             # Context definitely exists; but the SDK doesn't know it.
-            chat_response.choices[0].message.context['citations']  # type: ignore # noqa: E501
+            best_response.choices[0].message.context['citations']  # type: ignore # noqa: E501
         )
     ]
-    return chat_response.choices[0].message.content, citations
+    return best_response.choices[0].message.content, citations
 
 
 def process_message(message: ChatMessage, connection_id: str) -> None:
@@ -442,7 +464,7 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
         shadow_msg_to_db(message.conversation_id, filename, False, True, [],
                          additional_context=contextualized_summary)
         shadow_msg_to_db(message.conversation_id, contextualized_summary, True,
-                         False, False)
+                         False, [])
         ws_send_message(
             ResponseChatMessage(
                 summary,
