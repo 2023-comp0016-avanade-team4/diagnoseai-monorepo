@@ -364,7 +364,7 @@ def __query_llm_with_index(
                         },
                         "inScope": True,
                         "filter": None,
-                        "strictness": 3,
+                        "strictness": 1,
                         "topNDocuments": 5,
                         "roleInformation": prompt
                     }
