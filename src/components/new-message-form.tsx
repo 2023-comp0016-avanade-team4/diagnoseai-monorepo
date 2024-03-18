@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import useSound from "use-sound";
 import { useChatProvider } from "@/contexts/ChatContext";
@@ -9,6 +9,16 @@ import { v4 as uuidv4 } from "uuid";
 import { useAuth } from "@clerk/nextjs";
 import { useWorkOrder } from "@/contexts/WorkOrderContext";
 import { showToastWithRefresh } from "./toast-with-refresh";
+import { readAndCompressImage } from "browser-image-resizer";
+
+// The backend also downscales the image, but we do it here to prevent
+// reaching the maximum blob limit for base64-encoded images
+const imageResizeConfig = {
+  quality: 1.0,
+  maxWidth: 800,
+  maxHeight: 600,
+  debug: false
+};
 
 export const NewMessageForm = () => {
   const [play] = useSound("sent.wav");
@@ -76,7 +86,7 @@ export const NewMessageForm = () => {
     let message = {
       id: message_uuid,
       username: "some_user",
-      conversationId: current?.conversation_id || "1", // HACK: fallback to 1 if we can't get convesation ID
+      conversationId: current?.conversation_id || "-1", // -1 is the transient conv id.
       message: body,
       sentAt: Date.now() / 1000,
       authToken: await getToken(),
@@ -86,8 +96,9 @@ export const NewMessageForm = () => {
     } as Message;
 
     if (file) {
+      const compressed = await readAndCompressImage(file, imageResizeConfig);
       const reader = new FileReader();
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(compressed);
 
       reader.onload = () => {
         const dataURL = reader.result as string;
@@ -165,3 +176,5 @@ export const NewMessageForm = () => {
     </form>
   );
 };
+
+export default NewMessageForm;

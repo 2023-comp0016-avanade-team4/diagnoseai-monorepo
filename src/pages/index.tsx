@@ -1,9 +1,15 @@
 import { useState, useEffect } from "react";
+import dynamic from 'next/dynamic';
 import { Header } from "@/components/header";
 import { MessageList } from "@/components/message-list";
-import { NewMessageForm } from "@/components/new-message-form";
+
 import { FixedSideMenu } from "@/components/fixed-side-menu";
 import { isGreaterThanBreakpoint } from "@/utils/useBreakpoint";
+
+// NewMessageForm uses "browser-image-resizer", which can only be loaded
+// dynamically.
+const NewMessageForm = dynamic(() => import("@/components/new-message-form"),
+  { ssr: false });
 
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
