@@ -1,19 +1,118 @@
-# Diagnose AI Core
+# DiagnoseAI Core API
 
-This is the repository for the Diagnose AI core component.
+This is the DiagnoseAI core API; the main deliverable of COMP0016 Team
+4.
+
+## Overview - High Level
+
+Core API provides a common API that can be utilized by all interfaces
+intending to integrate their services with DiagnoseAI. At a high
+level, it exposes the following functionality:
+
+1. Processes, vectorizes and indexes documents from the Uploader
+   interface into a Vector Database (`file_upload_trigger`).
+2. Guarding underlying services with secure pre-authenticated
+   URLs. Services affected includes `WebPubSubService` and `Azure Blob Storage`.
+3. Handling multiple conversations (including history) between any
+   connected users to Azure OpenAI.
+4. Indexing and summarizing conversations. Summarized conversations
+   are **private** to the user, and can be referenced in a future
+   conversation.
+5. Management of indexes around the Vector Database; promoting any
+   documents used for validation (on the Uploader) to a real index
+   used for production (on any participating interfaces).
+
+For the full API specification, please see:
+
+- `core/swagger.yml` - Contains the documentation for all available
+  endpoints. At the time of writing, this includes:
+  - `/chat_conversation`: Establishes a chat connection with any
+    participating interface. This endpoint returns a preauthenticated
+    `WebSocket` URL that interfaces should establish a connection to.
+  - `/chat_history`: Retrieves all past messages of a chat given a
+    conversation.
+  - `/chat_done`: Marks a conversation as done, automatically
+    summarizing the contents for future reference.
+  - `/work_order`: Retrieves all associated _work orders_ to a
+    user. _Work orders_ describes all the information a technician
+    requires to complete a job; task name, task description, and the
+    machine to repair. In DiagnoseAI, work orders and conversations
+    share a one-to-one relationship.
+- `core/asyncapi2.yml` - Contains `WebSocket` message templates
+  supported by Core API. The `WebSocket` URL is generated with
+  `/chat_conversation`.
+
+## Overview - Technicality
+
+Core API acts as an aggregated proxy between the WebApp and relevant
+services:
+
+- Authentication with a third-party OAuth provider
+- Azure SQL
+- Azure AI Search (formerly Cognitive Search)
+- Azure API Management Service
+- Azure Blob Storage
+- Azure OpenAI Service
+- Azure WebPubSubService
+
+As mentioned in the overview above, the developer is encouraged to
+read `core/swagger.yml` and `core/asyncapi2.yaml` for API documentation.
+
+Core API is built with the following design goals in mind:
+
+1. Scalable
+2. Auth-independent
+3. Cloud-native
+
+By being _serverless_ on **Azure Function App**, and using JWT tokens,
+Core API achieves the above goals to a tee.
+
+# Prerequisites
+
+As a consequence of running on **Azure Function App**, it is designed
+_not_ to run on a local computer. Pure HTTP endpoints, such as those
+found in:
+
+- `functions/chat_connection.py`
+- `functions/chat_done.py`
+- `functions/chat_history.py`
+- `functions/work_order.py`
+
+can be ran locally with a local database and **Azurite** (explained
+later), but will still require connection to some real Azure services
+with no known local replacements, such as:
+
+- Azure OpenAI
+- Azure WebPubSubService
+- AI Search
+
+Hence, it is imperative that the developer **must** have access to all
+requisite services for a successful deployment. Should this not be
+possible, it is recommended that DiagnoseAI be evaluated via the
+online demo.
+
+The guide following this assumes an environment is setup to have:
+
+1. An Azure Account with access to services stated in [Overview -
+  Technicality](#overview---technicality)
+2. Python 3.10
+3. A Linux machine. Most commands can be substituted for a non-Linux
+   setup, however, that is outside the scope of this deployment guide.
 
 ## Installing Azure Functions Core Tools
 
 Run the following commands:
 
 ```
-# This installs `func`, which is required to develop
-# There is a way to do it without sudo, but you'll have to specify
-# your own NPM path.
-
 sudo npm install -g azure-functions-core-tools@4 --unsafe-perm true
-sudo npm install -g azurite
+sudo npm install -g azurite # optional
 ```
+
+`azure-function-core-tools` provide the `func` command that is
+required to deploy the functions onto Azure Function Apps.
+
+`azurite` simulates some Azure storage services such as Azure's Blob
+Storage. This is not required for deployment purposes.
 
 ## Configuring Local Development
 
