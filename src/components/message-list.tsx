@@ -132,7 +132,7 @@ export const MessageList = () => {
             <MessageComponent key={message?.id} message={message} />
           ))
         }
-        <div ref={scrollRef} />
+        <div className="h-[10px]" ref={scrollRef} />
       </div>
 
     </div>
