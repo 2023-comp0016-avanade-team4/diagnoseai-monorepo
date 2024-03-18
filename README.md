@@ -97,15 +97,55 @@ The guide following this assumes an environment is setup to have:
   Technicality](#overview---technicality)
 2. Python 3.10
 3. A Linux machine. Most commands can be substituted for a non-Linux
-   setup, however, that is outside the scope of this deployment guide.
+   setup, however, that is outside the scope of this guide.
+
+# Guide
+
+There are **two** guides embedded in this README:
+
+1. **Deployment Guide** - This is the guide to read if you intend to
+   deploy the repository as-is, without any unnecessary modifications.
+2. **Development Guide** - This is the guide to read if you intend to
+   either make changes to the repository, or run HTTP endpoints
+   locally. (**Note**: It is **not possible** to run the `chat`
+   function locally)
+
+The above guides have some overlapping sections; hence, please refer
+to the below table of contents.
+
+**Table of Contents (Deployment Guide)**
+
+1. [Installing Azure Functions Core
+   Tools](#installing-azure-functions-core-tools)
+2. [Creating the relevant Azure
+   services](#creating-the-relevant-azure-services)
+3. [Deploying Core API](#deploying-core-api)
+
+**Table of Contents (Development Guide)**
+
+1. [Installing Azure Functions Core
+   Tools](#installing-azure-functions-core-tools)
+2. [Configuring Local Development](#configuring-local-development)
+4. [Installing development
+   dependencies](#installing-development-dependencies)
+5. [Running Azurite](#running-azurite)
+6. [Running MSSQL](#running-mssql)
+7. [Installing required
+   dependencies](#installing-required-dependencies)
+2. [Creating the relevant Azure
+   services](#creating-the-relevant-azure-services)
+3. [Running the functions locally](#running-the-functions-locally)
+3. [Deploying Core API](#deploying-core-api)
+
+----
 
 ## Installing Azure Functions Core Tools
 
 Run the following commands:
 
 ```
-sudo npm install -g azure-functions-core-tools@4 --unsafe-perm true
-sudo npm install -g azurite # optional
+sudo npm install -g azure-functions-core-tools@4 --unsafe-perm true \
+sudo npm install -g azurite # optional for deployment-only
 ```
 
 `azure-function-core-tools` provide the `func` command that is
@@ -113,6 +153,67 @@ required to deploy the functions onto Azure Function Apps.
 
 `azurite` simulates some Azure storage services such as Azure's Blob
 Storage. This is not required for deployment purposes.
+
+Return to [Guide](#guide).
+
+----
+
+## Creating the relevant Azure services
+
+As a recap, Core API requires the following services:
+
+- Azure Function Apps
+- Azure SQL
+- Azure AI Search
+- Azure API Management Service
+- Azure Blob Storage
+- Azure OpenAI Service
+- Azure WebPubSubService
+
+The following sections will walk-through the creation process of each
+feature above; this entire section must be done before moving on to
+the next step any of the guides.
+
+#### Resource Group
+
+A resource group contains all of the resources you will create for
+DiagnoseAI.
+
+1. Navigate to the [Azure Portal](https://portal.azure.com).
+2. Search "Resource Groups" on the services search bar, and click on
+   it.
+   ![]()
+3. Click on the "+ Create" button.
+   ![]()
+4. Fill in a memorable name for the resource group, and choose your
+   closest region. For all mentions of a resource group from here on
+   out, the guide will refer to this very group.
+   ![]()
+
+#### Azure Function Apps
+
+1. Navigate to the [Azure Portal](https://portal.azure.com).
+2. Search "Function App" on the services search bar, and click on it.
+   ![]()
+3. Click "Create".
+   ![]()
+4. Select
+
+#### Azure SQL
+
+#### Azure AI Search
+
+#### Azure API Management Service
+
+#### Azure Blob Storage
+
+#### Azure OpenAI Service
+
+#### Azure WebPubSubService
+
+Return to [Guide](#guide).
+
+----
 
 ## Configuring Local Development
 
