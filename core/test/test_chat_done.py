@@ -77,7 +77,7 @@ class TestChatDone(BaseTestCase):
             headers={'Auth-Token': '123'}
         ))
 
-        sas_mock.assert_called_once()
+        sas_mock.assert_not_called()
         authorise_mock.assert_called_once()
         csdao_mock.mark_conversation_completed.assert_not_called()
         csdao_mock.mark_conversation_not_completed.assert_called_once()

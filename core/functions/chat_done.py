@@ -217,10 +217,10 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     if done:
         ConversationStatusDAO.mark_conversation_completed(
             req.params['conversation_id'], db_session)
+        summarize_and_store(user_id, conversation_id)
     else:
         ConversationStatusDAO.mark_conversation_not_completed(
             req.params['conversation_id'], db_session)
-    summarize_and_store(user_id, conversation_id)
     return func.HttpResponse(
         '', status_code=200
     )
