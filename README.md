@@ -184,39 +184,33 @@ DiagnoseAI.
 1. Navigate to the [Azure Portal](https://portal.azure.com).
 2. Search "Resource Groups" on the services search bar, and click on
    it.
-   ![]()
+   ![Find Resource Group](./screenshots/rg-01.png)
 3. Click on the "+ Create" button.
-   ![]()
+   ![Create](./screenshots/rg-02.png)
 4. Fill in a memorable name for the resource group, and choose your
    closest region. For all mentions of a resource group from here on
    out, the guide will refer to this very group.
-   ![]()
+   ![Create a resource group](./screenshots/rg-03.png)
 
 #### Azure Function Apps
 
 1. Navigate to the [Azure Portal](https://portal.azure.com).
 2. Search "Function App" on the services search bar, and click on it.
-   ![]()
+   ![Find Function App](./screenshots/fa-01.png)
 3. Click "Create".
-   ![]()
-4. Select the _Resource Group_ (created earlier), and name it anything
-   you want. You should remember the name; this will be referred to as
-   "Function App Name" from here on out.
-   ![]()
+   ![Create](./screenshots/fa-02.png)
+4. Select the _Resource Group_ (created in an earlier section), and
+   name it anything you want. You should remember the name; this will
+   be referred to as "Function App Name" from here on out.
+   ![Function app name](./screenshots/fa-03.png)
 5. Choose "Python" as the Runtime stack, "3.10" as the version, and
    the closest region to wherever the deployment will be. Set
    Operating System to "Linux". You can choose to use any consumption
    plan for the function app, although the project was developed with
    "Consumption (Serverless)" in mind.
-   ![]()
-6. Click on "Next: Storage".
-   ![]()
-7. Choose a storage account. This storage account does not have to be
-   the same as those created in the [Azure Blob
-   Storage](#azure-blob-storage) section.
-   ![]()
+   ![Other parameters](./screenshots/fa-04.png)
 6. Click "Review + Create".
-   ![]()
+   ![Review & Create](./screenshots/fa-05.png)
 
 Your function app should now be created. When the guide refers to "the
 function app", the reader can assume _this_ is the referred Function
