@@ -120,6 +120,7 @@ to the below table of contents.
 2. [Creating the relevant Azure
    services](#creating-the-relevant-azure-services)
 3. [Deploying Core API](#deploying-core-api)
+4. [Initializing the DB via CoreAPI](#initializing-the-db-via-coreapi)
 
 **Table of Contents (Development Guide)**
 
@@ -510,11 +511,73 @@ Return to [Guide](#guide).
 
 #### Azure WebPubSubService
 
+1. Navigate to the [Azure Portal](https://portal.azure.com).
+2. Search "Web PubSub Service" on the services search bar, and
+   click on it.
+   ![]()
+3. Click "Create".
+   ![]()
+4. Click on "Create" under "Web PubSub".
+   ![]()
+5. Select the _Resource Group_ (created earlier), and name it anything
+   you want.
+   ![]()
+6. Choose the closest region to the target deployment.
+   ![]()
+7. (Optional) Downgrade Pricing tier to "Free_F1".
+   ![]()
+8. Click "Review + create". Wait for the resource creation to
+   complete, and then click on "Go to resource".
+   ![]()
+9. On the side bar, click on "Keys" and copy the Connection
+   string. This will henceforth be referred to as the WebPubSub
+   connection string.
+   ![]()
+10. Click on "Settings" in the sidebar, and click "Add".
+    ![]()
+11. Set the Hub name to "chat" (copy the casing). Do not allow
+    anonymous clients. Click "Save"
+    ![]()
+
+By the end of this section, you should have:
+- WebPubSub Connection String
+
 Return to [Guide](#guide).
 
 ----
 
 #### Clerk
+
+Clerk is used as the demonstration authentication provider due to its
+ease-of-use. In production, it is likely to be swapped for Microsoft
+Entra, or another type of OAuth SSO.
+
+1. Go to [Clerk](https://clerk.com). Register for an account if you
+   don't already have one.
+2. Create a new organization. Name it anything, such as
+   "diagnoseai". Click on "Create organization".
+   ![]()
+3. (Optional, highly recommended) Turn on the allow list. On the side
+   bar, expand (if not already expanded) "User & Authentication" and
+   click on "Restrictions". Toggle "Enable allowlist" (such that it is
+   turned on), and add your email address to the allow list.
+   ![]()
+4. On the sidebar, click on "Users", then click on "Create User". Fill
+   in the information with credentials you will use to login to
+   DiagnoseAI.
+   ![]()
+5. On the sidebar, locate and click on "API Keys".
+   ![]()
+6. Scroll down and click on "Advanced", and copy the "PEM public
+   key". The guide will refer to this as "PEM public key".
+   ![]()
+7. (Optional for now) For WebApp and Uploader, you may have to copy
+   both "Publishable key" and "Secret keys".
+   ![]()
+
+By the end of this section, you should have:
+- PEM public key
+- A valid user account
 
 Return to [Guide](#guide).
 
