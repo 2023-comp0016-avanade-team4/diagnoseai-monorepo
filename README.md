@@ -48,7 +48,7 @@ Core API acts as an aggregated proxy between the WebApp and relevant
 services:
 
 - Authentication with a third-party OAuth provider
-- Azure SQL
+- SQL Databases
 - Azure AI Search (formerly Cognitive Search)
 - Azure API Management Service
 - Azure Blob Storage
@@ -163,7 +163,7 @@ Return to [Guide](#guide).
 As a recap, Core API requires the following services:
 
 - Azure Function Apps
-- Azure SQL
+- SQL Databases
 - Azure AI Search
 - Azure API Management Service
 - Azure Blob Storage
@@ -197,9 +197,76 @@ DiagnoseAI.
    ![]()
 3. Click "Create".
    ![]()
-4. Select
+4. Select the _Resource Group_ (created earlier), and name it anything
+   you want. You should remember the name; this will be referred to as
+   "Function App Name" from here on out.
+   ![]()
+5. Choose "Python" as the Runtime stack, "3.10" as the version, and
+   the closest region to wherever the deployment will be. Set
+   Operating System to "Linux". You can choose to use any consumption
+   plan for the function app, although the project was developed with
+   "Consumption (Serverless)" in mind.
+   ![]()
+6. Click on "Next: Storage".
+   ![]()
+7. Choose a storage account. This storage account does not have to be
+   the same as those created in the [Azure Blob
+   Storage](#azure-blob-storage) section.
+   ![]()
+6. Click "Review + Create".
+   ![]()
 
-#### Azure SQL
+Your function app should now be created. When the guide refers to "the
+function app", the reader can assume _this_ is the referred Function
+App.
+
+Return to [Guide](#guide).
+
+----
+
+#### SQL Databases
+
+1. Navigate to the [Azure Portal](https://portal.azure.com).
+2. Search "SQL Databases" on the services search bar, and click on it.
+   ![]()
+3. Click "Create".
+4. Select the _Resource Group_ (created earlier), and name it anything
+   you want. You should remember the name; this will be referred to as
+   "Database name" from here on out.
+   ![]()
+5. Choose any "Server" available; if there are none, create one.
+   ![]()
+6. (Optional to save costs) Choose "Development" under "Workload
+   Environment".
+7. Click "Review + Create"
+   ![]()
+8. Stay on the resource creation page until the database has been
+   fully created.
+   ![]()
+9. Search "SQL Server" on the services search bar, and click on it.
+   ![]()
+10. Click on the SQL Server you used in step 5.
+    ![]()
+11. Click on "Reset Password".
+    ![]()
+12. Reset the password to anything that meets the requirements, and
+    remember it / memo it down.
+    ![]()
+13. Take note of the "Server name" and "Server admin".
+    ![]()
+
+You should end this session with the following information:
+
+- Database Name (the one you specified in step 4)
+- Database Username (step 13)
+- Database Password (step 12)
+- Database URL (step 13)
+
+They will be referenced as such henceforth.
+
+Return to [Guide](#guide).
+
+----
 
 #### Azure AI Search
 
