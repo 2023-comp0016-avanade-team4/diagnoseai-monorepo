@@ -169,6 +169,7 @@ As a recap, Core API requires the following services:
 - Azure Blob Storage
 - Azure OpenAI Service
 - Azure WebPubSubService
+- Clerk (acting as the external identity provider)
 
 The following sections will walk-through the creation process of each
 feature above; this entire section must be done before moving on to
@@ -270,13 +271,250 @@ Return to [Guide](#guide).
 
 #### Azure AI Search
 
+1. Navigate to the [Azure Portal](https://portal.azure.com).
+2. Search "AI Search" on the services search bar, and click on it.
+   ![]()
+3. Click "Create".
+   ![]()
+4. Select the _Resource Group_ (created earlier), and name it anything
+   you want.
+   ![]()
+5. Set the location to the closest region to the deployment.
+   ![]()
+6. Click on "Review + create". Wait for the creation to be done; you
+   will need the resource to get the Search Service URL and API Keys.
+   ![]()
+7. Once the creation is done, click on "Go to resource". On the
+   "Overview" page, copy the "URL". This is the Search Service URL,
+   and will be referred as such moving forward.
+   ![]()
+8. Click on "Keys". If not already selected, select "API keys"; then,
+   copy the primary admin key. This is referred to as the Search
+   Service API Key.
+   ![]()
+
+> Side Note: Ideally, on production, there should be _two_ of such
+> services; however, to simplify the deployment, only one will be
+> deployed.
+
+By the end of this sub-section, you should have:
+
+- Cognitive Search Endpoint (step 7)
+- Cognitive Search API Key (step 8)
+
+Return to [Guide](#guide).
+
+----
+
 #### Azure API Management Service
+
+API Management Service is the front-facing service that has, of many
+things, DDoS protection, and subscription management. Subscriptions
+create client-facing API keys that can be used for downstream
+services.
+
+1. Navigate to the [Azure Portal](https://portal.azure.com).
+2. Search "API Management Services" on the services search bar, and
+   click on it.
+   ![]()
+3. Click "Create".
+4. Select the _Resource Group_ (created earlier), and name it anything
+   you want.
+   ![]()
+5. Choose a region closest to the target location of deployment, and
+   anything applicable for "Organisation name" and "Administrator
+   email". Please note that "Administrator email" has to be a valid &
+   working email address; API Management Service will send an email to
+   the email stated.
+   ![]()
+6. (Optional) Set pricing tier to "Developer".
+   ![]()
+7. Click "Review + create".
+   ![]()
+8. You can leave the page to wait for the resource to create. Once the
+   creation is complete, you should get an email; either way, find
+   your way to the API Management service.
+   ![]()
+9. On the side menu, click on APIs.
+   ![]()
+10. Click on "Add API"; then click on "HTTP".
+    ![]()
+11. Set "Display name" and "Name" to anything you want; ideally,
+    something that denotes it is a Core API related resource. A
+    suggested example is "diagnose-ai-core"
+    ![]()
+12. Once the API has been created, select it from the side menu, then
+    click "Add operation".
+    ![]()
+13. You will now create the following endpoints:
+    - Method: `POST`, URL: `/chat_done`, Display Name: `Chat Done`
+    - Method: `GET`, URL: `/work_order`, Display Name: `Work Order`
+    - Method: `POST`, URL: `/validation_to_production`, Display Name:
+      `Validation to Production`
+    - Method: `POST`, URL: `/chat_connection`, Display Name: `Chat
+      Connection`
+    - Method: `GET`, URL: `/chat_history`, Display Name: `Chat
+      History`
+    ![]()
+14. In each created endpoint, go to "Inbound Processing" and set the
+    XML to the following:
+    ```xml
+    <policies>
+        <inbound>
+             <base />
+             <set-backend-service id="apim-generated-policy" backend-id="<function app name>" />
+         </inbound>
+         <backend>
+             <base />
+         </backend>
+         <outbound>
+             <base />
+         </outbound>
+         <on-error>
+             <base />
+         </on-error>
+    </policies>
+    ```
+
+    where `<function app name>` is the function name is generated in
+    [Azure Function Apps](#azure-function-apps).
+    ![]()
+15. On the main sidebar, click on "Subscriptions".
+    ![]()
+16. Click on "Add subscription", and name it anything you want. Once
+    the subscription has been created, copy the "Primary key". This is
+    referred to as "Subscription Key" across the entirety of
+    DiagnoseAI, including the Uploader and WebApp.
+    ![]()
+
+By the end of this section, you should end up with a Primary key.
+
+Return to [Guide](#guide).
+
+----
 
 #### Azure Blob Storage
 
+Blob storage is used to store:
+- Images uploaded by the user (i.e. the `images` container)
+- Documents used for verification (i.e. the `verification` container)
+- Documents used for production (i.e. the `production` container)
+
+1. Navigate to the [Azure Portal](https://portal.azure.com).
+2. Search "Storage Account" on the services search bar, and
+   click on it.
+   ![]()
+3. Click "Create".
+4. Select the _Resource Group_ (created earlier), and name it anything
+   you want.
+   ![]()
+5. Choose a region closest to the target deployment site. The rest can
+   be left at defaults, although you can optionally reduce
+   "Redundancy" to LRS to save some costs.
+   ![]()
+6. Click on "Review" and "Create". Wait for the resource to be
+   created.
+   ![]()
+7. Upon creation, click on "Go to resource".
+   ![]()
+8. On the side menu, click on "Containers".
+   ![]()
+9. You will now create the following containers:
+   - `images`
+   - `production`
+   - `verification`
+
+   Click on "+ Container", then create name them according to the
+   above names.
+   ![]()
+10. Click on "Access keys" on the side menu.
+    ![]()
+11. Copy the "Connection String" field. This will be referred to as
+    "Storage Account Connection String".
+    ![]()
+
+By the end of this section, you should have:
+- Storage Account Connection String
+- `images`, `produciton` and `verification` containers
+
+Return to [Guide](#guide).
+
+----
+
 #### Azure OpenAI Service
 
+> **Important Note**: At the time of writing, GPT4V is only available
+> on these regions: Australia East, Sweden Central, Switzerland North,
+> and West US. [Relevant Article
+> Link](https://techcommunity.microsoft.com/t5/ai-azure-ai-services-blog/gpt-4-turbo-with-vision-is-now-available-on-azure-openai-service/ba-p/4008456)
+> The current deployment guide assumes the creation of two Azure
+> OpenAI services.
+
+1. Navigate to the [Azure Portal](https://portal.azure.com).
+2. Search "Azure OpenAI" on the services search bar, and
+   click on it.
+   ![]()
+3. Click "Create".
+4. Select the _Resource Group_ (created earlier), and name it anything
+   you want. This will be referred to as "OpenAI Name".
+   ![]()
+5. At the time of writing, there is only one "Pricing tier", which is
+   **Standard S0**. Pick the region closest to you.
+   ![]()
+6. Click next until you can click "Create"
+   ![]()
+7. Wait for the resource to be created. Once the resource is created,
+   click on "Keys and Endpoints" from the side menu.
+   ![]()
+8. Copy "Key 1". We will refer to this as "Core OpenAI Key". Take note
+   of the endpoint. We will refer to this as "Core OpenAI Endpoint".
+9. Click on "Overview", then click on "Go to Azure OpenAI Studio".
+   ![]()
+10. Click on "Deployments". You will now be deploying a minimum of 2 models:
+    - `gpt-35-turbo`
+    - `text-embedding-ada-002`
+
+    1. Click on "Create new deployment"
+    2. Under "Select a model", choose one of the models stated
+       above. Name it something like "diagnoseai-model".
+    3. Click "Create".
+
+    ![]()
+11. Once you have created both deployments, create another OpenAI
+    service. Repeat Step 1 to Step 8, picking one of the following
+    regions, depending on how close you are to each of the following
+    regions: `Australia East, Sweden Central, Switzerland North, West
+    US`. The guide will refer to the API key and Endpoint generated
+    here as "Vision OpenAI Key" and "Vision OpenAI Endpoint".
+12. You will now be deploying the GPT4-V model. Click on
+    "Deployments". Then:
+
+    1. Click on "Create new deployment"
+    2. **You must** switch "Model version" to "vision-preview". Set
+       the deployment name to something like
+       `image-recognition-model`.
+    3. Click "Create".
+
+    ![]()
+
+By the end of this section, you should have the following:
+
+- Core OpenAI Key
+- Core OpenAI Endpoint
+- Vision OpenAI Key
+- Vision OpenAI Endpoint
+
+Return to [Guide](#guide).
+
+----
+
 #### Azure WebPubSubService
+
+Return to [Guide](#guide).
+
+----
+
+#### Clerk
 
 Return to [Guide](#guide).
 
