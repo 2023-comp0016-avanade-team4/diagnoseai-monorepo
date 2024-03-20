@@ -25,37 +25,59 @@
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
 Cypress.Commands.add('signOut', () => {
-  cy.log('Signing out.');
+  cy.log('Signing out...');
   cy.clearCookies();
 });
 
 Cypress.Commands.add('signIn', (site) => {
-  cy.log('Signing in.');
+  // NOTE: There is a canonical method to do this, found in the Clerk
+  // documentation: https://clerk.com/docs/testing/cypress
+
+  // However, because of our authentication flow, it makes more sense
+  // _NOT_ to do this. Instead, we log in as if we are a real user
+  cy.log('Signing in...');
 
   cy.origin(Cypress.env('clerk_origin'), { args: { site } }, ({ site }) => {
     cy.visit(site, {
       failOnStatusCode: false
-    });
-
-    cy.window()
-      .should((window) => {
-        expect(window).to.not.have.property('Clerk', undefined);
-        expect(window.Clerk.isReady()).to.eq(true);
-      })
-    // .find(".identifier-field")
-    // .then(async (window) => {
-    //   await cy.clearCookies({ domain: window.location.domain });
-    //   const res = await window.Clerk.client.signIn.create({
-    //     identifier: Cypress.env('test_email'),
-    //     password: Cypress.env('test_password'),
-    //   });
-
-    //   await window.Clerk.setActive({
-    //     session: res.createdSessionId,
-    //   });
-
-    //   cy.log('Finished Signing in.');
-    // });
+    }).get("#identifier-field").type(Cypress.env('test_email')).get(".cl-formButtonPrimary").click()
+      .get("#password-field")
+      .type(Cypress.env('test_password'))
+      .get(".cl-formButtonPrimary")
+      .click();
   });
+});
 
+Cypress.Commands.add('createMachine', () => {
+  cy.log('creating a e2e machine');
+
+  cy.origin("http://localhost:3000", () => {
+    // NOTE: To trigger auth
+    cy.visit("http://localhost:3000").contains("Upload").wait(1000);
+
+    cy.visit("http://localhost:3000/machines/create")
+      .contains("Create a new machine");
+
+    cy.get("input[placeholder=\"Enter a manufacturer\"]").click().type("e2e machine");
+    cy.get("input[placeholder=\"Enter a model\"]").click().type("a temporary machine");
+    cy.contains("Submit").click();
+    cy.contains("Machine created successfully", { timeout: 10000 });
+  });
+});
+
+Cypress.Commands.add('deleteMachine', () => {
+  cy.log('deleting the e2e machine');
+
+  cy.origin("http://localhost:3000", () => {
+    // NOTE: To trigger auth
+    cy.visit("http://localhost:3000").contains("Upload").wait(1000);
+
+    cy.visit("http://localhost:3000/machines/delete")
+      .contains("Delete a machine").wait(10000);
+
+    cy.contains("Select a machine").click();
+    cy.get("span").contains("e2e machine").click();
+    cy.get("button").contains("Delete").click();
+    cy.contains("machine deleted successfully", { timeout: 10000 });
+  });
 });
