@@ -67,17 +67,72 @@ Cypress.Commands.add('createMachine', () => {
 
 Cypress.Commands.add('deleteMachine', () => {
   cy.log('deleting the e2e machine');
+  cy.intercept('/api/*').as('getEverything');
 
   cy.origin("http://localhost:3000", () => {
     // NOTE: To trigger auth
     cy.visit("http://localhost:3000").contains("Upload").wait(1000);
 
     cy.visit("http://localhost:3000/machines/delete")
-      .contains("Delete a machine").wait(10000);
+      .contains("Delete a machine")
+      .wait('@getEverything')
+      .wait(1000);
 
     cy.contains("Select a machine").click();
     cy.get("span").contains("e2e machine").click();
     cy.get("button").contains("Delete").click();
     cy.contains("machine deleted successfully", { timeout: 10000 });
   });
+});
+
+Cypress.Commands.add('createWorkOrder', () => {
+  cy.log('creating work order');
+
+  cy.createMachine();
+  cy.intercept('/api/*').as('getEverything');
+
+  cy.origin("http://localhost:3000", () => {
+    // NOTE: To trigger auth
+    cy.visit("http://localhost:3000").contains("Upload").wait(1000);
+
+    cy.visit("http://localhost:3000/workorder/create")
+      .contains("Create a new task")
+      .wait('@getEverything')
+      .wait(1000);
+
+    cy.contains("Select a user").click();
+    cy.get('span').contains(Cypress.env("test_email")).click();
+
+    cy.contains("Select a machine").click();
+    cy.get('span').contains('e2e machine').click();
+
+    cy.get('input[placeholder="Enter a task"]').click().type("E2E Task");
+    cy.get('input[placeholder="Enter a task description"]').click().type("E2E Description");
+
+    cy.contains("Submit").click();
+    cy.contains("Work order created successfully", { timeout: 10000 });
+  });
+});
+
+Cypress.Commands.add('deleteWorkOrder', () => {
+  cy.log('deleting work order');
+
+  cy.intercept('/api/*').as('getEverything');
+
+  cy.origin("http://localhost:3000", () => {
+    // NOTE: To trigger auth
+    cy.visit("http://localhost:3000").contains("Upload").wait(1000);
+
+    cy.visit("http://localhost:3000/workorder/delete")
+      .contains("Delete a work order")
+      .wait('@getEverything')
+      .wait(1000);
+
+    cy.contains("Select a work order").click();
+    cy.get('span').contains('E2E Task').click();
+
+    cy.get('Button').contains('Delete').click();
+  });
+
+  cy.deleteMachine();
 });

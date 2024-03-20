@@ -1,19 +1,17 @@
 describe('Uploader Work Orders', () => {
   beforeEach(() => {
-    cy.session('uploader-session', () => {
-      cy.signIn('http://localhost:3000');
-      cy.createMachine();
-    });
+    cy.signIn('http://localhost:3000');
+    cy.createMachine();
   });
 
   afterEach(() => {
     cy.deleteMachine();
+    cy.signOut();
   });
 
   it('creates work orders successfully, then deletes them (from main menu)', () => {
+    cy.intercept('/api/*').as('getEverything');
     cy.origin("http://localhost:3000", {}, () => {
-
-
       cy.visit("http://localhost:3000")
         .contains("Dev Links").
         click();
@@ -42,7 +40,9 @@ describe('Uploader Work Orders', () => {
       cy.contains("Delete Work Order")
         .click();
 
-      cy.contains("Delete a work order").wait(10000);
+      cy.contains("Delete a work order")
+        .wait('@getEverything')
+        .wait(1000);
 
       cy.contains("Select a work order").click();
       cy.get('span').contains('E2E Task').click();

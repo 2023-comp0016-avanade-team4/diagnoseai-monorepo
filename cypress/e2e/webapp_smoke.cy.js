@@ -1,6 +1,10 @@
 describe("port 3001 exists", () => {
-  cy.session('uploader-session', () => {
+  beforeEach(() => {
     cy.signIn('http://localhost:3001');
+  });
+
+  afterEach(() => {
+    cy.signOut();
   });
 
   it("passes the smoke test (3001)", () => {
