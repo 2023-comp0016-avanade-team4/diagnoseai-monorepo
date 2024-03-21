@@ -1,7 +1,7 @@
 describe('Uploader Work Orders', () => {
   beforeEach(() => {
-    cy.signIn('http://localhost:3000');
     cy.createMachine();
+    cy.signIn('http://localhost:3000');
   });
 
   afterEach(() => {

@@ -1,7 +1,7 @@
 describe('Webapp Workorders', () => {
   beforeEach(() => {
-    cy.signIn('http://localhost:3000');
     cy.createWorkOrder();
+    cy.signIn('http://localhost:3001');
   });
 
   afterEach(() => {

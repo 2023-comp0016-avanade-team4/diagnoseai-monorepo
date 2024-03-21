@@ -37,18 +37,24 @@ Cypress.Commands.add('signIn', (site) => {
   // _NOT_ to do this. Instead, we log in as if we are a real user
   cy.log('Signing in...');
 
-  cy.origin(Cypress.env('clerk_origin'), { args: { site } }, ({ site }) => {
-    cy.visit(site, {
-      failOnStatusCode: false
-    }).get("#identifier-field").type(Cypress.env('test_email')).get(".cl-formButtonPrimary").click()
-      .get("#password-field")
-      .type(Cypress.env('test_password'))
-      .get(".cl-formButtonPrimary")
-      .click();
+  cy.session(`${site}-session`, () => {
+    cy.signOut();
+    cy.origin(Cypress.env('clerk_origin'), { args: { site } }, ({ site }) => {
+      cy.visit(site, {
+        failOnStatusCode: false
+      }).get("#identifier-field").type(Cypress.env('test_email')).get(".cl-formButtonPrimary").click()
+        .get("#password-field")
+        .type(Cypress.env('test_password'))
+        .get(".cl-formButtonPrimary")
+        .click();
+    });
   });
 });
 
 Cypress.Commands.add('createMachine', () => {
+  // NOTE: When logging in across 2 applications, on Cypress it can
+  // get _VERY_ glitchy.  So, we just do the safe thing and relogin
+  cy.signIn('http://localhost:3000');
   cy.log('creating a e2e machine');
 
   cy.origin("http://localhost:3000", () => {
@@ -66,6 +72,7 @@ Cypress.Commands.add('createMachine', () => {
 });
 
 Cypress.Commands.add('deleteMachine', () => {
+  cy.signIn('http://localhost:3000');
   cy.log('deleting the e2e machine');
   cy.intercept('/api/*').as('getEverything');
 
@@ -86,6 +93,7 @@ Cypress.Commands.add('deleteMachine', () => {
 });
 
 Cypress.Commands.add('createWorkOrder', () => {
+  cy.signIn('http://localhost:3000');
   cy.log('creating work order');
 
   cy.createMachine();
@@ -115,6 +123,7 @@ Cypress.Commands.add('createWorkOrder', () => {
 });
 
 Cypress.Commands.add('deleteWorkOrder', () => {
+  cy.signIn('http://localhost:3000');
   cy.log('deleting work order');
 
   cy.intercept('/api/*').as('getEverything');
@@ -132,6 +141,7 @@ Cypress.Commands.add('deleteWorkOrder', () => {
     cy.get('span').contains('E2E Task').click();
 
     cy.get('Button').contains('Delete').click();
+    cy.contains("Work order deleted successfully", { timeout: 10000 });
   });
 
   cy.deleteMachine();
