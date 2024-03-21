@@ -135,7 +135,7 @@ Cypress.Commands.add('deleteWorkOrder', () => {
     cy.visit("http://localhost:3000/workorder/delete")
       .contains("Delete a work order")
       .wait('@getEverything')
-      .wait(1000);
+      .wait(3000);
 
     cy.contains("Select a work order").click();
     cy.get('span').contains('E2E Task').click();
