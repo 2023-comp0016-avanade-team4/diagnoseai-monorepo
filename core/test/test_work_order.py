@@ -2,39 +2,29 @@
 Module to test the work_order endpoint
 """
 
-import unittest
-import os
 import json
-from unittest.mock import patch, create_autospec
+from unittest.mock import create_autospec, patch
+
 import azure.functions as func  # pylint: disable=E0401
-from models.work_order import (WorkOrderModel,
-                               MachineModel)  # pylint: disable=E0401
-from base_test_case import BaseTestCase
-
-db_session_patch = patch("utils.db.create_session").start()
-
-os.environ["DatabaseURL"] = ""
-os.environ["DatabaseName"] = ""
-os.environ["DatabaseUsername"] = ""
-os.environ["DatabasePassword"] = ""
-os.environ["DatabaseSelfSigned"] = ""
-os.environ["CLERK_PUBLIC_KEY"] = ""
-os.environ["CLERK_AZP_LIST"] = ""
-
-# This import must come after the global patches
-# pylint: disable=wrong-import-position
 from core.functions.work_order import main  # noqa: E402 pylint: disable=C0413
+from core.models.work_order import (MachineModel, WorkOrderModel)  # pylint: disable=line-too-long # noqa: E501
+from base_test_case import BaseTestCase
 
 
 class TestWorkOrder(BaseTestCase):
     """
     Tests the Work Orders API
     """
+    @classmethod
+    def setUpClass(cls):
+        cls.secrets_and_services_mock('core.functions.work_order',
+                                      no_secret=True)
+
     def setUp(self):
-        self.verifyjwt_patch = patch('core.functions.work_order.verify_token') \
-            .start()
-        self.get_user_id_patch = patch('core.functions.work_order.get_user_id') \
-            .start()
+        self.verifyjwt_patch = \
+            patch('core.functions.work_order.verify_token').start()
+        self.get_user_id_patch = \
+            patch('core.functions.work_order.get_user_id').start()
 
         self.verifyjwt_patch.return_value = True
         self.get_user_id_patch.return_value = "test_id"
