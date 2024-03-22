@@ -32,7 +32,7 @@ class TestVerifyToken(BaseTestCase):
             'ClerkPublicKey': self.key,
             'ClerkAZPList': 'test'
         }
-        self.secrets_mock.get.side_effect = lambda x: env_mocks[x]
+        self.secrets_mock.return_value.get.side_effect = lambda x: env_mocks[x]
 
     @patch('jwt.decode', return_value={'azp': 'test'})
     @patch('jwt.get_unverified_header', return_value={'alg': 'HS256'})

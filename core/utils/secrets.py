@@ -51,6 +51,8 @@ class Secrets(metaclass=Singleton):
         "DatabaseUsername",
         "DatabasePassword",
         "DatabaseSelfSigned",
+        "DocumentEndpoint",
+        "DocumentKey",
         "DocumentStorageContainer",
         "DocumentProductionContainerName",
         "DocumentValidationContainerName",

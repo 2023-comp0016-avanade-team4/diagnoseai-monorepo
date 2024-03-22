@@ -145,7 +145,7 @@ def save_to_blob(filename: str, content: bytes):
     logging.info('Saving content to image blob storage as: %s', filename)
     # saves the content in bytes into the azure blob specified by
     # image endpoint
-    blob_client = Services().doc_blob_client.get_blob_client(
+    blob_client = Services().image_blob_client.get_blob_client(
         Secrets().get("ImageBlobContainer"), filename)
     try:
         blob_client.upload_blob(content)

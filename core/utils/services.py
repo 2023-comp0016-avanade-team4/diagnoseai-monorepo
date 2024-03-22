@@ -94,9 +94,9 @@ class Services(metaclass=Singleton):
         """
         if not self._image_summary_model:
             self._image_summary_model = ImageSummary(
-                Secrets().get("GPT4V_API_BASE"),
-                Secrets().get("GPT4V_API_KEY"),
-                Secrets().get("GPT4V_API_DEPLOYMENT_NAME")
+                Secrets().get("GPT4VAPIBase"),
+                Secrets().get("GPT4VAPIKey"),
+                Secrets().get("GPT4VDeploymentName")
             )
         return self._image_summary_model
 
@@ -173,8 +173,8 @@ class Services(metaclass=Singleton):
     def document_analysis(self) -> DocumentAnalysisClient:
         if not self._document_analysis:
             self._document_analysis = DocumentAnalysisClient(
-                Secrets().get("CognitiveSearchEndpoint"),
-                AzureKeyCredential(Secrets().get("CognitiveSearchKey"))
+                Secrets().get("DocumentEndpoint"),
+                AzureKeyCredential(Secrets().get("DocumentKey"))
             )
         return self._document_analysis
 

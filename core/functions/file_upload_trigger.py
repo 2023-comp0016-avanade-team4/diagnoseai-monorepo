@@ -64,3 +64,6 @@ def main(blob: InputStream):
     if model:
         logging.info('Telling associated email that index is processed')
         process_outstanding_index(model)
+
+if __name__ == '__main__':
+    main()
