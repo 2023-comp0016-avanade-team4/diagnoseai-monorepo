@@ -9,8 +9,8 @@ from utils.secrets import Secrets
 
 def verify_token(token):
     """Verify a token is valid, from the right source and has not expired."""
-    public_key = Secrets.get('ClerkPublicKey')
-    azp_list = Secrets.get('ClerkAZPList').split(',')
+    public_key = Secrets().get('ClerkPublicKey')
+    azp_list = Secrets().get('ClerkAZPList').split(',')
 
     try:
         headers = jwt.get_unverified_header(token)

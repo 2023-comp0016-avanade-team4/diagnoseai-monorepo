@@ -151,10 +151,10 @@ class Services(metaclass=Singleton):
         if not self._db_session:
             self._db_session = create_session(
                 Secrets().get("DatabaseURL"),
-                Secrets().get("DatabseName"),
+                Secrets().get("DatabaseName"),
                 Secrets().get("DatabaseUsername"),
                 Secrets().get("DatabasePassword"),
-                bool(Secrets().get("DatabaseSelfSigned"))
+                Secrets().get("DatabaseSelfSigned") != 'false'
             )
         return self._db_session
 
