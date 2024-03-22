@@ -10,103 +10,39 @@ References:
 
 import base64
 import logging
-import os
 import re
 from datetime import datetime
 from json import JSONDecodeError
 from typing import Callable, cast
 from uuid import uuid4
 
-from azure.core.credentials import AzureKeyCredential
 from azure.core.exceptions import ResourceNotFoundError
-from azure.messaging.webpubsubservice import WebPubSubServiceClient  # type: ignore[import-untyped] # noqa: E501 # pylint: disable=line-too-long
-from azure.search.documents.indexes import SearchIndexClient
-from azure.storage.blob import BlobServiceClient
-from openai import AzureOpenAI
 from openai.types.chat import ChatCompletionMessageParam
 from models.chat_message import ChatMessageDAO, ChatMessageModel, SenderTypes
 from utils.authorise_conversation import authorise_user
 from utils.chat_message import (BidirectionalChatMessage, ChatMessage,
                                 ResponseChatMessage, ResponseErrorMessage,
                                 Citation, translate_citation_urls)
-from utils.db import create_session
 from utils.get_user_id import get_user_id
 from utils.hashing import get_search_index_for_user_id
-from utils.image_summary import ImageSummary
 from utils.image_utils import compress_image, is_url_encoded_image
 from utils.verify_token import verify_token
 from utils.web_pub_sub_interfaces import WebPubSubRequest
-from utils.get_preauthenticated_blob_url import get_preauthenticated_blob_url
+from utils.services import Services
+from utils.secrets import Secrets
 
-# Load required variables from the environment
-
-WPBSS_CONNECTION_STRING = os.environ['WebPubSubConnectionString']
-WPBSS_HUB_NAME = os.environ['WebPubSubHubName']
-
-SEARCH_KEY = os.environ["CognitiveSearchKey"]
-SEARCH_ENDPOINT = os.environ["CognitiveSearchEndpoint"]
-
-SUMMARY_SEARCH_KEY = os.environ["SummarySearchKey"]
-SUMMARY_SEARCH_ENDPOINT = os.environ["SummarySearchEndpoint"]
-
-EMBEDDING_ENDPOINT = os.environ["OpenAIEndpoint"]
-EMBEDDING_DEPLOYMENT_NAME = "text-embedding-ada-002"
-EMBEDDING_KEY = os.environ["OpenAIKey"]
-
-OPENAI_KEY = os.environ["OpenAIKey"]
-OPENAI_ENDPOINT = os.environ["OpenAIEndpoint"]
-
-DATABASE_URL = os.environ['DatabaseURL']
-DATABASE_NAME = os.environ['DatabaseName']
-DATABASE_USERNAME = os.environ['DatabaseUsername']
-DATABASE_PASSWORD = os.environ['DatabasePassword']
-DATABASE_SELFSIGNED = os.environ.get('DatabaseSelfSigned')
-
-DOC_BLOB_CONNECTION_STRING = os.environ["DocumentStorageContainer"]
-DOC_BLOB_CONTAINER = 'production'
-
-doc_blob_service_client = BlobServiceClient.from_connection_string(
-    DOC_BLOB_CONNECTION_STRING
-)
-
-IMAGE_BLOB_CONNECTION_STRING = os.environ["ImageBlobConnectionString"]
-IMAGE_BLOB_CONTAINER = os.environ["ImageBlobContainer"]
-
-GPT4V_API_BASE = os.environ['GPT4V_API_BASE']
-GPT4V_API_KEY = os.environ['GPT4V_API_KEY']
-GPT4V_DEPLOYMENT_NAME = os.environ['GPT4V_DEPLOYMENT_NAME']
-
-blob_service_client = BlobServiceClient.from_connection_string(
-    IMAGE_BLOB_CONNECTION_STRING)
+# Get services singleton
 
 DOCUMENT_PROMPT = """
 You are a helpful chatbot named DiagnoseAI. You also go by "BOT", "the bot". You have access to technical manuals via a connected data source. Users are able to upload images to contextualize their conversations; you will observe these as a message prefixed by "USER IMAGE:". If you see "USER IMAGE:", it is a factual description of the image uploaded by the user. All references to "image" or "images" always refer to the description in "USER IMAGE:". You will be given a user summary representing all past conversations with the user to better contextualize your answer. If using the summary, reference it in the text with [summary]. If the summary is "The requested information is not available in the retrieved data. Please try another query or topic.", then ignore the summary. Answer accordingly to all user images and data sources you have access to. SUMMARY: """  # noqa: E501
+
 SUMMARY_PROMPT = """
 You are a helpful chatbot named DiagnoseAI. You have access to the summaries of previous conversations with the user via a connected data source. Users are able to upload images to contextualize their conversations; you will observe these as a message prefixed by "USER IMAGE:". If you see "USER IMAGE:", it is a factual description of the image uploaded by the user. All references to "image" or "images" always refer to the description in "USER IMAGE:". Based on the information you have, return a relevant user summary. If no such summary exists, simply output NONE. """  # noqa: E501
 
 OPENAI_API_VERSION = '2024-03-01-preview'
-
-# Global clients
+EMBEDDING_DEPLOYMENT_NAME = "text-embedding-ada-002"
 
 logging.basicConfig(level=logging.INFO)
-
-ai_client = AzureOpenAI(
-    base_url=(f"{OPENAI_ENDPOINT}/openai/deployments/"
-              "validation-testing-model"),
-    api_key=OPENAI_KEY,
-    api_version=OPENAI_API_VERSION
-)
-
-db_session = create_session(
-    DATABASE_URL, DATABASE_NAME, DATABASE_USERNAME, DATABASE_PASSWORD,
-    bool(DATABASE_SELFSIGNED)
-)
-
-image_summary = ImageSummary(
-    GPT4V_API_BASE, GPT4V_API_KEY, GPT4V_DEPLOYMENT_NAME
-)
-si_client = SearchIndexClient(SEARCH_ENDPOINT,
-                              AzureKeyCredential(SEARCH_KEY))
 
 
 class ChatError(Exception):
@@ -125,16 +61,9 @@ def ws_send_message(text: str, connection_id: str) -> None:
         text (str): The text to send
         connection_id (str): The connection ID to send to
     """
-    # WebPubSubServiceClient DOES have from_connection_string, dunno
-    # why PyLint refuses to acknowledge it.
-    service: WebPubSubServiceClient = WebPubSubServiceClient \
-        .from_connection_string(  # pylint: disable=no-member
-            WPBSS_CONNECTION_STRING,
-            hub=WPBSS_HUB_NAME
-        )
-    service.send_to_connection(connection_id,
-                               text,
-                               content_type='application/json')
+    Services().webpubsub.send_to_connection(connection_id,
+                                            text,
+                                            content_type='application/json')
 
 
 # Default value not dangerous, if no citations given, we rather have
@@ -162,7 +91,7 @@ def shadow_msg_to_db(
         return
 
     ChatMessageDAO.save_message(
-        db_session,
+        Services().db_session,
         ChatMessageModel.from_bidirectional_chat_message(
             BidirectionalChatMessage(
                 message=message,
@@ -185,7 +114,7 @@ def db_history_to_ai_history(conversation_id: str, history_size: int = 10) \
     interpeted text will be sent back to the user
     """
     history = ChatMessageDAO.get_all_messages_for_conversation(
-        db_session, conversation_id, count=history_size)
+        Services().db_session, conversation_id, count=history_size)
 
     # Should either match ChatCompletionSystemMessageParam or
     # ChatCompletionUserMessageParam, so we cast to make typing happy
@@ -216,8 +145,8 @@ def save_to_blob(filename: str, content: bytes):
     logging.info('Saving content to image blob storage as: %s', filename)
     # saves the content in bytes into the azure blob specified by
     # image endpoint
-    blob_client = blob_service_client.get_blob_client(
-        IMAGE_BLOB_CONTAINER, filename)
+    blob_client = Services().doc_blob_client.get_blob_client(
+        Secrets().get("ImageBlobContainer"), filename)
     try:
         blob_client.upload_blob(content)
     # NOTE: It's okay to do a catch all, because all errors that can
@@ -280,7 +209,8 @@ def __process_message_image(message: ChatMessage,
     filename = __upload_image_to_blob(message, compressed)
 
     try:
-        summary = image_summary.get_image_summary(compressed_object_url)
+        summary = Services().image_summary_model.get_image_summary(
+            compressed_object_url)
     except Exception as e:  # pylint: disable=[broad-exception-caught]
         ws_log_and_send_error(
             ('message claims to be an image, but cannot be interpreted.'
@@ -303,7 +233,7 @@ def __index_guard(index_name: str, fully_applied_fn: Callable[[], str]) -> str:
         str: The response from the function
     """
     try:
-        si_client.get_index(index_name)
+        Services().search_index_client.get_index(index_name)
         return fully_applied_fn()
     except ResourceNotFoundError:
         logging.info('Index %s does not exist, guard is skipping the callable',
@@ -346,8 +276,10 @@ def __query_llm_with_index(
 
     for max_history in [10, 5, 1]:
         logging.info('Trying max_history=%d', max_history)
-        chat_response = ai_client.chat.completions.create(
-            model='validation-testing-model',
+        embedding_endpoint = Secrets().get("OpenAIEndpoint")
+        embedding_key = Secrets().get("OpenAIKey")
+        chat_response = Services().openai_chat_model.chat.completions.create(
+            model=Secrets().get("OpenAIModelName"),
             extra_body={
                 "data_sources": [
                     {
@@ -359,11 +291,11 @@ def __query_llm_with_index(
                             "semanticConfiguration": "default",
                             "queryType": "vector",
                             "embeddingEndpoint": (
-                                f"{EMBEDDING_ENDPOINT}/openai/"
+                                f"{embedding_endpoint}/openai/"
                                 f"deployments/{EMBEDDING_DEPLOYMENT_NAME}/"
                                 f"embeddings?api-version={OPENAI_API_VERSION}"
                             ),
-                            "embeddingKey": EMBEDDING_KEY,
+                            "embeddingKey": embedding_key,
                             "fieldsMapping": {
                                 "filepath_field": "filepath"
                             },
@@ -391,11 +323,13 @@ def __query_llm_with_index(
         # argument
         best_response = max(best_response, chat_response,
                             key=lambda x:
-                            len(x.choices[0].message.context['citations']))  # type: ignore # noqa: E501
+                            len(x.choices[0].message.context['citations']) # type: ignore # noqa: E501
+                            if len(x.choices) > 0 else 0)
 
         # break early, if there are already citations it should be
         # quite relevant to the context
-        if len(best_response.choices[0].message.context['citations']) > 0:  # type: ignore # noqa: E501
+        if len(best_response.choices) > 0 and \
+           len(best_response.choices[0].message.context['citations']) > 0:  # type: ignore # noqa: E501
             break
 
     assert best_response is not None
@@ -430,7 +364,6 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
                                input
         connection_id (str): The conneciton ID of the websocket in question
     """
-
     if not verify_token(message.auth_token):
         ws_log_and_send_error(
             ('Invalid token.'
@@ -446,7 +379,7 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
     # to use ethereal chats.
     ethereal_conversation = message.conversation_id == '-1'
     if not ethereal_conversation and \
-       not authorise_user(db_session, message.conversation_id, curr_user):
+       not authorise_user(Services().db_session, message.conversation_id, curr_user):
         ws_log_and_send_error(
             ('User not authorised.'
              f' for debugging purposes, you were {connection_id}'),
@@ -476,7 +409,11 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
     messages.append({'role': 'user', 'content': message.message})
     shadow_msg_to_db(message.conversation_id, message.message, False, False,
                      [])
+
+    assert curr_user is not None
     summary_index = get_search_index_for_user_id(curr_user)
+    summary_search_endpoint = Secrets().get("SummarySearchEndpoint")
+    summary_search_key = Secrets().get("SummarySearchKey")
 
     try:
         if ethereal_conversation:
@@ -486,12 +423,13 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
                                     lambda: strip_all_citations(
                                         __query_llm_with_index(
                                             messages, summary_index,
-                                            SUMMARY_SEARCH_ENDPOINT,
-                                            SUMMARY_SEARCH_KEY,
+                                            summary_search_endpoint,
+                                            summary_search_key,
                                             SUMMARY_PROMPT, connection_id)[0]))
+
         chat_response, citations = __query_llm_with_index(
             messages, message.index,
-            SEARCH_ENDPOINT, SEARCH_KEY,
+            summary_search_endpoint, summary_search_key,
             DOCUMENT_PROMPT + summary, connection_id
         )
     except ChatError:
@@ -511,7 +449,9 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
         conversation_id=message.conversation_id,
         sent_at=datetime.now(),
         citations=translate_citation_urls(
-            citations, doc_blob_service_client, DOC_BLOB_CONTAINER)
+            citations, Services().doc_blob_client,
+            Secrets().get("DocumentProductionContainerName")
+        )
     )
     shadow_msg_to_db(
         message.conversation_id, response.body, True, False,

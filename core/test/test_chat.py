@@ -2,67 +2,33 @@
 Module to test the chat endpoint
 """
 
-import os
-import unittest
 from datetime import datetime
 from typing import Optional, Tuple
 from unittest.mock import MagicMock, PropertyMock, create_autospec, patch
-from azure.core.exceptions import ResourceNotFoundError
-from base_test_case import BaseTestCase
 
+from azure.core.exceptions import ResourceNotFoundError
+from core.functions.chat import (
+    main, process_message, shadow_msg_to_db, strip_all_citations,
+    ws_log_and_send_error, ws_send_message)
+from core.utils.chat_message import ChatMessage
+from core.utils.web_pub_sub_interfaces import \
+    WebPubSubConnectionContext
+from core.utils.web_pub_sub_interfaces import \
+    WebPubSubRequest
 from openai.types.chat.chat_completion import (ChatCompletion,
                                                ChatCompletionMessage, Choice)
 
-# Globals patching
-aoi_patch = patch('openai.AzureOpenAI') \
-    .start()
-db_session_patch = patch('utils.db.create_session') \
-    .start()
-bsc_patch = patch(
-    'azure.storage.blob.BlobServiceClient.from_connection_string') \
-    .start()
-image_summary_patch = patch('utils.image_summary.ImageSummary') \
-    .start()
-sic_patch = patch('azure.search.documents.indexes.SearchIndexClient') \
-    .start()
-
-os.environ['WebPubSubConnectionString'] = ''
-os.environ['WebPubSubHubName'] = ''
-os.environ['OpenAIKey'] = ''
-os.environ['OpenAIEndpoint'] = ''
-os.environ['CLERK_PUBLIC_KEY'] = 'test'
-os.environ['CLERK_AZP_LIST'] = 'test'
-os.environ['CognitiveSearchKey'] = ''
-os.environ['CognitiveSearchEndpoint'] = ''
-os.environ['SummarySearchKey'] = ''
-os.environ['SummarySearchEndpoint'] = ''
-os.environ['DatabaseURL'] = ''
-os.environ['DatabaseName'] = ''
-os.environ['DatabaseUsername'] = ''
-os.environ['DatabasePassword'] = ''
-os.environ['DocumentStorageContainer'] = ''
-os.environ['ImageBlobConnectionString'] = ''
-os.environ['ImageBlobContainer'] = ''
-os.environ['GPT4V_API_BASE'] = ''
-os.environ['GPT4V_API_KEY'] = ''
-os.environ['GPT4V_DEPLOYMENT_NAME'] = ''
-
-
-# This import must come after the global patches
-# pylint: disable=wrong-import-position
-from core.functions.chat import (ai_client, main, process_message,  # pylint: disable=line-too-long # noqa: E402, E501
-                                 ws_log_and_send_error, ws_send_message,
-                                 shadow_msg_to_db, image_summary,
-                                 strip_all_citations)
-from core.utils.chat_message import ChatMessage  # noqa: E402
-from core.utils.web_pub_sub_interfaces import WebPubSubConnectionContext  # pylint: disable=line-too-long # noqa: E402, E501
-from core.utils.web_pub_sub_interfaces import WebPubSubRequest  # pylint: disable= line-too-long wrong-import-position # noqa: E402, E501
+from base_test_case import BaseTestCase
 
 
 class TestChat(BaseTestCase):
     """
     Tests the Chat WebSocket API
     """
+    @classmethod
+    def setUpClass(cls):
+        super().secrets_and_services_mock('core.functions.chat')
+
     def setUp(self):
         self.verifyjwt_mock = patch('core.functions.chat.verify_token',
                                     return_value=True).start()
@@ -70,12 +36,17 @@ class TestChat(BaseTestCase):
                                       return_value='123').start()
         self.authorize_mock = patch('core.functions.chat.authorise_user',
                                     return_value=True).start()
-        image_summary_patch.start()
+        self.ai_client = self.services_mock.return_value.openai_chat_model
+        self.image_summary = self.services_mock.return_value.\
+            image_summary_model
+        self.sic = self.services_mock.return_value.search_index_client
+        # image_summary_patch.start()
 
     def tearDown(self):
+        super().tearDown()
         self.verifyjwt_mock.stop()
         self.get_user_id_mock.stop()
-        image_summary_patch.stop()
+        # image_summary_patch.stop()
 
     @patch('core.functions.chat.process_message')
     def test_main_happy(self, m):
@@ -132,8 +103,7 @@ class TestChat(BaseTestCase):
             type(mocked_chat_completion).choices = []
 
         mock_create = MagicMock(return_value=mocked_chat_completion)
-        # This is justified, because ai_client will be mocked by aoi_patch
-        ai_client.chat.completions.create = mock_create  # type: ignore[method-assign] # noqa: E501
+        self.ai_client.chat.completions.create = mock_create  # type: ignore[method-assign] # noqa: E501
 
         if index_name is not None:
             return mock_create, ChatMessage(message='blah',
@@ -173,19 +143,20 @@ class TestChat(BaseTestCase):
 
         self.assertIn('hi', m.call_args[0][0])
         self.assertEqual(m.call_args[0][1], '123')
-        self.assertEqual(ai_client.chat.completions.create.call_count, 2)
-        self.assertEqual(ai_client.chat.completions.create
+        self.assertEqual(self.ai_client.chat.completions.create.call_count, 6)
+        self.assertEqual(self.ai_client.chat.completions.create
                          .call_args_list[0]
                          .kwargs['extra_body']['data_sources'][0]
                          ['parameters']['indexName'], 'validation-index')
 
         # check that summary is used
         self.assertIn('in',
-                      ai_client.chat.completions.create.call_args_list[1]
+                      self.ai_client.chat.completions.create.call_args_list[1]
                       .kwargs['extra_body']['data_sources']
                       [0]['parameters']['roleInformation'])
         self.assertEqual('blah',
-                         ai_client.chat.completions.create.call_args_list[1]
+                         self.ai_client.chat.completions.create
+                         .call_args_list[1]
                          .kwargs['messages'][0]['content'])
 
         # reset for other tests to use
@@ -206,19 +177,20 @@ class TestChat(BaseTestCase):
 
         self.assertIn('hi', m.call_args[0][0])
         self.assertEqual(m.call_args[0][1], '123')
-        self.assertEqual(ai_client.chat.completions.create.call_count, 2)
-        self.assertEqual(ai_client.chat.completions.create
+        self.assertEqual(self.ai_client.chat.completions.create.call_count, 6)
+        self.assertEqual(self.ai_client.chat.completions.create
                          .call_args_list[0]
                          .kwargs['extra_body']['data_sources'][0]
                          ['parameters']['indexName'], 'other-index')
 
         # check that summary is used
         self.assertIn('in',
-                      ai_client.chat.completions.create.call_args_list[1]
+                      self.ai_client.chat.completions.create.call_args_list[1]
                       .kwargs['extra_body']['data_sources']
                       [0]['parameters']['roleInformation'])
         self.assertEqual('blah',
-                         ai_client.chat.completions.create.call_args_list[1]
+                         self.ai_client.chat.completions.create
+                         .call_args_list[1]
                          .kwargs['messages'][0]['content'])
 
         # reset for other tests to use
@@ -239,13 +211,13 @@ class TestChat(BaseTestCase):
              patch('core.functions.chat.shadow_msg_to_db') as shadow:
             n.return_value = b'compressed'
             v.return_value = True
-            image_summary.get_image_summary.return_value = 'summary'
+            self.image_summary.get_image_summary.return_value = 'summary'
 
             process_message(message, '123')
             m.assert_called_once()
             n.assert_called_once()
             s.assert_called_once()
-            image_summary.get_image_summary.assert_called_once()
+            self.image_summary.get_image_summary.assert_called_once()
             shadow.assert_called()
             self.assertTrue(not shadow.call_args_list[0][0][2])
             self.assertEqual(shadow.call_args_list[1][0][1],
@@ -302,7 +274,7 @@ class TestChat(BaseTestCase):
              patch('core.functions.chat.is_url_encoded_image') as v, \
              patch('core.functions.chat.shadow_msg_to_db'), \
              self.assertRaises(RuntimeError):
-            image_summary.get_image_summary.side_effect = RuntimeError(
+            self.image_summary.get_image_summary.side_effect = RuntimeError(
                 "some error")
             v.return_value = True
             n.return_value = b'compressed'
@@ -322,20 +294,20 @@ class TestChat(BaseTestCase):
         mocked_create, message = self.__create_mock_chat_completion(
             'hi', True, 'other-index')
 
-        sic_patch.return_value.get_index.side_effect = ResourceNotFoundError
+        self.sic.get_index.side_effect = ResourceNotFoundError
         process_message(message, '123')
         m.assert_called_once()
 
         self.assertIn('hi', m.call_args[0][0])
         self.assertEqual(m.call_args[0][1], '123')
-        self.assertEqual(ai_client.chat.completions.create.call_count, 1)
-        self.assertEqual(ai_client.chat.completions.create
+        self.assertEqual(self.ai_client.chat.completions.create.call_count, 3)
+        self.assertEqual(self.ai_client.chat.completions.create
                          .call_args_list[0]
                          .kwargs['extra_body']['data_sources'][0]
                          ['parameters']['indexName'], 'other-index')
 
         # reset for other tests to use
-        sic_patch.return_value.get_index.side_effect = None
+        self.sic.get_index.side_effect = None
         mocked_create.reset_mock()
 
     @patch('core.functions.chat.ws_log_and_send_error')
@@ -381,24 +353,20 @@ class TestChat(BaseTestCase):
         """
         This function should send a message using the WebPubServiceClient
         """
-        client_mock = MagicMock()
-        with patch(
-                'azure.messaging.webpubsubservice._patch'
-                '.WebPubSubServiceClient.from_connection_string',
-                return_value=client_mock):
-            ws_send_message('text', '123')
-            client_mock.send_to_connection.assert_called_once_with(
+        ws_send_message('text', '123')
+        self.services_mock.return_value.webpubsub.\
+            send_to_connection.assert_called_once_with(
                 '123', 'text', content_type='application/json')
 
-    def test_shadow_msg_to_db(self):
+    @patch('core.functions.chat.ChatMessageDAO.save_message')
+    def test_shadow_msg_to_db(self, m):
         """
         This function should save the message to the database
         """
         # It doesn't matter what arguments are passed to it; the
         # virtue of it being called is enough
-        with patch('core.functions.chat.ChatMessageDAO.save_message') as m:
-            shadow_msg_to_db('123', 'blah', True, False, [])
-            m.assert_called_once()
+        shadow_msg_to_db('123', 'blah', True, False, [])
+        m.assert_called_once()
 
     def test_strip_all_citations(self):
         """
