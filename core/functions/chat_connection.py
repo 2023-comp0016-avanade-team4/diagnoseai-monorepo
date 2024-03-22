@@ -3,31 +3,20 @@ ChatConnection API endpoint.
 """
 
 import logging
-import os
 from json import JSONDecodeError
 
 import azure.functions as func  # type: ignore[import-untyped]
-from azure.messaging.webpubsubservice import WebPubSubServiceClient  # type: ignore[import-untyped] # noqa: E501 # pylint: disable=line-too-long
 from utils.conversation import (ChatConnectionRequest,
                                 ChatConnectionResponse)
 from utils.verify_token import verify_token
-
-WPBSS_CONNECTION_STRING = os.environ['WebPubSubConnectionString']
-WPBSS_HUB_NAME = os.environ['WebPubSubHubName']
-
-# Global clients
-service: WebPubSubServiceClient = WebPubSubServiceClient \
-    .from_connection_string(  # pylint: disable=no-member
-        WPBSS_CONNECTION_STRING,
-        hub=WPBSS_HUB_NAME
-    )
+from utils.services import Services
 
 
 def generate_wss_url(request: ChatConnectionRequest) -> str:
     """
     Generates the client access URL.
     """
-    return service.get_client_access_token(
+    return Services().webpubsub.get_client_access_token(
         user_id=request.user_id, minutes_to_expire=60)['url']
 
 

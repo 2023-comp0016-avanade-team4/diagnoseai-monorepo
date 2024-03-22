@@ -1,41 +1,31 @@
 """
 Module to test chat connection
 """
-import os
-import unittest
 from unittest.mock import create_autospec, patch
 
 from azure.functions import HttpRequest
+from core.functions.chat_connection import generate_wss_url
+from core.functions.chat_connection import main
+from core.utils.conversation import ChatConnectionRequest
+
 from base_test_case import BaseTestCase
-
-
-#patching the verify_token function
-
-vjwt_patch = patch('utils.verify_token.verify_token')
-mock_vjwt = vjwt_patch.start()
-mock_vjwt.return_value = True
-
-# Globals patching
-
-service_patch = \
-    patch('azure.messaging.webpubsubservice.WebPubSubServiceClient') \
-    .start()
-
-os.environ['WebPubSubConnectionString'] = ''
-os.environ['WebPubSubHubName'] = ''
-os.environ['CLERK_SECRET_KEY'] = 'test'
-os.environ['CLERK_AZP_LIST'] = 'test'
-
-# pylint: disable=wrong-import-position
-from core.functions.chat_connection import (generate_wss_url,  # noqa: E402, E501
-                                            main, service)
-from core.utils.conversation import ChatConnectionRequest  # noqa: E402, E501
 
 
 class TestChatConnection(BaseTestCase):
     """
     Tests the Chat Connection REST API
     """
+    @classmethod
+    def setUpClass(cls):
+        cls.secrets_and_services_mock('core.functions.chat_connection',
+                                      no_secret=True)
+        cls.vjwt_patch = patch('core.functions.chat_connection.verify_token') \
+           .start()
+        cls.vjwt_patch.return_value = True
+
+    def tearDown(self):
+        self.vjwt_patch.stop()
+
     def test_main_happy(self):
         """Parses the expected Chat Connection"""
         req = create_autospec(HttpRequest)
@@ -64,6 +54,9 @@ class TestChatConnection(BaseTestCase):
             user_id='123'
         )
 
-        service.get_client_access_token.return_value = {'url': 'something'}
+        self.services_mock.return_value.\
+            webpubsub.get_client_access_token \
+                     .return_value = {'url': 'something'}
         self.assertEqual(generate_wss_url(make_convo_request), 'something')
-        service.get_client_access_token.assert_called_once()
+        self.services_mock.return_value.webpubsub.get_client_access_token. \
+            assert_called_once()

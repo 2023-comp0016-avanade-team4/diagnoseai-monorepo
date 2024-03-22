@@ -19,22 +19,28 @@ class BaseTestCase(unittest.TestCase):
     """
 
     @classmethod
-    def secrets_and_services_mock(cls, prefix: str):
+    def secrets_and_services_mock(cls, prefix: str, *,
+                                  no_secret: bool = False,
+                                  no_services: bool = False):
         """
         Mocks the Secrets and Services classes. Requires a prefix.
 
         Put this in the setUpClass() method of the test class.
-        """
-        cls.secrets_mock = patch(f'{prefix}.Secrets',
-                                 autospec=True,
-                                 spec_set=True).start()
-        cls.services_mock = patch(f'{prefix}.Services',
-                                  autospec=True,
-                                  spec_set=True).start()
 
-    def setUp(self):
-        self.secrets_mock = None
-        self.services_mock = None
+        Args:
+            prefix (str): The prefix of the module being tested.
+            no_secret (bool): If True, do not mock the Secrets class.
+            no_services (bool): If True, do not mock the Services class.
+        """
+        if not no_secret:
+            cls.secrets_mock = patch(f'{prefix}.Secrets',
+                                     autospec=True,
+                                     spec_set=True).start()
+
+        if not no_services:
+            cls.services_mock = patch(f'{prefix}.Services',
+                                      autospec=True,
+                                      spec_set=True).start()
 
     def tearDown(self):
         if self.secrets_mock:
