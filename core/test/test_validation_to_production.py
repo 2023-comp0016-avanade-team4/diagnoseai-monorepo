@@ -1,55 +1,53 @@
 """ Module for testing the validation_to_production endpoint. """
 
-import os
-import unittest
 from unittest.mock import patch
-from base_test_case import BaseTestCase
 
-from azure.functions import HttpRequest
 from azure.core.exceptions import HttpResponseError
-
-
-# Globals patching
-akc_patch = patch('azure.core.credentials.AzureKeyCredential').start()
-sic_patch = patch('azure.search.documents.indexes.SearchIndexClient').start()
-verify_token_patch = patch('utils.verify_token.verify_token').start()
-http_response_patch = patch('azure.functions.HttpResponse').start()
-bsc_patch = patch('azure.storage.blob.BlobServiceClient').start()
-
-os.environ['CognitiveSearchKey'] = 'mock-key'
-os.environ['CognitiveSearchEndpoint'] = 'mock-endpoint'
-os.environ['DocumentStorageContainer'] = 'mock-container'
-os.environ['DocumentStorageConnection'] = 'mock-connection'
-
-# pylint: disable=wrong-import-position
+from azure.functions import HttpRequest
 from core.functions.validation_to_production import main  # noqa: E402
+
+from base_test_case import BaseTestCase
 
 
 class TestValidationToProduction(BaseTestCase):
     """
     Tests the validation_to_production endpoint
     """
-    req = HttpRequest(
-        url="",
-        method='POST',
-        body=(b'{"validation_index_name": "test",'
-              b'"production_index_name": "mock-index"}'),
-        headers={
-            'Auth-Token': 'test'
-        }
-    )
+    @classmethod
+    def setUpClass(cls):
+        cls.secrets_and_services_mock(
+            'core.functions.validation_to_production',
+            no_secret=True)
 
-    @patch('core.functions.validation_to_production.SearchClient')
-    @patch('core.functions.validation_to_production.cognitiveSearchClient')
-    def test_main(self, cog_search_client_patch, sc_patch):
+    def setUp(self):
+        self.req = HttpRequest(
+            url="",
+            method='POST',
+            body=(b'{"validation_index_name": "test",'
+                  b'"production_index_name": "mock-index"}'),
+            headers={
+                'Auth-Token': 'test'
+            }
+        )
+
+        # automatically released in teardown
+        patch('core.functions.validation_to_production.verify_token',
+              return_value=True).start()
+
+    def test_main(self):
         """
         Tests that the endpoint returns a 200 when authorized and validation
         index exists
         """
-        verify_token_patch.return_value = True
-        cog_search_client_patch.list_index_names.return_value = [
+        cog_search_client = self.services_mock.return_value.\
+            document_cognitive_search_index
+        cog_search_client.list_index_names.return_value = [
             'test', 'mock-index']
-        akc_patch.return_value = 'mock-key'
+        sc_patch = cog_search_client.get_search_client
+        validation_container_client = self.services_mock.return_value.\
+            validation_container_client
+        production_container_client = self.services_mock.return_value.\
+            production_container_client
         documents = [
             {"id": "1", "content": "Example 1",
              "filepath": None},
@@ -58,51 +56,40 @@ class TestValidationToProduction(BaseTestCase):
         ]
         sc_patch.return_value.search.return_value.by_page.return_value = \
             iter([documents])
-        main(self.req)
+        response = main(self.req)
+        self.assertEqual(response.status_code, 200)
         sc_patch.assert_called()
-        sic_patch.assert_called()
-        akc_patch.assert_called()
-        akc_patch.assert_called()
-        bsc_patch.from_connection_string.return_value.\
-            get_container_client.return_value.\
-            get_blob_client.return_value.\
+        validation_container_client.get_blob_client.assert_called()
+        production_container_client.get_blob_client.assert_called()
+        production_container_client.get_blob_client.return_value.\
             start_copy_from_url.assert_called()
-        cog_search_client_patch.list_index_names.assert_called()
+        cog_search_client.list_index_names.assert_called()
         sc_patch.return_value.upload_documents.assert_called()
-        verify_token_patch.assert_called_with('test')
-        http_response_patch.assert_called_with(
-                'Documents moved to production index with filepath added',
-                status_code=200
-        )
 
-    @patch('core.functions.validation_to_production.cognitiveSearchClient')
-    def test_validation_index_not_found(self, cog_search_client_patch):
+    def test_validation_index_not_found(self):
         """
         Tests that the endpoint returns a 404 when validation index not found
         """
-        verify_token_patch.return_value = True
-        cog_search_client_patch.list_index_names.return_value = iter(
+        cog_search_client = self.services_mock.return_value.\
+            document_cognitive_search_index
+        cog_search_client.list_index_names.return_value = iter(
                 ['not_test'])
-        main(self.req)
-        verify_token_patch.assert_called_with('test')
-        cog_search_client_patch.list_index_names.assert_called()
-        http_response_patch.assert_called_with(
-                'Validation index test not found',
-                status_code=404
-        )
+        response = main(self.req)
+        self.assertEqual(response.status_code, 404)
+        cog_search_client.list_index_names.assert_called()
 
-    @patch('core.functions.validation_to_production.SearchClient')
-    @patch('core.functions.validation_to_production.cognitiveSearchClient')
-    def test_failed_delete_index(self, cog_search_client_patch, sc_patch):
+    def test_failed_delete_index(self):
         """
         Tests that the endpoint returns a 500 when deleting the validation
         index fails
         """
-        verify_token_patch.return_value = True
-        cog_search_client_patch.list_index_names.return_value = ['test',
-                                                                 'mock-index']
-        cog_search_client_patch.delete_index.side_effect = HttpResponseError(
+        cog_search_client = self.services_mock.return_value.\
+            document_cognitive_search_index
+        cog_search_client.list_index_names.return_value = [
+            'test', 'mock-index']
+        cog_search_client.delete_index.side_effect = HttpResponseError(
                 'mock-error')
+        sc_patch = cog_search_client.get_search_client
         documents = [
             {"id": "1", "content": "Example 1",
              "filepath": None},
@@ -111,16 +98,14 @@ class TestValidationToProduction(BaseTestCase):
         ]
         sc_patch.return_value.search.return_value.by_page.return_value = \
             iter([documents])
-        main(self.req)
+        response = main(self.req)
+        self.assertEqual(response.status_code, 500)
         sc_patch.assert_called()
         sc_patch.return_value.upload_documents.assert_called()
-        http_response_patch.assert_called_with(
-                'Error deleting validation index: mock-error',
-                status_code=500
-        )
 
-    @patch('core.functions.validation_to_production.SearchClient')
-    def test_filepath_added_to_documents(self, mock_search_client):
+        cog_search_client.delete_index.side_effect = None
+
+    def test_filepath_added_to_documents(self):
         """
         Tests that the filepath is added correctly to each document
         """
@@ -132,19 +117,19 @@ class TestValidationToProduction(BaseTestCase):
              "filepath": None}
         ]
 
-        verify_token_patch.return_value = True
-        mock_search_client.return_value.search.return_value.by_page.return_value = iter([documents])  # noqa: E501  pylint: disable=line-too-long
-
-        sic_patch.return_value.list_index_names.return_value = [
-            validation_index_name,
-            'mock-index'
-        ]
+        cog_search_client = self.services_mock.return_value.\
+            document_cognitive_search_index
+        cog_search_client.list_index_names.return_value = [
+            validation_index_name, 'mock-index']
+        sc_patch = cog_search_client.get_search_client
+        sc_patch.return_value.search.return_value.by_page.return_value \
+            = iter([documents])
 
         main(self.req)
 
-        mock_search_client.return_value.upload_documents.assert_called()
-        _, args, _ = mock_search_client.return_value.upload_documents\
-                                                    .mock_calls[0]
+        sc_patch.return_value.upload_documents.assert_called()
+        _, args, _ = sc_patch.return_value.upload_documents\
+                                          .mock_calls[0]
         documents = args[0]
 
         for doc in documents:

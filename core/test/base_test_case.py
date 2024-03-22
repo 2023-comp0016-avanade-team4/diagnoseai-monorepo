@@ -6,7 +6,7 @@ other tests.
 
 import unittest
 import logging
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 
 # Disables all logging. Tests producing logs pollute the output
@@ -17,6 +17,8 @@ class BaseTestCase(unittest.TestCase):
     """
     Base test case class
     """
+    secrets_mock: MagicMock = MagicMock()
+    services_mock: MagicMock = MagicMock()
 
     @classmethod
     def secrets_and_services_mock(cls, prefix: str, *,

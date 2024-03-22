@@ -23,7 +23,7 @@ from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.messaging.webpubsubservice import (  # type: ignore[import-untyped]
     WebPubSubServiceClient)  # noqa: E501 # pylint: disable=line-too-long
 from azure.search.documents.indexes import SearchIndexClient
-from azure.storage.blob import BlobServiceClient
+from azure.storage.blob import BlobServiceClient, ContainerClient
 from langchain_core.utils import convert_to_secret_str
 from langchain_openai import AzureOpenAIEmbeddings
 from openai import AzureOpenAI
@@ -58,6 +58,9 @@ class Services(metaclass=Singleton):
         self._db_session = None
         self._embeddings = None
         self._document_analysis = None
+        self._validation_container_client = None
+        self._production_container_client = None
+        self._document_cognitive_search_index = None
 
     @property
     def openai_chat_model(self) -> AzureOpenAI:
@@ -174,3 +177,30 @@ class Services(metaclass=Singleton):
                 AzureKeyCredential(Secrets().get("CognitiveSearchKey"))
             )
         return self._document_analysis
+
+    @property
+    def validation_container_client(self) -> ContainerClient:
+        if not self._validation_container_client:
+            self._validation_container_client = \
+                self._doc_blob_client.get_container_client(
+                    Secrets().get("DocumentValidationContainerName")
+                )
+        return self._validation_container_client
+
+    @property
+    def production_container_client(self) -> ContainerClient:
+        if not self._production_container_client:
+            self._production_container_client = \
+                self._doc_blob_client.get_container_client(
+                    Secrets().get("DocumentProductionContainerName")
+                )
+        return self._production_container_client
+
+    @property
+    def document_cognitive_search_index(self) -> SearchIndexClient:
+        if not self._document_cognitive_search_index:
+            self._document_cognitive_search_index = SearchIndexClient(
+                Secrets().get("CognitiveSearchEndpoint"),
+                AzureKeyCredential(Secrets().get("CognitiveSearchKey"))
+            )
+        return self._document_cognitive_search_index

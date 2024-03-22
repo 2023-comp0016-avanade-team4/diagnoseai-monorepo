@@ -1,70 +1,58 @@
 """Azure Function to move vectors from validation to production index"""
 
-import os
 import logging
 
-from azure.functions import HttpRequest, HttpResponse
-from azure.search.documents import SearchClient
-from azure.search.documents.indexes import SearchIndexClient
-from azure.core.credentials import AzureKeyCredential
 from azure.core.exceptions import HttpResponseError
-from azure.search.documents.indexes.models import (
-    SearchFieldDataType,
-    SimpleField,
-    SearchableField,
-    SearchIndex,
-    SearchField,
-    VectorSearch,
-    VectorSearchProfile,
-    HnswAlgorithmConfiguration
-)
-from azure.storage.blob import BlobServiceClient
-
+from azure.functions import HttpRequest, HttpResponse
+from azure.search.documents.indexes.models import (HnswAlgorithmConfiguration,
+                                                   SearchableField,
+                                                   SearchField,
+                                                   SearchFieldDataType,
+                                                   SearchIndex, SimpleField,
+                                                   VectorSearch,
+                                                   VectorSearchProfile)
+from utils.services import Services
 from utils.verify_token import verify_token
 
-# Environment Variables
-
-COGNITIVE_SERVICE_ENDPOINT = os.environ["CognitiveSearchEndpoint"]
-COGNITIVE_SEARCH_API_KEY = os.environ["CognitiveSearchKey"]
-
-SOURCE_STORAGE_CONNECTION_STRING = os.environ["DocumentStorageContainer"]
-SOURCE_STORAGE_CONTAINER = 'verification'
-DESTINATION_STORAGE_CONNECTION_STRING = os.environ["DocumentStorageContainer"]
-DESTINATION_STORAGE_CONTAINER = 'production'
-
-# Global Clients
-
-credential = AzureKeyCredential(COGNITIVE_SEARCH_API_KEY)
-
-cognitiveSearchClient = SearchIndexClient(
-    endpoint=COGNITIVE_SERVICE_ENDPOINT,
-    credential=credential
-)
-
-validationBlobServiceClient = BlobServiceClient.from_connection_string(
-    SOURCE_STORAGE_CONNECTION_STRING
-)
-
-productionBlobServiceClient = BlobServiceClient.from_connection_string(
-    DESTINATION_STORAGE_CONNECTION_STRING
-)
-
-validationContainerClient = validationBlobServiceClient.get_container_client(
-    SOURCE_STORAGE_CONTAINER
-)
-
-productionContainerClient = productionBlobServiceClient.get_container_client(
-    DESTINATION_STORAGE_CONTAINER
-)
 
 def create_index(index_name: str) -> None:
-    """Create an index in the search service"""
+    """
+    Create an index in the search service
+
+    Args:
+        index_name (str): The name of the index to create
+    """
     fields = [
-        SimpleField(name="id", type=SearchFieldDataType.String, key=True, sortable=True, filterable=True, facetable=True),
-        SearchableField(name="content", sortable=True, filterable=True, facetable=True),
-        SearchField(name="content_vector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single), searchable=True, vector_search_dimensions=1536, vector_search_profile_name="my-vector-config"),
-        SimpleField(name="metadata", type=SearchFieldDataType.String, sortable=True, filterable=False, facetable=False),
-        SimpleField(name="filepath", type=SearchFieldDataType.String, sortable=True, filterable=True, facetable=False),
+        SimpleField(name="id",
+                    type=SearchFieldDataType.String,
+                    key=True,
+                    sortable=True,
+                    filterable=True,
+                    facetable=True),
+
+        SearchableField(name="content",
+                        sortable=True,
+                        filterable=True,
+                        facetable=True),
+
+        SearchField(
+            name="content_vector",
+            type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
+            searchable=True,
+            vector_search_dimensions=1536,
+            vector_search_profile_name="my-vector-config"),
+
+        SimpleField(name="metadata",
+                    type=SearchFieldDataType.String,
+                    sortable=True,
+                    filterable=False,
+                    facetable=False),
+
+        SimpleField(name="filepath",
+                    type=SearchFieldDataType.String,
+                    sortable=True,
+                    filterable=True,
+                    facetable=False),
     ]
 
     vector_search = VectorSearch(
@@ -77,31 +65,31 @@ def create_index(index_name: str) -> None:
         algorithms=[HnswAlgorithmConfiguration(name='my-algorithms-config')]
     )
 
-    cognitiveSearchClient.create_index(
-        SearchIndex(name=index_name, fields=fields, vector_search=vector_search)
+    Services().document_cognitive_search_index.create_index(
+        SearchIndex(name=index_name, fields=fields,
+                    vector_search=vector_search)
     )
 
 
 def check_index_exists(index_name: str) -> bool:
     """Check if an index exists in the search service"""
-    index_names = list(cognitiveSearchClient.list_index_names())
+    index_names = list(
+        Services().document_cognitive_search_index.list_index_names())
     return index_name in index_names
 
 
 def migrate_documents(validation_index_name: str,
                       production_index_name: str) -> None:
     """Migrate documents from validation to production index"""
-    validation_index_client = SearchClient(
-        endpoint=COGNITIVE_SERVICE_ENDPOINT,
-        index_name=validation_index_name,
-        credential=credential
-    )
+    validation_index_client = Services().document_cognitive_search_index.\
+        get_search_client(
+            index_name=validation_index_name
+        )
 
-    production_client = SearchClient(
-        endpoint=COGNITIVE_SERVICE_ENDPOINT,
-        index_name=production_index_name,
-        credential=credential
-    )
+    production_client = Services().document_cognitive_search_index.\
+        get_search_client(
+            index_name=production_index_name
+        )
 
     for page in validation_index_client.search(search_text="*").by_page():
         documents = list(page)
@@ -116,8 +104,10 @@ def move_document_to_production(name: str) -> None:
     """
     Moves a document from the validation storage container to production
     """
-    source_client = validationContainerClient.get_blob_client(name)
-    target_client = productionContainerClient.get_blob_client(f'{name}.pdf')
+    source_client = Services().validation_container_client.get_blob_client(
+        name)
+    target_client = Services().production_container_client.get_blob_client(
+        f'{name}.pdf')
 
     target_client.start_copy_from_url(source_client.url)
     source_client.delete_blob()
@@ -163,7 +153,8 @@ def main(req: HttpRequest) -> HttpResponse:
     migrate_documents(validation_index_name, production_index_name)
 
     try:
-        cognitiveSearchClient.delete_index(validation_index_name)
+        Services().document_cognitive_search_index.delete_index(
+            validation_index_name)
         move_document_to_production(validation_index_name)
     except HttpResponseError as err:
         return error_deleting_index(err)
