@@ -45,6 +45,7 @@ class Secrets(metaclass=Singleton):
         "OpenAIEndpoint",
         "OpenAIKey",
         "OpenAIModelName",
+        "SummarizationModel",
         "DatabaseURL",
         "DatabaseName",
         "DatabaseUsername",
@@ -62,7 +63,7 @@ class Secrets(metaclass=Singleton):
         "ClerkAZPList",
     ]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.__loaded_vars: Optional[dict[str, str]] = {}
         self.__make_secrets()
 

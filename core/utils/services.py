@@ -19,21 +19,25 @@ it for tests.
 """
 
 from azure.core.credentials import AzureKeyCredential
-from azure.messaging.webpubsubservice import WebPubSubServiceClient  # type: ignore[import-untyped] # noqa: E501 # pylint: disable=line-too-long
+from azure.messaging.webpubsubservice import (  # type: ignore[import-untyped]
+    WebPubSubServiceClient)  # noqa: E501 # pylint: disable=line-too-long
 from azure.search.documents.indexes import SearchIndexClient
 from azure.storage.blob import BlobServiceClient
+from langchain_core.utils import convert_to_secret_str
+from langchain_openai import AzureOpenAIEmbeddings
 from openai import AzureOpenAI
+from sqlalchemy.orm import Session
+
+from utils.db import create_session
 from utils.image_summary import ImageSummary
 from utils.secrets import Secrets
-from utils.db import create_session
 from utils.singleton import Singleton
-from sqlalchemy.orm import Session
 
 
 # This is justified because the attribtues are defined in __var_init_,
 # which is part of the singleton design. Function docstrings not
 # necessary, each of the methods are simply init-once attributes
-# pylint: disable=attribute-defined-outside-init, missing-function-docstring, too-many-attributes # noqa: E501
+# pylint: disable=attribute-defined-outside-init, missing-function-docstring, too-many-instance-attributes # noqa: E501
 class Services(metaclass=Singleton):
     """
     Services singleton containing lazy-init clients. Reads secrets via
@@ -51,6 +55,7 @@ class Services(metaclass=Singleton):
         self._doc_blob_client = None
         self._search_index_client = None
         self._db_session = None
+        self._embeddings = None
 
     @property
     def openai_chat_model(self) -> AzureOpenAI:
@@ -147,3 +152,14 @@ class Services(metaclass=Singleton):
                 bool(Secrets().get("DatabaseSelfSigned"))
             )
         return self._db_session
+
+    @property
+    def embeddings(self) -> AzureOpenAIEmbeddings:
+        if not self._embeddings:
+            self._embeddings = AzureOpenAIEmbeddings(
+                azure_endpoint=Secrets().get("OpenAIEndpoint"),
+                api_key=convert_to_secret_str(Secrets().get("OpenAIKey")),
+                azure_deployment="text-embedding-ada-002",
+                api_version="2023-05-15",
+            )
+        return self._embeddings

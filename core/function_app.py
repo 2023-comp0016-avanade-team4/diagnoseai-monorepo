@@ -10,6 +10,7 @@ function should all have the docstring.
 
 # pragma: no cover
 import azure.functions as func
+import logging
 from azure.functions.decorators.core import DataType
 
 from functions.chat import main as chat_main
@@ -19,6 +20,8 @@ from functions.chat_history import main as chat_history
 from functions.file_upload_trigger import main as file_upload_trigger
 from functions.validation_to_production import main as validation_to_production
 from functions.work_order import main as work_order
+
+logging.basicConfig(level=logging.INFO)
 
 bp = func.Blueprint()
 

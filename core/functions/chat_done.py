@@ -6,42 +6,21 @@ complete.
 """
 
 import logging
-import os
 from functools import reduce
 from typing import Optional
 
 import azure.functions as func  # type: ignore[import-untyped]
 from langchain.docstore.document import Document
-from langchain_openai import AzureOpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores.azuresearch import AzureSearch
-from openai import AzureOpenAI
 from models.chat_message import ChatMessageDAO
 from models.conversation_status import ConversationStatusDAO
-from utils.hashing import get_search_index_for_user_id
 from utils.authorise_conversation import authorise_user
-from utils.db import create_session
 from utils.get_user_id import get_user_id
+from utils.hashing import get_search_index_for_user_id
+from utils.secrets import Secrets
+from utils.services import Services
 from utils.verify_token import verify_token
-
-# Environment Variables / Constants
-
-OPENAI_KEY = os.environ["OpenAIKey"]
-OPENAI_ENDPOINT = os.environ["OpenAIEndpoint"]
-
-os.environ["AZURE_OPENAI_API_KEY"] = OPENAI_KEY
-os.environ["AZURE_OPENAI_ENDPOINT"] = OPENAI_ENDPOINT
-
-SUMMARIZATION_MODEL = os.environ["SummarizationModel"]
-
-DATABASE_URL = os.environ['DatabaseURL']
-DATABASE_NAME = os.environ['DatabaseName']
-DATABASE_USERNAME = os.environ['DatabaseUsername']
-DATABASE_PASSWORD = os.environ['DatabasePassword']
-DATABASE_SELFSIGNED = os.environ.get('DatabaseSelfSigned')
-
-SEARCH_KEY = os.environ["SummarySearchKey"]
-SEARCH_ENDPOINT = os.environ["SummarySearchEndpoint"]
 
 SUMMARIZATION_PROMPT = (
     "You are a summarization service. You will be iteratively passed chunks of"
@@ -54,27 +33,6 @@ SUMMARIZATION_PROMPT = (
     " up to that point."
 )
 
-# Global Clients
-
-logging.basicConfig(level=logging.INFO)
-
-ai_client = AzureOpenAI(
-    base_url=(f"{OPENAI_ENDPOINT}/openai/deployments/"
-              "validation-testing-model"),
-    api_key=OPENAI_KEY,
-    api_version='2024-02-15-preview'
-)
-
-db_session = create_session(
-    DATABASE_URL, DATABASE_NAME, DATABASE_USERNAME, DATABASE_PASSWORD,
-    bool(DATABASE_SELFSIGNED)
-)
-
-embeddings = AzureOpenAIEmbeddings(
-    azure_deployment="text-embedding-ada-002",
-    api_version="2023-05-15",
-)
-
 
 def __obtain_summary(prev_summary: str, next_chunk: str) -> str:
     """
@@ -84,8 +42,8 @@ def __obtain_summary(prev_summary: str, next_chunk: str) -> str:
         prev_summary (str): The previous summary
         next_chunk (str): The next chunk of the conversation
     """
-    chat_response = ai_client.chat.completions.create(
-        model=SUMMARIZATION_MODEL,
+    chat_response = Services().openai_chat_model.chat.completions.create(
+        model=Secrets().get("SummarizationModel"),
         messages=[{
             "role": "system",
             "content": SUMMARIZATION_PROMPT
@@ -120,7 +78,7 @@ def __summarize_conversation(conversation_id: str) -> str:
     """
     logging.info('Summarizing conversation %s', conversation_id)
     conversations = ChatMessageDAO.get_all_messages_for_conversation(
-        db_session, conversation_id)
+        Services().db_session, conversation_id)
     combined = '\n'.join([f"{c.sender}: {c.message}" for c in conversations])
     text_splitter = RecursiveCharacterTextSplitter()
     return reduce(__obtain_summary, text_splitter.split_text(combined), "")
@@ -136,10 +94,10 @@ def __store_into_index(index: str, data: str) -> None:
     """
     logging.info('Storing into index %s', index)
     vector_store = AzureSearch(
-        azure_search_endpoint=SEARCH_ENDPOINT,
-        azure_search_key=SEARCH_KEY,
+        azure_search_endpoint=Secrets().get("SummarySearchEndpoint"),
+        azure_search_key=Secrets().get("SummarySearchKey"),
         index_name=index,
-        embedding_function=embeddings.embed_query
+        embedding_function=Services().embeddings.embed_query
     )
     vector_store.add_documents(documents=[
         Document(page_content=data, metadata={'source': 'local'})])
@@ -195,7 +153,8 @@ def __guards(req: func.HttpRequest
             'Invalid parameters', status_code=400
         ), '', '', False
 
-    if not authorise_user(db_session, conversation_id, user_id):
+    assert user_id is not None
+    if not authorise_user(Services().db_session, conversation_id, user_id):
         return func.HttpResponse(
             'Conversation does not belong to user', status_code=401
         ), '', '', False
@@ -216,11 +175,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Chat Done called with %s', req.method)
     if done:
         ConversationStatusDAO.mark_conversation_completed(
-            req.params['conversation_id'], db_session)
+            req.params['conversation_id'], Services().db_session)
         summarize_and_store(user_id, conversation_id)
     else:
         ConversationStatusDAO.mark_conversation_not_completed(
-            req.params['conversation_id'], db_session)
+            req.params['conversation_id'], Services().db_session)
     return func.HttpResponse(
         '', status_code=200
     )

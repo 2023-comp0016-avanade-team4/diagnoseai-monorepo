@@ -2,39 +2,27 @@
 Module to test the chat being done
 """
 
-import os
-import unittest
 from unittest.mock import patch
-from base_test_case import BaseTestCase
 
 import azure.functions as func
+from core.functions.chat_done import main, summarize_and_store
 
-# Globals patching
-aoie_patch = patch('langchain_openai.AzureOpenAIEmbeddings') \
-    .start()
-as_patch = patch('langchain_community.vectorstores.azuresearch.AzureSearch') \
-    .start()
-db_session_patch = patch('utils.db.create_session') \
-    .start()
-
-os.environ['OpenAIKey'] = ''
-os.environ['OpenAIEndpoint'] = ''
-os.environ['SummarizationModel'] = ''
-os.environ['CLERK_PUBLIC_KEY'] = 'test'
-os.environ['CLERK_AZP_LIST'] = 'test'
-os.environ['SummarySearchKey'] = ''
-os.environ['SummarySearchEndpoint'] = ''
-
-# This import must come after the global patches
-# pylint: disable=wrong-import-position
-from core.functions.chat_done import main, summarize_and_store  # noqa: E402
+from base_test_case import BaseTestCase
 
 
+# too many arguments stems from the patching annotations.  it doesn't
+# make sense to cut down on the number of things to patch seeing as
+# they are necessary, so we disable the lint.
+# pylint: disable=too-many-arguments
 class TestChatDone(BaseTestCase):
     """
     Tests the Chat Done API
     """
-    # pylint: disable=too-many-arguments
+    @classmethod
+    def setUpClass(cls):
+        cls.secrets_and_services_mock('core.functions.chat_done')
+        cls.as_patch = patch('core.functions.chat_done.AzureSearch').start()
+
     def setUp(self):
         self.request = func.HttpRequest(
             method='POST',
