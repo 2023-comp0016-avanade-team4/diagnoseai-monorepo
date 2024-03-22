@@ -34,8 +34,7 @@ class TestChat(BaseTestCase):
                                     return_value=True).start()
         self.get_user_id_mock = patch('core.functions.chat.get_user_id',
                                       return_value='123').start()
-        self.authorize_mock = patch('core.functions.chat.authorise_user',
-                                    return_value=True).start()
+        patch('core.functions.chat.authorise_user', return_value=True).start()
         self.ai_client = self.services_mock.return_value.openai_chat_model
         self.image_summary = self.services_mock.return_value.\
             image_summary_model
@@ -103,7 +102,7 @@ class TestChat(BaseTestCase):
             type(mocked_chat_completion).choices = []
 
         mock_create = MagicMock(return_value=mocked_chat_completion)
-        self.ai_client.chat.completions.create = mock_create  # type: ignore[method-assign] # noqa: E501
+        self.ai_client.chat.completions.create = mock_create  # pylint: disable=line-too-long # type: ignore[method-assign] # noqa: E501
 
         if index_name is not None:
             return mock_create, ChatMessage(message='blah',
