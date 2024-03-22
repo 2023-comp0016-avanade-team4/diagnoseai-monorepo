@@ -61,6 +61,10 @@ class Secrets(metaclass=Singleton):
         "GPT4VDeploymentName",
         "ClerkPublicKey",
         "ClerkAZPList",
+        "SMTPServer",
+        "SMTPUsername",
+        "SMTPPassword",
+        "UploaderBaseURL"
     ]
 
     def __init__(self) -> None:

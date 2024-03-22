@@ -19,6 +19,7 @@ it for tests.
 """
 
 from azure.core.credentials import AzureKeyCredential
+from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.messaging.webpubsubservice import (  # type: ignore[import-untyped]
     WebPubSubServiceClient)  # noqa: E501 # pylint: disable=line-too-long
 from azure.search.documents.indexes import SearchIndexClient
@@ -56,6 +57,7 @@ class Services(metaclass=Singleton):
         self._search_index_client = None
         self._db_session = None
         self._embeddings = None
+        self._document_analysis = None
 
     @property
     def openai_chat_model(self) -> AzureOpenAI:
@@ -163,3 +165,12 @@ class Services(metaclass=Singleton):
                 api_version="2023-05-15",
             )
         return self._embeddings
+
+    @property
+    def document_analysis(self) -> DocumentAnalysisClient:
+        if not self._document_analysis:
+            self._document_analysis = DocumentAnalysisClient(
+                Secrets().get("CognitiveSearchEndpoint"),
+                AzureKeyCredential(Secrets().get("CognitiveSearchKey"))
+            )
+        return self._document_analysis
