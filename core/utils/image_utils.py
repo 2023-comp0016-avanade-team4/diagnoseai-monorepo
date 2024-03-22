@@ -3,13 +3,9 @@ Utilities for image processing.
 """
 
 import base64
-import logging
-from datetime import timedelta, datetime
 from io import BytesIO
 
 import puremagic  # type: ignore[import-untyped]
-from azure.storage.blob import (BlobSasPermissions, BlobServiceClient,
-                                generate_blob_sas)
 from PIL import Image
 
 

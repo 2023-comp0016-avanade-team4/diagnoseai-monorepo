@@ -57,13 +57,6 @@ class PendingUploadsDAO:
     The data access object for an pending upload.
     """
 
-    def setUp(self):
-        self.model = PendingUploadsModel(
-            upload_id='test_id',
-            filename='test.pdf',
-            username='test',
-            user_email='test@example.com')
-
     @staticmethod
     def add_pending_upload(session: Session,
                            model: PendingUploadsModel) -> None:

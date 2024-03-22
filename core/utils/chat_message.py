@@ -104,7 +104,7 @@ def translate_citation_urls(citations: list[Citation],
                 blob_service_client,
                 container,
                 citation.filepath
-            ) if not citation.filepath is None else '',
+            ) if citation.filepath is not None else '',
             chunk_id=citation.chunk_id
         )
 

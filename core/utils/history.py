@@ -7,6 +7,7 @@ from dataclasses_json import DataClassJsonMixin
 
 from .chat_message import BidirectionalChatMessage
 
+
 @dataclass
 class ChatHistoryResponse(DataClassJsonMixin):
     """

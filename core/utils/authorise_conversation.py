@@ -2,8 +2,8 @@
 Util to authorise a user. user_id from database (owner of conversation)
 needs to match current user_id passed as an argument.
 """
-from models.work_order import WorkOrderDAO as dao
 from sqlalchemy.orm import Session
+from models.work_order import WorkOrderDAO as dao
 
 
 def authorise_user(

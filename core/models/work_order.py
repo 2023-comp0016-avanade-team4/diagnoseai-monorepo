@@ -9,18 +9,18 @@ The module defines the following classes:
 
 """
 
-from typing import List, Optional, Literal, cast
+from dataclasses import dataclass
+from typing import List, Literal, Optional, cast
 from uuid import uuid4
 
-from sqlalchemy import (DateTime,  # noqa: E501 pylint: disable=E0401
-                        ForeignKey, String, Text, func)
+from dataclasses_json import DataClassJsonMixin
+from sqlalchemy import DateTime  # noqa: E501 pylint: disable=E0401
+from sqlalchemy import ForeignKey, String, Text, func
 from sqlalchemy.orm import (Mapped, Session,  # pylint: disable=E0401
                             mapped_column, relationship)
 
 from .common import Base
 from .conversation_status import ConversationStatusModel
-from dataclasses import dataclass
-from dataclasses_json import DataClassJsonMixin
 
 
 # pylint: disable=too-few-public-methods

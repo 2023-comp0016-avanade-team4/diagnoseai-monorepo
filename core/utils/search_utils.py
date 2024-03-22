@@ -35,5 +35,6 @@ def is_index_ready(search_index: str,
         logging.error('Document count not found. Reporting as not ready.')
         return False
     except AssertionError:
-        logging.error('Document count is not an integer. Reporting as not ready.')
+        logging.error(
+            'Document count is not an integer. Reporting as not ready.')
         return False
