@@ -34,8 +34,6 @@ class ChatMessageModel(Base):
     __tablename__ = 'chat_messages'
     message_id: Mapped[str] = mapped_column(String(36), primary_key=True,
                                             default=uuid4)
-    # TODO: We can probably 3NF this and make this a foreign key. This
-    # is not very important for now, though
     conversation_id: Mapped[str] = mapped_column(default=uuid4)
     message: Mapped[str] = mapped_column()
     sent_at: Mapped[datetime] = mapped_column()
@@ -92,7 +90,8 @@ class ChatMessageModel(Base):
             # casted because message.sender (is a str) should
             # become either bot or user
             sender=cast(Literal['bot', 'user'], message.sender),
-            citations=(cast(list[Citation], message.citations)
+            citations=([Citation.from_dict(citation) for citation in
+                        cast(dict[str, str], message.citations)]
                        if message.citations else [])
         )
 

@@ -13,7 +13,7 @@ from utils.secrets import Secrets
 
 def get_user_id(token) -> Optional[str]:
     """Get the user_id from a valid token."""
-    public_key = Secrets.get('ClerkPublicKey')
+    public_key = Secrets().get('ClerkPublicKey')
     try:
         headers = jwt.get_unverified_header(token)
         # Note: jwt.decode automatically checks for expiration

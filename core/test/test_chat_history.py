@@ -2,33 +2,16 @@
 Module to test the chat history endpoint
 """
 
-import os
-import unittest
-from unittest.mock import patch, create_autospec
-from base_test_case import BaseTestCase
+from unittest.mock import create_autospec, patch
 
 import azure.functions as func  # type: ignore[import-untyped]
-from core.utils.history import ChatHistoryResponse
+from core.functions.chat_history import (get_history_from_db,  # noqa: E402
+                                         handle_request_by_conversation_id,
+                                         main)
 from core.models.chat_message import ChatMessageModel, Citation
+from core.utils.history import ChatHistoryResponse
 
-# Globals patching
-db_session_patch = patch('utils.db.create_session') \
-    .start()
-bsc_patch = patch('azure.storage.blob.BlobServiceClient.from_connection_string') \
-    .start()
-
-os.environ['DatabaseURL'] = ''
-os.environ['DatabaseName'] = ''
-os.environ['DatabaseUsername'] = ''
-os.environ['DatabasePassword'] = ''
-os.environ['DocumentStorageContainer'] = ''
-os.environ['ImageBlobConnectionString'] = ''
-os.environ['ImageBlobContainer'] = ''
-
-# This import must come after the global patches
-# pylint: disable=wrong-import-position
-from core.functions.chat_history import (get_history_from_db, main,  # noqa: E402
-                                         handle_request_by_conversation_id)
+from base_test_case import BaseTestCase
 
 
 class TestChatHistory(BaseTestCase):
@@ -36,11 +19,12 @@ class TestChatHistory(BaseTestCase):
     Tests the Chat History API
     """
 
-    @staticmethod
-    def setUpClass():
-        # Token verification mock. This is torn down in tearDownClass
+    @classmethod
+    def setUpClass(cls):
+        cls.secrets_and_services_mock('core.functions.chat_history')
         patch('core.functions.chat_history.verify_token').start()
         patch('core.functions.chat_history.authorise_user').start()
+        patch('core.functions.chat_history.get_user_id').start()
 
     def test_main_happy(self):
         """
