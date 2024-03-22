@@ -36,9 +36,9 @@ Cypress.Commands.add('signIn', (site) => {
   // However, because of our authentication flow, it makes more sense
   // _NOT_ to do this. Instead, we log in as if we are a real user
   cy.log('Signing in...');
+  cy.signOut();
 
   cy.session(`${site}-session`, () => {
-    cy.signOut();
     cy.origin(Cypress.env('clerk_origin'), { args: { site } }, ({ site }) => {
       cy.visit(site, {
         failOnStatusCode: false
@@ -103,22 +103,24 @@ Cypress.Commands.add('createWorkOrder', () => {
     // NOTE: To trigger auth
     cy.visit("http://localhost:3000").contains("Upload").wait(1000);
 
-    cy.visit("http://localhost:3000/workorder/create")
-      .contains("Create a new task")
-      .wait('@getEverything')
-      .wait(1000);
+    ["E2E Task", "second E2E Task"].forEach(taskName => {
+      cy.visit("http://localhost:3000/workorder/create")
+        .contains("Create a new task")
+        .wait('@getEverything')
+        .wait(1000);
 
-    cy.contains("Select a user").click();
-    cy.get('span').contains(Cypress.env("test_email")).click();
+      cy.contains("Select a user").click();
+      cy.get('span').contains(Cypress.env("test_email")).click();
 
-    cy.contains("Select a machine").click();
-    cy.get('span').contains('e2e machine').click();
+      cy.contains("Select a machine").click();
+      cy.get('span').contains('e2e machine').click();
 
-    cy.get('input[placeholder="Enter a task"]').click().type("E2E Task");
-    cy.get('input[placeholder="Enter a task description"]').click().type("E2E Description");
+      cy.get('input[placeholder="Enter a task"]').click().type(taskName);
+      cy.get('input[placeholder="Enter a task description"]').click().type("E2E Description");
 
-    cy.contains("Submit").click();
-    cy.contains("Work order created successfully", { timeout: 10000 });
+      cy.contains("Submit").click();
+      cy.contains("Work order created successfully", { timeout: 10000 });
+    });
   });
 });
 
@@ -132,16 +134,18 @@ Cypress.Commands.add('deleteWorkOrder', () => {
     // NOTE: To trigger auth
     cy.visit("http://localhost:3000").contains("Upload").wait(1000);
 
-    cy.visit("http://localhost:3000/workorder/delete")
-      .contains("Delete a work order")
-      .wait('@getEverything')
-      .wait(3000);
+    ["E2E Task", "second E2E Task"].forEach(taskName => {
+      cy.visit("http://localhost:3000/workorder/delete")
+        .contains("Delete a work order")
+        .wait('@getEverything')
+        .wait(3000);
 
-    cy.contains("Select a work order").click();
-    cy.get('span').contains('E2E Task').click();
+      cy.contains("Select a work order").click();
+      cy.get('span').contains(taskName).click();
 
-    cy.get('Button').contains('Delete').click();
-    cy.contains("Work order deleted successfully", { timeout: 10000 });
+      cy.get('Button').contains('Delete').click();
+      cy.contains("Work order deleted successfully", { timeout: 10000 });
+    });
   });
 
   cy.deleteMachine();

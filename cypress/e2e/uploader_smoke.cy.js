@@ -5,7 +5,11 @@ describe("port 3000 and 3001 exists", () => {
 
   afterEach(() => {
     cy.signOut();
-  })
+  });
+
+  after(() => {
+    Cypress.session.clearAllSavedSessions();
+  });
 
   it("passes the smoke test (3000)", () => {
     cy.origin("http://localhost:3000", {}, () => {

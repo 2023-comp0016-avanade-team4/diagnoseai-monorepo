@@ -1,12 +1,17 @@
 describe('Uploader Work Orders', () => {
   beforeEach(() => {
     cy.createMachine();
+    cy.signOut();
     cy.signIn('http://localhost:3000');
   });
 
   afterEach(() => {
     cy.deleteMachine();
     cy.signOut();
+  });
+
+  after(() => {
+    Cypress.session.clearAllSavedSessions();
   });
 
   it('creates work orders successfully, then deletes them (from main menu)', () => {
