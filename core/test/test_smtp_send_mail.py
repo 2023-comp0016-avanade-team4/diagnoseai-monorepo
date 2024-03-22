@@ -2,15 +2,15 @@
 Testing all functions in smtp_send_mail
 """
 
-import unittest
 from email.mime.multipart import MIMEMultipart
 from smtplib import SMTPException
 from unittest.mock import patch
-from base_test_case import BaseTestCase
 
 from core.utils.smtp_send_mail import (create_mail, create_mail_text,
                                        make_validation_link,
                                        send_file_processed_mail, send_mail)
+
+from base_test_case import BaseTestCase
 
 
 class TestSendMail(BaseTestCase):

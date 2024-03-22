@@ -1,10 +1,18 @@
+"""
+Tests authorization
+"""
+
 import unittest
 from unittest.mock import MagicMock
+
+from core.utils.authorise_conversation import authorise_user
 from sqlalchemy.orm import Session
-from utils.authorise_conversation import authorise_user
+
 from base_test_case import BaseTestCase
 
 
+# Docstrings literally shouldn't matter
+# pylint: disable=missing-function-docstring
 class TestAuthoriseUser(BaseTestCase):
     """
     Tests the authorise_user function.

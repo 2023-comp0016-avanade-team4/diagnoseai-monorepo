@@ -4,12 +4,12 @@ Various functions to test stuff in models/.
 Only valuable functions are tested
 """
 
-import unittest
 from typing import Tuple
 from unittest.mock import MagicMock, patch
-from base_test_case import BaseTestCase
 
 from core.models.chat_message import ChatMessageDAO
+
+from base_test_case import BaseTestCase
 
 
 class TestDB(BaseTestCase):

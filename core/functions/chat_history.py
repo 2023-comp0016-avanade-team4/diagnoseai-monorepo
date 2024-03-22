@@ -10,7 +10,7 @@ from utils.authorise_conversation import authorise_user
 from utils.chat_message import translate_citation_urls
 from utils.get_user_id import get_user_id
 from utils.history import ChatHistoryResponse
-from utils.image_utils import get_preauthenticated_blob_url
+from utils.get_preauthenticated_blob_url import get_preauthenticated_blob_url
 from utils.secrets import Secrets
 from utils.services import Services
 from utils.verify_token import verify_token

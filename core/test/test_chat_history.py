@@ -83,7 +83,8 @@ class TestChatHistory(BaseTestCase):
                 'models.chat_message.ChatMessageDAO'
                 '.get_all_messages_for_conversation'
         ) as m, patch(
-            'core.utils.image_utils.get_preauthenticated_blob_url'
+            'core.utils.get_preauthenticated_blob_url'
+            '.get_preauthenticated_blob_url'
         ) as n:
             # need to list it to consume the map
             list(get_history_from_db('123'))
