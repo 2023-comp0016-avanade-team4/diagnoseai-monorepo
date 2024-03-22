@@ -323,7 +323,7 @@ def __query_llm_with_index(
         # argument
         best_response = max(best_response, chat_response,
                             key=lambda x:
-                            len(x.choices[0].message.context['citations']) # type: ignore # noqa: E501
+                            len(x.choices[0].message.context['citations'])  # type: ignore # noqa: E501
                             if len(x.choices) > 0 else 0)
 
         # break early, if there are already citations it should be
@@ -379,11 +379,13 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
     # to use ethereal chats.
     ethereal_conversation = message.conversation_id == '-1'
     if not ethereal_conversation and \
-       not authorise_user(Services().db_session, message.conversation_id, curr_user):
+       not authorise_user(Services().db_session, message.conversation_id,
+                          curr_user):
         ws_log_and_send_error(
             ('User not authorised.'
              f' for debugging purposes, you were {connection_id}'),
             connection_id)
+        return
 
     logging.info('%s: sending to model', connection_id)
     messages = db_history_to_ai_history(message.conversation_id)

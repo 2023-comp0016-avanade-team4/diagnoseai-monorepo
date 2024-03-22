@@ -1,3 +1,5 @@
+TODO: Add int test instr. always do dcoker compose -f docker-compose.tests.yml down first
+
 # DiagnoseAI Core API
 
 This is the DiagnoseAI core API; the main deliverable of COMP0016 Team
