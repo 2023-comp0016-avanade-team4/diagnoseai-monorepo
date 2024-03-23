@@ -1,7 +1,7 @@
 #!/bin/bash
 # Entrypoint for integration tests. Assumes that the following on the system:
 # 1) MSSQL, configured such that the username is SA, the password is
-#    P@ssw0rd123, and the database is testdb.
+#    P@ssw0rd123. You do not need to create a database.
 # 2) Python 3.10
 
 curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
@@ -15,9 +15,8 @@ pip install -e .
 
 sleep 5s
 pushd core/
-echo "DROP DATABASE testdb; CREATE DATABASE testdb;" > /tmp/create_db.sql
-/opt/mssql-tools/bin/sqlcmd -S db -U SA -P password123! -i /tmp/create_db.sql
 python3 -m unittest discover integration_tests
 popd
 
-sleep 1000m
+# NOTE: Uncomment this to debug
+# sleep 1000m

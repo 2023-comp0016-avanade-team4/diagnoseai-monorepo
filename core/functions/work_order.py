@@ -34,19 +34,22 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         data.
     """
     if not verify_token(req.headers["Auth-Token"]):
+        logging.info("User not authenticated")
         return func.HttpResponse("Unauthorised", status_code=401)
 
     logging.info("Get Work Orders function processed a request.")
 
     user_id = req.params.get("user_id")
     if not user_id:
+        logging.error("No user_id provided")
         return func.HttpResponse(
             "Pass a user_id on the query string or in the request body",
             status_code=400
         )
 
     if get_user_id(req.headers["Auth-Token"]) != user_id:
-        return func.HttpResponse("Unathorised", status_code=401)
+        logging.info("User not authorised to access conversation")
+        return func.HttpResponse("Unauthorised", status_code=401)
 
     work_orders_data = [wo.to_dict()
                         for wo in __fetch_work_orders_for_user(user_id)]

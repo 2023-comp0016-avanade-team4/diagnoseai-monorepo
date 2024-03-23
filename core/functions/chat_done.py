@@ -128,16 +128,19 @@ def __guards(req: func.HttpRequest
             The guard response, the user ID, and the conversation ID
     """
     if not verify_token(req.headers['Auth-Token']):
+        logging.info('User not authenticated')
         return func.HttpResponse(
             'Missing auth token', status_code=401
         ), '', '', False
 
     if 'conversation_id' not in req.params:
+        logging.info('Missing conversation id')
         return func.HttpResponse(
             'Missing conversation ID', status_code=400
         ), '', '', False
 
     if 'done' not in req.params:
+        logging.info('Missing done param')
         return func.HttpResponse(
             'Missing done parameter', status_code=400
         ), '', '', False
@@ -155,6 +158,7 @@ def __guards(req: func.HttpRequest
 
     assert user_id is not None
     if not authorise_user(Services().db_session, conversation_id, user_id):
+        logging.info('User not authorised to access conversation')
         return func.HttpResponse(
             'Conversation does not belong to user', status_code=401
         ), '', '', False
