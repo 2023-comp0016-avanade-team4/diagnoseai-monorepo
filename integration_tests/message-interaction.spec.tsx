@@ -1,9 +1,14 @@
 import React from "react";
-import { render, fireEvent, waitFor, screen, cleanup } from "@testing-library/react";
+import {
+  render,
+  fireEvent,
+  waitFor,
+  screen,
+  cleanup,
+} from "@testing-library/react";
 import { useWorkOrder } from "@/contexts/WorkOrderContext";
 import NewMessageForm from "@/components/new-message-form";
 import MessageList from "@/components/message-list";
-
 
 let mockWebSocketSender = jest.fn();
 jest.mock("@/contexts/WebSocketContext", () => ({
@@ -23,8 +28,8 @@ jest.mock("@clerk/nextjs", () => ({
   }),
   useUser: jest.fn().mockReturnValue({
     user: {
-      imageUrl: 'something'
-    }
+      imageUrl: "something",
+    },
   }),
 }));
 
@@ -39,7 +44,7 @@ jest.mock("@/contexts/ChatContext", () => ({
     isProcessingImage: false,
     setIsProcessingImage: jest.fn(),
     isProviderBusy: false,
-    fetchHistory: jest.fn()
+    fetchHistory: jest.fn(),
   })),
 }));
 

@@ -7,7 +7,7 @@ import { readAndCompressImage } from "browser-image-resizer";
 const chatHandlerMock = () => {
   const chatContext = {
     addMessage: jest.fn(),
-    setIsProcessingImage: jest.fn()
+    setIsProcessingImage: jest.fn(),
   };
   const webSocket = {
     readyState: WebSocket.OPEN,
@@ -23,7 +23,7 @@ const chatHandlerMock = () => {
     workOrderContext as any as WorkOrderContextState,
     tokenFn,
     onSuccess,
-    onError
+    onError,
   );
 
   return {
@@ -35,13 +35,13 @@ const chatHandlerMock = () => {
     onSuccess,
     onError,
   };
-}
+};
 
 describe("Chat Gateway", () => {
   it("calls onSuccess() when a message is sent", () => {
     const { chatHandler, onSuccess, webSocket } = chatHandlerMock();
 
-    chatHandler.addNewMessage('xdx', null);
+    chatHandler.addNewMessage("xdx", null);
     waitFor(() => expect(webSocket.send).toHaveBeenCalled());
     waitFor(() => expect(onSuccess).toHaveBeenCalled());
   });
@@ -51,16 +51,16 @@ describe("Chat Gateway", () => {
     webSocket.readyState = WebSocket.CLOSED;
     waitFor(() => expect(chatHandler.isBusy()).toBe(true));
 
-    chatHandler.addNewMessage('xdx', null);
+    chatHandler.addNewMessage("xdx", null);
     waitFor(() => expect(webSocket.send).not.toHaveBeenCalled());
     waitFor(() => expect(onError).toHaveBeenCalled());
   });
 
   it("uses file reader to read image", async () => {
     const { chatHandler, webSocket } = chatHandlerMock();
-    const file = new File([''], 'test.jpg', { type: 'image/jpeg' });
+    const file = new File([""], "test.jpg", { type: "image/jpeg" });
 
-    chatHandler.addNewMessage('', file);
+    chatHandler.addNewMessage("", file);
     waitFor(() => expect(webSocket.send).toHaveBeenCalled());
     waitFor(() => expect(readAndCompressImage).toHaveBeenCalled());
   });

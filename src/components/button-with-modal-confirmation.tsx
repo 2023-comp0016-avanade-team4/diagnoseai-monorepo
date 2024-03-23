@@ -22,8 +22,8 @@ const modalStyles = {
 interface ButtonWithModalConfirmationProps {
   disabled?: boolean;
   className?: string;
-  svgPath: string,
-  modalPrompt: string,
+  svgPath: string;
+  modalPrompt: string;
   alt: string;
   onClick: () => void;
 }
@@ -60,9 +60,7 @@ export const ButtonWithModalConfirmation = ({
         className="p-6 flex items-center justify-center fixed left-0 bottom-0 w-full h-full bg-gray-800 bg-opacity-50"
       >
         <div className="bg-gray-900 rounded shadow-lg p-4 md:p-8 m-4 w-full md:w-3/4 lg:w-1/2">
-          <h1 className="text-xl text-white">
-            {modalPrompt}
-          </h1>
+          <h1 className="text-xl text-white">{modalPrompt}</h1>
           <div className="mt-4">
             <button
               onClick={closeModal}

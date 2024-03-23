@@ -13,7 +13,7 @@ const imageResizeConfig = {
   quality: 1.0,
   maxWidth: 800,
   maxHeight: 600,
-  debug: false
+  debug: false,
 };
 
 export type citationObject = {
@@ -40,7 +40,6 @@ export type IntermediateResponseMessage = {
   type: "message";
 };
 
-
 export class ChatHandler {
   ws: WebSocket;
   chatContext: ChatContextType;
@@ -49,12 +48,14 @@ export class ChatHandler {
   onSuccess: () => void;
   onError: (error: string) => void;
 
-  constructor(ws: WebSocket,
+  constructor(
+    ws: WebSocket,
     chatContext: ChatContextType,
     workOrderContext: WorkOrderContextState,
     tokenFn: () => Promise<string | null>,
     onSuccess: () => void,
-    onError: (error: string) => void) {
+    onError: (error: string) => void,
+  ) {
     this.ws = ws;
     this.chatContext = chatContext;
     this.workOrderContext = workOrderContext;
@@ -77,7 +78,7 @@ export class ChatHandler {
       message: message.message,
       isImage: message.isImage,
       sentAt: Date.now() / 1000,
-      citations: []
+      citations: [],
     });
 
     this.onSuccess();
@@ -108,7 +109,7 @@ export class ChatHandler {
         message: "Processing image...",
         isImage: false,
         sentAt: Date.now() / 1000,
-        citations: []
+        citations: [],
       });
     }, 250);
   }
@@ -119,18 +120,19 @@ export class ChatHandler {
 
       return () => {
         this.ws.removeEventListener("message", this.incomingMessageHandler);
-      }
+      };
     }
-    return () => {}
-  };
+    return () => {};
+  }
 
   async incomingMessageHandler(event: MessageEvent) {
     try {
       const messageData = JSON.parse(
-        JSON.parse(event.data) as string
+        JSON.parse(event.data) as string,
       ) as IntermediateResponseMessage;
       if (
-        this.workOrderContext.current?.conversation_id !== messageData.conversationId.toString()
+        this.workOrderContext.current?.conversation_id !==
+        messageData.conversationId.toString()
       ) {
         return;
       }
@@ -161,7 +163,7 @@ export class ChatHandler {
       authToken: await this.tokenFn(),
       isImage: false,
       index: current ? current?.machine_id : "validation-index",
-      citations: []
+      citations: [],
     } as Message;
 
     if (file) {

@@ -1,7 +1,7 @@
 import { useWorkOrder, WorkOrder } from "@/contexts/WorkOrderContext";
 import { ButtonWithModalConfirmation } from "./button-with-modal-confirmation";
-import tickIcon from '../../assets/tick.svg';
-import outboxIcon from '../../assets/outbox.svg';
+import tickIcon from "../../assets/tick.svg";
+import outboxIcon from "../../assets/outbox.svg";
 import { useCallback } from "react";
 import { Skeleton } from "@nextui-org/react";
 
@@ -22,8 +22,13 @@ const renderStyles = (isCurrent: boolean) => {
   );
 };
 
-export const SideMenuContents = ({ workOrders, current, setCurrent }: SideMenuProps) => {
-  const { markWorkOrderAsDone, markWorkOrderAsNotDone, isProviderBusy } = useWorkOrder();
+export const SideMenuContents = ({
+  workOrders,
+  current,
+  setCurrent,
+}: SideMenuProps) => {
+  const { markWorkOrderAsDone, markWorkOrderAsNotDone, isProviderBusy } =
+    useWorkOrder();
 
   const setCardClick = useCallback(
     (workOrder: WorkOrder) => {
@@ -43,7 +48,7 @@ export const SideMenuContents = ({ workOrders, current, setCurrent }: SideMenuPr
     (workorder_id: string) => {
       markWorkOrderAsNotDone(workorder_id);
     },
-    [markWorkOrderAsNotDone]
+    [markWorkOrderAsNotDone],
   );
 
   const renderWorkOrderList = (onlyCompleted: boolean) => {
@@ -66,7 +71,9 @@ export const SideMenuContents = ({ workOrders, current, setCurrent }: SideMenuPr
                 <p className="w-[90%]">
                   <p className="pb-3">
                     <span className="font-bold">Work Order:</span>{" "}
-                    {workOrder.task_name}<br />{workOrder.task_desc}
+                    {workOrder.task_name}
+                    <br />
+                    {workOrder.task_desc}
                   </p>
                   <span className="font-bold">Machine:</span>{" "}
                   {workOrder.machine_name}
@@ -113,12 +120,20 @@ export const SideMenuContents = ({ workOrders, current, setCurrent }: SideMenuPr
     <>
       <div className="flex-1">
         <h2 className="text-white font-bold text-xl pb-3">Work Orders</h2>
-        {isProviderBusy ? <Skeleton className="w-full h-52" /> : renderWorkOrderList(false)}
+        {isProviderBusy ? (
+          <Skeleton className="w-full h-52" />
+        ) : (
+          renderWorkOrderList(false)
+        )}
       </div>
       <div className="flex-1">
         <h2 className="text-white font-bold text-xl pb-3">Archived</h2>
-        {isProviderBusy ? <Skeleton className="w-full h-52" /> : renderWorkOrderList(true)}
+        {isProviderBusy ? (
+          <Skeleton className="w-full h-52" />
+        ) : (
+          renderWorkOrderList(true)
+        )}
       </div>
     </>
   );
-}
+};

@@ -53,6 +53,6 @@ export function Header({ isOpen, setIsOpen }: HeaderProps) {
           <UserButton />
         </div>
       </div>
-    </header >
+    </header>
   );
 }

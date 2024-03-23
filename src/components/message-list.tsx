@@ -26,9 +26,13 @@ export interface MessageListProps {
   messages: Message[];
   isProviderBusy: boolean;
   userPicture?: string;
-};
+}
 
-export const MessageListView = ({ messages, isProviderBusy, userPicture }: MessageListProps) => {
+export const MessageListView = ({
+  messages,
+  isProviderBusy,
+  userPicture,
+}: MessageListProps) => {
   const [scrollRef, inView, entry] = useInView({
     trackVisibility: true,
     delay: 1000,
@@ -41,8 +45,7 @@ export const MessageListView = ({ messages, isProviderBusy, userPicture }: Messa
         block: "start",
         inline: "start",
       });
-    })
-
+    });
   }, [entry?.target]);
 
   // Second Render onwards: Smooth scroll
@@ -53,24 +56,36 @@ export const MessageListView = ({ messages, isProviderBusy, userPicture }: Messa
         block: "start",
         inline: "start",
       });
-    })
+    });
   }, [messages?.length, entry?.target]);
 
   if (!isProviderBusy && messages?.length == 0) {
-    return (<div className="flex h-full w-full items-center justify-center" >
-      <div className="h-full w-full justify-center gap-5 flex flex-col" role="no-messages">
-        <p className="text-white text-center">No messages! Chat with DiagnoseAI to get started</p>
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <div
+          className="h-full w-full justify-center gap-5 flex flex-col"
+          role="no-messages"
+        >
+          <p className="text-white text-center">
+            No messages! Chat with DiagnoseAI to get started
+          </p>
+        </div>
       </div>
-    </div>)
+    );
   }
 
   if (isProviderBusy) {
-    return (<div className="flex h-full w-full items-center justify-center" >
-      <div className="h-full w-full justify-center gap-5 flex flex-col" role="status">
-        <Spinner />
-        <p className="text-white text-center">Loading your chat...</p>
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <div
+          className="h-full w-full justify-center gap-5 flex flex-col"
+          role="status"
+        >
+          <Spinner />
+          <p className="text-white text-center">Loading your chat...</p>
+        </div>
       </div>
-    </div>)
+    );
   }
 
   return (
@@ -91,19 +106,24 @@ export const MessageListView = ({ messages, isProviderBusy, userPicture }: Messa
             </button>
           </div>
         )}
-        {
-          messages.map((message) => (
-            <MessageComponent key={message?.id} message={message} userPicture={userPicture} />
-          ))
-        }
+        {messages.map((message) => (
+          <MessageComponent
+            key={message?.id}
+            message={message}
+            userPicture={userPicture}
+          />
+        ))}
         <div className="h-[10px]" ref={scrollRef} />
       </div>
-
     </div>
   );
-}
+};
 
-export const MessageListController = ({ Child }: { Child: React.FC<MessageListProps> }) => {
+export const MessageListController = ({
+  Child,
+}: {
+  Child: React.FC<MessageListProps>;
+}) => {
   const { webSocket } = useWebSocket();
   const { getToken } = useAuth();
   const { user } = useUser();
@@ -124,7 +144,7 @@ export const MessageListController = ({ Child }: { Child: React.FC<MessageListPr
       (e) => {
         showToastWithRefresh(e);
         console.error(e);
-      }
+      },
     );
   }, [webSocket, chatProvider, workOrderProvider, getToken]);
 
@@ -133,18 +153,20 @@ export const MessageListController = ({ Child }: { Child: React.FC<MessageListPr
   }, [chatHandler, webSocket]);
 
   useEffect(() => {
-    if (current)
-      fetchHistory(current.conversation_id);
-  }, [current, fetchHistory])
+    if (current) fetchHistory(current.conversation_id);
+  }, [current, fetchHistory]);
 
-  return (<Child
-    messages={chatProvider.messages}
-    isProviderBusy={chatProvider.isProviderBusy}
-    userPicture={user?.imageUrl}
-  />);
-}
+  return (
+    <Child
+      messages={chatProvider.messages}
+      isProviderBusy={chatProvider.isProviderBusy}
+      userPicture={user?.imageUrl}
+    />
+  );
+};
 
-export const MessageList = () =>
-  <MessageListController Child={MessageListView} />;
+export const MessageList = () => (
+  <MessageListController Child={MessageListView} />
+);
 
 export default MessageList;

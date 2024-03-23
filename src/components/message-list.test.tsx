@@ -12,18 +12,18 @@ jest.mock("@/contexts/WebSocketContext", () => ({
       readyState: WebSocket.OPEN,
       addEventListener: jest.fn(),
       removeEventListener: jest.fn(),
-    }
-  }))
+    },
+  })),
 }));
 
 jest.mock("@clerk/nextjs", () => ({
   useAuth: jest.fn().mockReturnValue({
-    getToken: jest.fn()
+    getToken: jest.fn(),
   }),
   useUser: jest.fn().mockReturnValue({
     user: {
-      imageUrl: 'something'
-    }
+      imageUrl: "something",
+    },
   }),
 }));
 
@@ -31,14 +31,28 @@ jest.mock("@/contexts/ChatContext", () => ({
   useChatProvider: jest.fn(() => ({ messages: [], isProviderBusy: false })),
 }));
 
-jest.mock('react-intersection-observer', () => ({
+jest.mock("react-intersection-observer", () => ({
   useInView: () => [jest.fn(), false, { target: jest.fn() }],
 }));
 
 describe("MessageListView", () => {
   const mockMessages = [
-    { id: "1", username: "test user", message: "test message 1", sentAt: 123456, citations: [], isImage: false },
-    { id: "2", username: "test user", message: "test message 2", sentAt: 123456, citations: [], isImage: false },
+    {
+      id: "1",
+      username: "test user",
+      message: "test message 1",
+      sentAt: 123456,
+      citations: [],
+      isImage: false,
+    },
+    {
+      id: "2",
+      username: "test user",
+      message: "test message 2",
+      sentAt: 123456,
+      citations: [],
+      isImage: false,
+    },
   ] as Message[];
 
   it("renders messages correctly", () => {
@@ -51,7 +65,9 @@ describe("MessageListView", () => {
   it("shows 'No messages!' when there are no messages and provider is not busy", () => {
     render(<MessageListView messages={[]} isProviderBusy={false} />);
 
-    expect(screen.getByText("No messages! Chat with DiagnoseAI to get started")).toBeInTheDocument();
+    expect(
+      screen.getByText("No messages! Chat with DiagnoseAI to get started"),
+    ).toBeInTheDocument();
   });
 
   it("shows loading state when provider is busy", () => {
@@ -67,13 +83,15 @@ describe("MessageListController", () => {
     const registerIncomingMessageHandlerMock = jest.fn();
 
     // check if chatHandler's registerIncomingMessageHandler was called
-    jest.mock('../models/chat', () => ({
+    jest.mock("../models/chat", () => ({
       ChatHandler: jest.fn().mockImplementation(() => ({
         registerIncomingMessageHandler: registerIncomingMessageHandlerMock,
       })),
     }));
 
     render(<MessageListController Child={ChildMock} />);
-    waitFor(() => expect(registerIncomingMessageHandlerMock).toHaveBeenCalled());
+    waitFor(() =>
+      expect(registerIncomingMessageHandlerMock).toHaveBeenCalled(),
+    );
   });
 });

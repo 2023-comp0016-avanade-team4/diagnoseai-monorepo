@@ -13,11 +13,11 @@ import { ChatHandler } from "@/models/chat";
 export interface NewMessageFormViewProps {
   controllerBusy: boolean;
   onSend: (body: string, file: File | null) => Promise<void>;
-};
+}
 
 export const NewMessageFormView = ({
   controllerBusy,
-  onSend
+  onSend,
 }: NewMessageFormViewProps) => {
   const [body, setBody] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -49,7 +49,11 @@ export const NewMessageFormView = ({
       `}</style>
       <div className="image-upload">
         <label htmlFor="file-input">
-          <Image src={uploadImageIcon} alt="upload image" className="w-8 h-8 md:w-6 md:h-6" />
+          <Image
+            src={uploadImageIcon}
+            alt="upload image"
+            className="w-8 h-8 md:w-6 md:h-6"
+          />
         </label>
         <input
           id="file-input"
@@ -67,7 +71,9 @@ export const NewMessageFormView = ({
         data-testid="message-input"
         id="message"
         name="message"
-        placeholder={controllerBusy ? "Inputs are disabled" : "Write a message..."}
+        placeholder={
+          controllerBusy ? "Inputs are disabled" : "Write a message..."
+        }
         value={body}
         onChange={(e) => setBody(e.target.value)}
         className="flex-1 h-12 px-3 rounded bg-[#222226] border border-[#222226] focus:border-[#222226] focus:outline-none text-white placeholder-white"
@@ -86,9 +92,10 @@ export const NewMessageFormView = ({
 };
 
 /* Controller */
-export const NewMessageFormController = ({ Child }: {
-  Child:
-  React.FC<NewMessageFormViewProps>
+export const NewMessageFormController = ({
+  Child,
+}: {
+  Child: React.FC<NewMessageFormViewProps>;
 }) => {
   const [play] = useSound("sent.wav");
   const { webSocket } = useWebSocket();
@@ -112,7 +119,7 @@ export const NewMessageFormController = ({ Child }: {
       (error: string) => {
         console.error(error);
         showToastWithRefresh(error);
-      }
+      },
     );
   }, [webSocket, chatProvider, workOrderProvider, getToken, play]);
 
@@ -124,14 +131,14 @@ export const NewMessageFormController = ({ Child }: {
     }
 
     chatHandler.addNewMessage(body, file);
-  }
+  };
 
-  return <Child
-    controllerBusy={chatHandler?.isBusy() ?? true}
-    onSend={onSend}
-  />;
+  return (
+    <Child controllerBusy={chatHandler?.isBusy() ?? true} onSend={onSend} />
+  );
 };
 
-const NewMessageForm =
-  () => <NewMessageFormController Child={NewMessageFormView} />;
+const NewMessageForm = () => (
+  <NewMessageFormController Child={NewMessageFormView} />
+);
 export default NewMessageForm;

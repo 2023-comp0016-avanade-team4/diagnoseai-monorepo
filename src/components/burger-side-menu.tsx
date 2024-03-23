@@ -53,7 +53,13 @@ const BurgerSideMenu = ({
       onStateChange={(state: { isOpen: boolean }) => setIsOpen(state.isOpen)}
       styles={menuStyles}
     >
-      <SideMenuContents current={current} setCurrent={setCurrent} isOpen={isOpen} setIsOpen={setIsOpen} workOrders={workOrders} />
+      <SideMenuContents
+        current={current}
+        setCurrent={setCurrent}
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        workOrders={workOrders}
+      />
     </Menu>
   );
 };

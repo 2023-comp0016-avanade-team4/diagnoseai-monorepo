@@ -21,23 +21,35 @@ export type FixedSideMenuViewProps = FixedSideMenuProps & {
   workOrders: WorkOrder[];
 };
 
-
 export const FixedSideMenuView = ({
   isOpen,
   setIsOpen,
   className,
   current,
   setCurrent,
-  workOrders
+  workOrders,
 }: FixedSideMenuViewProps) => {
   return (
-    <div className={`flex-none flex flex-col py-[2.5em] px-[1.5em] bg-[#373a47] w-72 ${className}`} >
-      <SideMenuContents isOpen={isOpen} setIsOpen={setIsOpen} workOrders={workOrders} current={current} setCurrent={setCurrent} />
-    </div >
+    <div
+      className={`flex-none flex flex-col py-[2.5em] px-[1.5em] bg-[#373a47] w-72 ${className}`}
+    >
+      <SideMenuContents
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        workOrders={workOrders}
+        current={current}
+        setCurrent={setCurrent}
+      />
+    </div>
   );
 };
 
-export const FixedSideMenuController = ({ isOpen, setIsOpen, className, Child }: FixedSideMenuProps & { Child: React.FC<FixedSideMenuViewProps> }) => {
+export const FixedSideMenuController = ({
+  isOpen,
+  setIsOpen,
+  className,
+  Child,
+}: FixedSideMenuProps & { Child: React.FC<FixedSideMenuViewProps> }) => {
   const { current, setCurrent, workOrders } = useWorkOrder();
 
   if (!isOpen) return null;
@@ -54,6 +66,17 @@ export const FixedSideMenuController = ({ isOpen, setIsOpen, className, Child }:
   );
 };
 
-export const FixedSideMenu = ({ isOpen, setIsOpen, className }: FixedSideMenuProps) => {
-  return <FixedSideMenuController isOpen={isOpen} setIsOpen={setIsOpen} className={className} Child={FixedSideMenuView} />;
+export const FixedSideMenu = ({
+  isOpen,
+  setIsOpen,
+  className,
+}: FixedSideMenuProps) => {
+  return (
+    <FixedSideMenuController
+      isOpen={isOpen}
+      setIsOpen={setIsOpen}
+      className={className}
+      Child={FixedSideMenuView}
+    />
+  );
 };
