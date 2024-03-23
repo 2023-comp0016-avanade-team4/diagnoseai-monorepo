@@ -20,7 +20,7 @@ export type IntermediateHistoricalMessage = {
   citations: citationObject[];
 };
 
-type ChatContextType = {
+export type ChatContextType = {
   messages: Message[];
   setMessages: (state: Message[], message: Message[]) => void;
   addMessage: (message: Message) => void;

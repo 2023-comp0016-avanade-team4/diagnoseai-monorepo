@@ -13,7 +13,7 @@ export interface WorkOrder {
   resolved: "COMPLETED" | "NOT_COMPLETED";
 }
 
-type WorkOrderContextState = {
+export type WorkOrderContextState = {
   current: WorkOrder | null;
   workOrders: WorkOrder[];
   setCurrent: (state: WorkOrder | null) => void;
