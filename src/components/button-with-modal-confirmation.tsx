@@ -1,10 +1,16 @@
 "use client";
 
+// This is a view-only component.
+
 import React, { useState } from "react";
 import Image from "next/image";
 import Modal from "react-modal";
 
-Modal.setAppElement("#app");
+if (process.env.JEST_WORKER_ID === undefined) {
+  // This can't really be fixed with Jest, so it needs to be here for
+  // a stopgap
+  Modal.setAppElement("#app");
+}
 
 const modalStyles = {
   overlay: {
