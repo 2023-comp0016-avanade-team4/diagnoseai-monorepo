@@ -1,6 +1,8 @@
 import { slide as Menu } from "react-burger-menu";
 import { SideMenuContents, SideMenuProps } from "./side-menu-contents";
 
+// View only component
+
 const menuStyles = {
   bmBurgerButton: {
     position: "relative",

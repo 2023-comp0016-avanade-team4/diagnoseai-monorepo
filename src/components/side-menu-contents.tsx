@@ -22,7 +22,7 @@ const renderStyles = (isCurrent: boolean) => {
   );
 };
 
-export const SideMenuContents = ({ setIsOpen, workOrders, current, setCurrent }: SideMenuProps) => {
+export const SideMenuContents = ({ workOrders, current, setCurrent }: SideMenuProps) => {
   const { markWorkOrderAsDone, markWorkOrderAsNotDone, isProviderBusy } = useWorkOrder();
 
   const setCardClick = useCallback(

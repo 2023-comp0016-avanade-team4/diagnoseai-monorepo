@@ -25,7 +25,6 @@ interface Props {
 }
 
 export const MessageComponent = ({ userPicture, message }: Props) => {
-  // TODO: Eventually, we should be checking User ID.
   const [messageBody, setMessageBody] = useState<React.ReactNode>(<></>);
 
   useEffect(() => {
