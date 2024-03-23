@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
 import BotImg from "../../assets/bot.png";
+import { User } from "@clerk/nextjs/dist/types/server";
 
 export type citationObject = {
   filepath: string;
@@ -19,12 +20,11 @@ export type Message = {
 };
 
 interface Props {
+  userPicture?: string;
   message: Message;
 }
 
-export const MessageComponent = ({ message }: Props) => {
-  const { user } = useUser();
-
+export const MessageComponent = ({ userPicture, message }: Props) => {
   // TODO: Eventually, we should be checking User ID.
   const [messageBody, setMessageBody] = useState<React.ReactNode>(<></>);
 
@@ -81,24 +81,22 @@ export const MessageComponent = ({ message }: Props) => {
 
   return (
     <div
-      className={`flex flex-col relative space-x-1 space-y-1 ${
-        message.username !== "bot" ? "text-right" : "text-left"
-      }`}
+      className={`flex flex-col relative space-x-1 space-y-1 ${message.username !== "bot" ? "text-right" : "text-left"
+        }`}
     >
       <div
-        className={`flex relative space-x-1 ${
-          message.username !== "bot"
-            ? "flex-row-reverse space-x-reverse"
-            : "flex-row"
-        }`}
+        className={`flex relative space-x-1 ${message.username !== "bot"
+          ? "flex-row-reverse space-x-reverse"
+          : "flex-row"
+          }`}
       >
-        {user?.imageUrl && message.username !== "bot" && (
+        {userPicture && message.username !== "bot" && (
           <div className="w-12 h-12 overflow-hidden flex-shrink-0 rounded">
             <a target="_blank" rel="noopener noreferrer">
               <Image
                 width={50}
                 height={50}
-                src={user?.imageUrl}
+                src={userPicture}
                 alt={message.username}
               />
             </a>
@@ -112,9 +110,8 @@ export const MessageComponent = ({ message }: Props) => {
           </div>
         )}
         <span
-          className={`inline-flex rounded space-x-2 items-start p-3 text-white ${
-            message.username !== "bot" ? "bg-[#4a9c6d]" : "bg-[#363739]"
-          } `}
+          className={`inline-flex rounded space-x-2 items-start p-3 text-white ${message.username !== "bot" ? "bg-[#4a9c6d]" : "bg-[#363739]"
+            } `}
         >
           {message.isImage ? (
             <Image

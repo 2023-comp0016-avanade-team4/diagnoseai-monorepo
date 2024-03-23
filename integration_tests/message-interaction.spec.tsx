@@ -1,17 +1,30 @@
 import React from "react";
-import { render, fireEvent, waitFor, screen, cleanup, act } from "@testing-library/react";
+import { render, fireEvent, waitFor, screen, cleanup } from "@testing-library/react";
 import { useWorkOrder } from "@/contexts/WorkOrderContext";
 import NewMessageForm from "@/components/new-message-form";
+import MessageList from "@/components/message-list";
 
 
 let mockWebSocketSender = jest.fn();
-
 jest.mock("@/contexts/WebSocketContext", () => ({
   useWebSocket: () => ({
     webSocket: {
       readyState: WebSocket.OPEN,
       send: mockWebSocketSender,
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
     },
+  }),
+}));
+
+jest.mock("@clerk/nextjs", () => ({
+  useAuth: jest.fn().mockReturnValue({
+    getToken: jest.fn().mockResolvedValue("mock-token"),
+  }),
+  useUser: jest.fn().mockReturnValue({
+    user: {
+      imageUrl: 'something'
+    }
   }),
 }));
 
@@ -20,12 +33,14 @@ jest.mock("@/contexts/WorkOrderContext", () => ({
 }));
 
 jest.mock("@/contexts/ChatContext", () => ({
-  useChatProvider: () => ({
+  useChatProvider: jest.fn(() => ({
+    messages: [],
     addMessage: jest.fn(),
     isProcessingImage: false,
     setIsProcessingImage: jest.fn(),
     isProviderBusy: false,
-  }),
+    fetchHistory: jest.fn()
+  })),
 }));
 
 (useWorkOrder as jest.Mock).mockReturnValue({
@@ -97,5 +112,20 @@ describe("Message Interaction", () => {
     getByTestId = render(<NewMessageForm />).getByTestId;
     textbox = getByTestId("message-input");
     expect(textbox).toBeDisabled();
+  });
+
+  it("shows the message as it is being sent", () => {
+    // when a message is sent via <NewMessageForm/>, the chat message should appear
+    // in <MessageList/>
+    // const { ChatProvider } = jest.requireActual("@/contexts/ChatContext");
+
+    const { getByText } = render(<MessageList />);
+    const { getByTestId } = render(<NewMessageForm />);
+    const sendButton = getByText("Send") as HTMLButtonElement;
+    let textbox = getByTestId("message-input") as HTMLInputElement;
+    textbox.value = "hello";
+
+    fireEvent.click(sendButton);
+    waitFor(() => getByText("hello"));
   });
 });

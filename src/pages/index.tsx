@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
 import dynamic from 'next/dynamic';
 import { Header } from "@/components/header";
-import { MessageList } from "@/components/message-list";
-
 import { FixedSideMenu } from "@/components/fixed-side-menu";
 import { isGreaterThanBreakpoint } from "@/utils/useBreakpoint";
 
-// NewMessageForm uses "browser-image-resizer", which can only be loaded
-// dynamically.
+// Both NewMessageForm and MessageList are lazy-loaded
 const NewMessageForm = dynamic(() => import("@/components/new-message-form"),
+  { ssr: false });
+const MessageList = dynamic(() => import("@/components/message-list"),
   { ssr: false });
 
 export default function Home() {

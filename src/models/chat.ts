@@ -30,6 +30,16 @@ export type Message = {
   authToken?: string;
 };
 
+// THE message type received from the WebSocket.
+// Will need to be converted to Message before it becomes useful
+export type IntermediateResponseMessage = {
+  body: string;
+  conversationId: number;
+  sentAt: number;
+  citations: citationObject[];
+  type: "message";
+};
+
 
 export class ChatHandler {
   ws: WebSocket;
@@ -39,7 +49,8 @@ export class ChatHandler {
   onSuccess: () => void;
   onError: (error: string) => void;
 
-  constructor(ws: WebSocket, chatContext: ChatContextType,
+  constructor(ws: WebSocket,
+    chatContext: ChatContextType,
     workOrderContext: WorkOrderContextState,
     tokenFn: () => Promise<string | null>,
     onSuccess: () => void,
@@ -100,6 +111,42 @@ export class ChatHandler {
         citations: []
       });
     }, 250);
+  }
+
+  registerIncomingMessageHandler() {
+    if (this.ws) {
+      this.ws.addEventListener("message", this.incomingMessageHandler);
+
+      return () => {
+        this.ws.removeEventListener("message", this.incomingMessageHandler);
+      }
+    }
+    return () => {}
+  };
+
+  async incomingMessageHandler(event: MessageEvent) {
+    try {
+      const messageData = JSON.parse(
+        JSON.parse(event.data) as string
+      ) as IntermediateResponseMessage;
+      if (
+        this.workOrderContext.current?.conversation_id !== messageData.conversationId.toString()
+      ) {
+        return;
+      }
+
+      const responseMessage = {
+        id: uuidv4(),
+        username: "bot",
+        message: messageData.body,
+        sentAt: messageData.sentAt / 1000,
+        citations: messageData.citations,
+      } as Message;
+
+      this.chatContext.addMessage(responseMessage);
+    } catch (e) {
+      this.onError("Error parsing incoming message.");
+    }
   }
 
   async addNewMessage(body: string, file: File | null) {
