@@ -20,7 +20,6 @@ from utils.get_user_id import get_user_id
 from utils.hashing import get_search_index_for_user_id
 from utils.secrets import Secrets
 from utils.services import Services
-from utils.verify_token import verify_token
 
 SUMMARIZATION_PROMPT = (
     "You are a summarization service. You will be iteratively passed chunks of"
@@ -127,12 +126,6 @@ def __guards(req: func.HttpRequest
         tuple[Optional[func.HttpResponse], str, str, bool]:
             The guard response, the user ID, and the conversation ID
     """
-    if not verify_token(req.headers['Auth-Token']):
-        logging.info('User not authenticated')
-        return func.HttpResponse(
-            'Missing auth token', status_code=401
-        ), '', '', False
-
     if 'conversation_id' not in req.params:
         logging.info('Missing conversation id')
         return func.HttpResponse(

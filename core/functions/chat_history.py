@@ -8,12 +8,11 @@ import azure.functions as func  # type: ignore[import-untyped]
 from models.chat_message import ChatMessageDAO, ChatMessageModel
 from utils.authorise_conversation import authorise_user
 from utils.chat_message import translate_citation_urls
+from utils.get_preauthenticated_blob_url import get_preauthenticated_blob_url
 from utils.get_user_id import get_user_id
 from utils.history import ChatHistoryResponse
-from utils.get_preauthenticated_blob_url import get_preauthenticated_blob_url
 from utils.secrets import Secrets
 from utils.services import Services
-from utils.verify_token import verify_token
 
 
 def __transform_chat_message_helper(model: ChatMessageModel):
@@ -90,11 +89,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse("", status_code=400)
 
     conversation_id = req.params.get("conversation_id")
-    if not verify_token(req.headers['Auth-Token']):
-        return func.HttpResponse(
-            '', status_code=401
-        )
-
     curr_user = get_user_id(req.headers["Auth-Token"])
     assert curr_user is not None
     if not authorise_user(Services().db_session, conversation_id, curr_user):

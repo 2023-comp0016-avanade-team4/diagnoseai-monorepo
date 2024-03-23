@@ -22,7 +22,6 @@ class TestChatHistory(BaseTestCase):
     @classmethod
     def setUpClass(cls):
         cls.secrets_and_services_mock('core.functions.chat_history')
-        patch('core.functions.chat_history.verify_token').start()
         patch('core.functions.chat_history.authorise_user').start()
         patch('core.functions.chat_history.get_user_id').start()
 

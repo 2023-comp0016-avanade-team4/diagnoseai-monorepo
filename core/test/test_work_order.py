@@ -21,16 +21,12 @@ class TestWorkOrder(BaseTestCase):
                                       no_secret=True)
 
     def setUp(self):
-        self.verifyjwt_patch = \
-            patch('core.functions.work_order.verify_token').start()
         self.get_user_id_patch = \
             patch('core.functions.work_order.get_user_id').start()
 
-        self.verifyjwt_patch.return_value = True
         self.get_user_id_patch.return_value = "test_id"
 
     def tearDown(self) -> None:
-        self.verifyjwt_patch.stop()
         self.get_user_id_patch.stop()
 
     def test_get_work_orders_for_user_happy_path(self):

@@ -1,6 +1,6 @@
-""" Module for testing the validation_to_production endpoint. """
-
-from unittest.mock import patch
+"""
+Module for testing the validation_to_production endpoint.
+"""
 
 from azure.core.exceptions import HttpResponseError
 from azure.functions import HttpRequest
@@ -29,10 +29,6 @@ class TestValidationToProduction(BaseTestCase):
                 'Auth-Token': 'test'
             }
         )
-
-        # automatically released in teardown
-        patch('core.functions.validation_to_production.verify_token',
-              return_value=True).start()
 
     def test_main(self):
         """

@@ -9,7 +9,6 @@ import azure.functions as func  # type: ignore[import-untyped]
 from models.work_order import ResponseWorkOrderFormat, WorkOrderDAO
 from utils.get_user_id import get_user_id
 from utils.services import Services
-from utils.verify_token import verify_token
 
 
 def __fetch_work_orders_for_user(
@@ -33,10 +32,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         func.HttpResponse: The HTTP response object containing the work orders
         data.
     """
-    if not verify_token(req.headers["Auth-Token"]):
-        logging.info("User not authenticated")
-        return func.HttpResponse("Unauthorised", status_code=401)
-
     logging.info("Get Work Orders function processed a request.")
 
     user_id = req.params.get("user_id")

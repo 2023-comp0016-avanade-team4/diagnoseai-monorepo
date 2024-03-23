@@ -12,7 +12,6 @@ from azure.search.documents.indexes.models import (HnswAlgorithmConfiguration,
                                                    VectorSearch,
                                                    VectorSearchProfile)
 from utils.services import Services
-from utils.verify_token import verify_token
 
 
 def create_index(index_name: str) -> None:
@@ -133,13 +132,6 @@ def error_deleting_index(err: HttpResponseError) -> HttpResponse:
 def main(req: HttpRequest) -> HttpResponse:
     """Azure Function to move vectors from validation to production index"""
     req_body = req.get_json()
-
-    # Ensure that the sender is authorized to make this request
-    if not verify_token(req.headers['Auth-Token']):
-        return HttpResponse(
-            "Unauthorized",
-            status_code=401
-        )
 
     validation_index_name = req_body.get('validation_index_name')
     production_index_name = req_body.get('production_index_name')

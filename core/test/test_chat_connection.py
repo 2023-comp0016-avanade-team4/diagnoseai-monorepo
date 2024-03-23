@@ -19,12 +19,6 @@ class TestChatConnection(BaseTestCase):
     def setUpClass(cls):
         cls.secrets_and_services_mock('core.functions.chat_connection',
                                       no_secret=True)
-        cls.vjwt_patch = patch('core.functions.chat_connection.verify_token') \
-           .start()
-        cls.vjwt_patch.return_value = True
-
-    def tearDown(self):
-        self.vjwt_patch.stop()
 
     def test_main_happy(self):
         """Parses the expected Chat Connection"""
