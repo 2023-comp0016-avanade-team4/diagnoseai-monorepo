@@ -24,7 +24,7 @@ export const NewMessageForm = () => {
   const [play] = useSound("sent.wav");
   const [body, setBody] = useState("");
   const { webSocket } = useWebSocket();
-  const { addMessage, isProcessingImage, setIsProcessingImage, isProviderBusy } =
+  const { addMessage, setIsProcessingImage, isProviderBusy } =
     useChatProvider();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { getToken } = useAuth();
