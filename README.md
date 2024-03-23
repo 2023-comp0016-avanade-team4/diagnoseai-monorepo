@@ -1,9 +1,11 @@
-TODO: Add int test instr. always do dcoker compose -f docker-compose.tests.yml down first
-
 # DiagnoseAI Core API
 
 This is the DiagnoseAI core API; the main deliverable of COMP0016 Team
 4.
+
+> **Important note**: The `docker-compose.tests.yml` is strictly for
+> integration tests only. Core API is not supported on Docker, for
+> reasons that are explained below.
 
 ## Overview - High Level
 
@@ -627,19 +629,6 @@ latter includes tools such as:
 - `mypy`
 - `flake8`
 
-## Running Tests
-
-Before continuing, ensure all dependencies, and `pip install -e .` has
-been run on the project root directory.
-
-Then, to run tests, navigate to the the `core` directory. The
-following command will run the test:
-
-``` text
-python3 -m unittest discover test
-```
-
-
 ## Running Azurite
 
 For the most part, you will need to use some kind of storage
@@ -737,3 +726,36 @@ func azure functionapp publish <function app name>
 ```
 
 In our environment, this is currently `diagnose-ai-core`.
+
+## Unit Testing
+
+Before continuing, ensure all dependencies, and `pip install -e .` has
+been run on the project root directory.
+
+Then, to run tests, navigate to the the `core` directory. The
+following command will run the test:
+
+``` text
+python3 -m unittest discover test
+```
+
+## Integration Testing
+
+Ensure that you have `docker` installed. The integration tests can be
+run by doing the following:
+
+``` bash
+docker compose -f docker-compose.tests.yml up --abort-on-container-exit --exit-code-from python-app \
+    && docker compose -f docker-compose.tests.yml down
+```
+
+All integration test here assume that it is being run within
+`docker-compose.tests.yml`. Although this is an integration test, it
+still needs to mock most of the Azure services to remain as local as
+possible.
+
+The reason why we can't simply run `func start` and then perform tests
+on that is due to the reliance on upstream Azure services, which we
+may not have. The integration tests here simply checks for
+interoperablity between some endpoints, and hence doesn't need the
+full suite of Azure services.
