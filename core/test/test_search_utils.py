@@ -5,7 +5,7 @@ Tests the proof of concept function
 from unittest.mock import MagicMock
 
 from azure.core.exceptions import ResourceNotFoundError
-from core.utils.search_utils import is_index_ready
+from core.utils.search_utils import is_index_ready, does_index_exist
 
 from base_test_case import BaseTestCase
 
@@ -45,3 +45,18 @@ class TestSearchUtils(BaseTestCase):
         index_client = MagicMock()
         index_client.get_index_statistics.return_value = {}
         self.assertFalse(is_index_ready('test', index_client))
+
+    def test_does_index_exist(self):
+        """
+        Tests if the index exists
+        """
+        index_client = MagicMock()
+        self.assertTrue(does_index_exist('test', index_client))
+
+    def test_does_index_not_exist(self):
+        """
+        Tests if the index does not exist
+        """
+        index_client = MagicMock()
+        index_client.get_index.side_effect = ResourceNotFoundError
+        self.assertFalse(does_index_exist('test', index_client))

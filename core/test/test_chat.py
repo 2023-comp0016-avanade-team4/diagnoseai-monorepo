@@ -38,14 +38,13 @@ class TestChat(BaseTestCase):
         self.ai_client = self.services_mock.return_value.openai_chat_model
         self.image_summary = self.services_mock.return_value.\
             image_summary_model
-        self.sic = self.services_mock.return_value.search_index_client
-        # image_summary_patch.start()
+        self.does_index_exist = patch('core.functions.chat.does_index_exist',
+                                      return_value=True).start()
 
     def tearDown(self):
         super().tearDown()
         self.verifyjwt_mock.stop()
         self.get_user_id_mock.stop()
-        # image_summary_patch.stop()
 
     @patch('core.functions.chat.process_message')
     def test_main_happy(self, m):
@@ -283,7 +282,7 @@ class TestChat(BaseTestCase):
         mocked_create.reset_mock()
 
     @patch('core.functions.chat.get_search_index_for_user_id',
-           return_value='other-index')
+           return_value='not-found-index')
     @patch('core.functions.chat.ws_send_message')
     def test_process_message_happy_summary_index_not_found(self, m, _hasher):
         """
@@ -293,7 +292,8 @@ class TestChat(BaseTestCase):
         mocked_create, message = self.__create_mock_chat_completion(
             'hi', True, 'other-index')
 
-        self.sic.get_index.side_effect = ResourceNotFoundError
+        self.does_index_exist.side_effect = \
+            lambda x, _ignore: x == 'other-index'
         process_message(message, '123')
         m.assert_called_once()
 
@@ -306,7 +306,7 @@ class TestChat(BaseTestCase):
                          ['parameters']['indexName'], 'other-index')
 
         # reset for other tests to use
-        self.sic.get_index.side_effect = None
+        self.does_index_exist.side_effect = None
         mocked_create.reset_mock()
 
     @patch('core.functions.chat.ws_log_and_send_error')
@@ -336,6 +336,21 @@ class TestChat(BaseTestCase):
         self.assertIn('empty response', m.call_args[0][0])
 
         mocked_create.reset_mock()
+
+    @patch('core.functions.chat.ws_log_and_send_error')
+    def test_process_message_sad_3(self, m):
+        """
+        Search index not found, should respond with errors
+        """
+        self.does_index_exist.return_value = False
+        mocked_create, message = self.__create_mock_chat_completion(
+            'xdx', True, None)
+
+        process_message(message, '123')
+        m.assert_called_once()
+
+        mocked_create.reset_mock()
+        self.does_index_exist.return_value = True
 
     def test_log_and_send_error(self):
         """

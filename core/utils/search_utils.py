@@ -38,3 +38,25 @@ def is_index_ready(search_index: str,
         logging.error(
             'Document count is not an integer. Reporting as not ready.')
         return False
+
+
+def does_index_exist(search_index: str,
+                     index_client: SearchIndexClient) -> bool:
+    """
+    Checks if a search index exists.
+
+    Args:
+        search_index (str): The search index
+        index_client (SearchIndexClient): The search index client
+
+    Returns:
+        bool: True if the index exists, False if not
+    """
+    logging.info('Checking if index %s exists', search_index)
+    try:
+        index_client.get_index(search_index)
+        logging.info('%s found.', search_index)
+        return True
+    except ResourceNotFoundError:
+        logging.error('%s not found.', search_index)
+        return False

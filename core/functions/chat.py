@@ -26,6 +26,7 @@ from utils.chat_message import (BidirectionalChatMessage, ChatMessage,
 from utils.get_user_id import get_user_id
 from utils.hashing import get_search_index_for_user_id
 from utils.image_utils import compress_image, is_url_encoded_image
+from utils.search_utils import does_index_exist
 from utils.verify_token import verify_token
 from utils.web_pub_sub_interfaces import WebPubSubRequest
 from utils.services import Services
@@ -232,13 +233,12 @@ def __index_guard(index_name: str, fully_applied_fn: Callable[[], str]) -> str:
     Returns:
         str: The response from the function
     """
-    try:
-        Services().search_index_client.get_index(index_name)
+    if does_index_exist(index_name, Services().search_index_client):
         return fully_applied_fn()
-    except ResourceNotFoundError:
-        logging.info('Index %s does not exist, guard is skipping the callable',
-                     index_name)
-        return ''
+
+    logging.info('Index %s does not exist, guard is skipping the callable',
+                 index_name)
+    return ''
 
 
 def strip_all_citations(completion: str) -> str:
@@ -273,6 +273,14 @@ def __query_llm_with_index(
         tuple[str, list[Citation]]: The response and the citations
     """
     best_response = None
+
+    if not does_index_exist(document_index, Services().search_index_client):
+        logging.info('Index %s does not exists', document_index)
+        ws_log_and_send_error(
+            ('Document index does not exist.'
+             f' for debugging purposes, you were {connection_id}'),
+            connection_id)
+        raise ChatError('Document index does not exist')
 
     for max_history in [10, 5, 1]:
         logging.info('Trying max_history=%d', max_history)
@@ -378,6 +386,7 @@ def process_message(message: ChatMessage, connection_id: str) -> None:
     # (i.e. chat history), we can assume the all users are authorised
     # to use ethereal chats.
     ethereal_conversation = message.conversation_id == '-1'
+    assert curr_user is not None
     if not ethereal_conversation and \
        not authorise_user(Services().db_session, message.conversation_id,
                           curr_user):
