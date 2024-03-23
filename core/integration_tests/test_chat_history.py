@@ -30,13 +30,15 @@ class TestChatHistory(BaseIntegrationTest):
         chat_completion = create_autospec(ChatCompletion)
         chat_completion_message = create_autospec(ChatCompletionMessage)
         choice = create_autospec(Choice)
-        type(chat_completion_message).content = 'reply!'
-        type(chat_completion_message).role = 'bot'
-        type(chat_completion_message).context = {'citations': []}
+        chat_completion_message.content = 'reply!'
+        chat_completion_message.role = 'bot'
+        chat_completion_message.context = {'citations': []}
         choice.message = chat_completion_message
-        type(chat_completion).choices = [choice]
+        chat_completion.choices = [choice]
         self.services.return_value.openai_chat_model.chat.completions.\
             create.return_value = chat_completion
+
+        self.reload_modules()
 
     def test_chat_history(self):
         """
@@ -81,9 +83,16 @@ class TestChatHistory(BaseIntegrationTest):
         self.assertIn(b'reply!', body)
 
     def test_empty_chat_history(self):
+        """
+        Tests that an empty Chat History is returned
+        """
         # Importing here to force mocks to override globally
         # pylint: disable=import-outside-toplevel
         from core.functions.chat_history import main as chat_history_main
+
+        conversation_status, machine, work_order = self.generate_fixtures()
+        self.commit_fixtures(self.session, conversation_status, machine,
+                             work_order)
 
         request = HttpRequest(
             method='GET',

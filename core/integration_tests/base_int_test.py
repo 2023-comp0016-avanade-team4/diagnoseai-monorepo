@@ -11,6 +11,7 @@ import random
 import string
 import subprocess
 import unittest
+import importlib
 from unittest.mock import patch
 
 import jwt
@@ -91,6 +92,31 @@ class BaseIntegrationTest(unittest.TestCase):
         }
         return jwt.encode(payload, 'test', algorithm='HS256')
 
+    @staticmethod
+    def reload_modules():
+        """
+        Reloads relevant modules (functions). Mocks stick with the
+        modules cache, so it needs to be removed.
+
+        Call this in the final class setUp() function or immediately before
+        every test
+        """
+        # invalidate import cache; our mock won't stick otherwise!
+        # pylint: disable=import-outside-toplevel
+        import core.functions.chat
+        import core.functions.validation_to_production
+        import core.functions.chat_done
+        import core.functions.work_order
+        import core.functions.chat_history
+        import core.functions.chat_connection
+
+        importlib.reload(core.functions.chat)
+        importlib.reload(core.functions.validation_to_production)
+        importlib.reload(core.functions.chat_done)
+        importlib.reload(core.functions.work_order)
+        importlib.reload(core.functions.chat_history)
+        importlib.reload(core.functions.chat_connection)
+
     def setUp(self):
         # Have to generate a random DB name, otherwise Python hogs the
         # connection even though it's garbage collected. Need a new DB
@@ -105,11 +131,11 @@ class BaseIntegrationTest(unittest.TestCase):
         self.secrets = patch('utils.secrets.Secrets').start()
 
         # Mock the JWT to prepare for requests
-        mocked_secrets = {
+        self.mocked_secrets = {
             'ClerkPublicKey': 'test',
             'ClerkAZPList': 'localhost'
         }
-        self.secrets.return_value.get.side_effect = mocked_secrets.get
+        self.secrets.return_value.get.side_effect = self.mocked_secrets.get
         self.token = self.create_token_for_user('test')
 
         # DB is about the only thing we can really connect

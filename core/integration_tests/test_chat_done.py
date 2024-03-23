@@ -24,6 +24,7 @@ class TestChatDone(BaseIntegrationTest):
 
         patch('langchain_community.vectorstores.azuresearch.AzureSearch') \
             .start()
+        self.reload_modules()
 
     def test_chat_marked_done(self):
         """

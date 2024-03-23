@@ -19,4 +19,4 @@ python3 -m unittest discover integration_tests
 popd
 
 # NOTE: Uncomment this to debug
-# sleep 1000m
+sleep 1000m
