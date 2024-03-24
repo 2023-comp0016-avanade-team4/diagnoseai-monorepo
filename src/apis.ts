@@ -22,3 +22,14 @@ export const deleteWorkOrder = async (orderId: string) =>
   await axios.delete("/api/deleteWorkOrder", {
     data: { orderId },
   });
+
+export const deleteMachine = async (machineId: string) =>
+  await axios.delete("/api/deleteMachine", {
+    data: { machineId },
+  });
+
+export const createMachine = async (manufacturer: string, model: string) =>
+  await axios.post("/api/createMachine", {
+    manufacturer,
+    model,
+  });

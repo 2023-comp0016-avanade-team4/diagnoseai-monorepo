@@ -7,15 +7,15 @@ async function deleteWorkOrder(req: NextApiRequest, res: NextApiResponse) {
 
   if (method === "DELETE") {
     try {
-      const { machine_id } = req.body;
+      const { machineId } = req.body;
 
-      if (!machine_id) {
+      if (!machineId) {
         return res
           .status(400)
           .json({ message: "Machine ID is required for deletion" });
       }
 
-      const workOrder = await Machine.findByPk(machine_id);
+      const workOrder = await Machine.findByPk(machineId);
       if (!workOrder) {
         return res.status(404).json({ message: "machine not found" });
       }
