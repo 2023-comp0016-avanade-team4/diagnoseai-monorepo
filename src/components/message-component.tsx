@@ -1,9 +1,9 @@
-// import { formatRelative, formatDistance, differenceInHours } from "date-fns";
+/*
+  Message Component. This is a pure-view-only component.
+*/
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { useUser } from "@clerk/nextjs";
 import BotImg from "../../assets/bot.png";
-import { User } from "@clerk/nextjs/dist/types/server";
 
 export type citationObject = {
   filepath: string;
@@ -128,13 +128,6 @@ export const MessageComponent = ({ userPicture, message }: Props) => {
           )}
         </span>
       </div>
-      {/* <p className="text-xs text-white/50">
-        {differenceInHours(new Date(), new Date(message.createdAt)) >= 1
-          ? formatRelative(new Date(message.createdAt), new Date())
-          : formatDistance(new Date(message.createdAt), new Date(), {
-            addSuffix: true,
-          })}
-      </p> */}
     </div>
   );
 };
