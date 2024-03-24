@@ -1,0 +1,3 @@
+.devlinks > a {
+  @apply block text-blue-500 hover:text-purple-500 hover:underline visited:text-purple-500 visited:underline;
+}

@@ -1,0 +1,11 @@
+.file-uploader {
+  @apply min-w-full h-full;
+
+  > div {
+    @apply flex flex-col items-center;
+  }
+}
+
+.file-uploader label {
+  @apply min-w-full h-full bg-white;
+}
