@@ -130,8 +130,17 @@ export const UploaderView = ({
   );
 };
 
-export const Uploader = () => {
-  return <UploaderController View={UploaderView} />;
+export const Uploader = ({
+  onUploadCancel,
+  onUploadClick,
+}: UploaderInterface) => {
+  return (
+    <UploaderController
+      onUploadCancel={onUploadCancel}
+      onUploadClick={onUploadClick}
+      View={UploaderView}
+    />
+  );
 };
 
 export default Uploader;

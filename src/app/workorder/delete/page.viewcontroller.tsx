@@ -30,7 +30,7 @@ export function ViewController({ workOrders, View }: ViewControllerProps) {
     router.refresh();
   };
 
-  const handleWorkOrderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleWorkOrderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setOrderId(e?.target?.value || "");
   };
 
