@@ -49,6 +49,13 @@ export const UploaderController = ({
       return;
     }
 
+    if (selectedMachine?.machine_id === "") {
+      alert("please select a machine");
+      setIsUploading((_) => false);
+      onUploadCancel?.();
+      return;
+    }
+
     onUploadClick?.();
     const formData = new FormData();
     formData.append("file", file);
