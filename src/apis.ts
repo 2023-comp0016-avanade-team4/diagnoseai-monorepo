@@ -57,3 +57,6 @@ export const processingIndex = async (searchIndex: string) =>
   });
 
 export const fetchMachines = async () => await axios.get("/api/getMachines");
+
+export const fetchWorkOrders = async () =>
+  await axios.get("/api/getWorkOrders");

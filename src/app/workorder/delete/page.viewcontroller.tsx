@@ -1,20 +1,30 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import WorkOrder from "@/types/workOrder";
 import { PageViewProps } from "./page.view";
-import { deleteWorkOrder } from "@/apis";
+import { deleteWorkOrder, fetchWorkOrders } from "@/apis";
 
 export interface ViewControllerProps {
-  workOrders: WorkOrder[];
   View: React.FC<PageViewProps>;
 }
 
 // View controller for the page
-export function ViewController({ workOrders, View }: ViewControllerProps) {
+export function ViewController({ View }: ViewControllerProps) {
   const [orderId, setOrderId] = useState<string>("");
   const [response, setResponse] = useState("");
+  const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
   const router = useRouter();
+
+  useEffect(() => {
+    fetchWorkOrders()
+      .then((response) => {
+        setWorkOrders(response.data as WorkOrder[]);
+      })
+      .catch((error) => {
+        console.log("Error fetching work orders: " + error);
+      });
+  }, []);
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();

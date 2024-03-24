@@ -1,11 +1,23 @@
 import { render, fireEvent, waitFor } from "@testing-library/react";
 import { ViewController } from "./page.viewcontroller";
-import { deleteWorkOrder } from "@/apis";
+import { deleteWorkOrder, fetchWorkOrders } from "@/apis";
 
 jest.mock("../../../apis");
 
 describe("ViewController", () => {
   beforeEach(() => {
+    (fetchWorkOrders as jest.Mock).mockResolvedValue({
+      data: [
+        {
+          id: "1234",
+          user_id: "1234",
+          machine_id: "1234",
+          task_name: "task_name",
+          task_desc: "task_desc",
+        },
+      ],
+    });
+
     (deleteWorkOrder as jest.Mock).mockResolvedValue({
       data: { message: "Deleted successfully" },
     });
@@ -16,9 +28,7 @@ describe("ViewController", () => {
       <input onChange={handleWorkOrderChange} />
     );
 
-    const { getByRole } = render(
-      <ViewController workOrders={[]} View={mockView} />,
-    );
+    const { getByRole } = render(<ViewController View={mockView} />);
     const input = getByRole("textbox");
     fireEvent.change(input, { target: { value: "1234" } });
 
@@ -33,9 +43,7 @@ describe("ViewController", () => {
       </form>
     );
 
-    const { getByRole } = render(
-      <ViewController workOrders={[]} View={mockView} />,
-    );
+    const { getByRole } = render(<ViewController View={mockView} />);
     const input = getByRole("textbox");
     const submitButton = getByRole("button");
 
