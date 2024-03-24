@@ -32,7 +32,7 @@ describe('Uploader Work Orders', () => {
       cy.contains("Select a machine").click();
       cy.get('span').contains('e2e machine').click();
 
-      cy.get('input[placeholder="Enter a task"]').click().type("E2E Task");
+      cy.get('input[placeholder="Enter a task"]').click().type("first E2E Task");
       cy.get('input[placeholder="Enter a task description"]').click().type("E2E Description");
 
       cy.contains("Submit").click();
@@ -47,12 +47,12 @@ describe('Uploader Work Orders', () => {
 
       cy.contains("Delete a work order")
         .wait('@getEverything')
-        .wait(1000);
+        .wait(2000);
 
       cy.contains("Select a work order").click();
-      cy.get('span').contains('E2E Task').click();
+      cy.get('span').contains('first E2E Task').click();
 
-      cy.get('Button').contains('Delete').click();
+      cy.get('Button').contains('Delete').click().wait(5000);
     });
   });
 });

@@ -26,7 +26,10 @@
 
 Cypress.Commands.add('signOut', () => {
   cy.log('Signing out...');
-  cy.clearCookies();
+  cy.clearAllSessionStorage();
+  cy.clearAllLocalStorage();
+  cy.clearAllCookies();
+  cy.reload();
 });
 
 Cypress.Commands.add('signIn', (site) => {
@@ -35,10 +38,12 @@ Cypress.Commands.add('signIn', (site) => {
 
   // However, because of our authentication flow, it makes more sense
   // _NOT_ to do this. Instead, we log in as if we are a real user
+
+  // Another note: Sessions do not work. For some reason, they can still persist.
   cy.log('Signing in...');
-  cy.signOut();
 
   cy.session(`${site}-session`, () => {
+    cy.signOut();
     cy.origin(Cypress.env('clerk_origin'), { args: { site } }, ({ site }) => {
       cy.visit(site, {
         failOnStatusCode: false
@@ -103,7 +108,7 @@ Cypress.Commands.add('createWorkOrder', () => {
     // NOTE: To trigger auth
     cy.visit("http://localhost:3000").contains("Upload").wait(1000);
 
-    ["E2E Task", "second E2E Task"].forEach(taskName => {
+    ["first E2E Task", "second E2E Task"].forEach(taskName => {
       cy.visit("http://localhost:3000/workorder/create")
         .contains("Create a new task")
         .wait('@getEverything')
@@ -134,7 +139,7 @@ Cypress.Commands.add('deleteWorkOrder', () => {
     // NOTE: To trigger auth
     cy.visit("http://localhost:3000").contains("Upload").wait(1000);
 
-    ["E2E Task", "second E2E Task"].forEach(taskName => {
+    ["first E2E Task", "second E2E Task"].forEach(taskName => {
       cy.visit("http://localhost:3000/workorder/delete")
         .contains("Delete a work order")
         .wait('@getEverything')

@@ -56,7 +56,7 @@ describe('Upload Documents', () => {
     cy.signIn('http://localhost:3001');
     cy.wrap(reliance, { timeout: 0 }).should('include', 'done');
     cy.origin('http://localhost:3001', () => {
-      cy.visit('http://localhost:3001').contains('E2E Task', { timeout: 10000 }).click();
+      cy.visit('http://localhost:3001').contains('first E2E Task', { timeout: 10000 }).click();
 
       cy.get('input[placeholder="Write a message..."]').click().type("What is the gas supply input for the British Gas 330?");
       cy.contains("Send").click();
@@ -69,7 +69,7 @@ describe('Upload Documents', () => {
     cy.signIn('http://localhost:3001');
     cy.wrap(reliance, { timeout: 0 }).should('include', 'done');
     cy.origin('http://localhost:3001', () => {
-      cy.visit('http://localhost:3001').contains('E2E Task', { timeout: 10000 }).wait(5000).click();
+      cy.visit('http://localhost:3001').contains('first E2E Task', { timeout: 10000 }).wait(5000).click();
     });
 
     cy.get('input[placeholder="Write a message..."]').should('be.visible');
@@ -83,7 +83,7 @@ describe('Upload Documents', () => {
     cy.signIn('http://localhost:3001');
 
     cy.origin('http://localhost:3001', () => {
-      cy.visit('http://localhost:3001').contains('E2E Task', { timeout: 10000 }).wait(5000).click();
+      cy.visit('http://localhost:3001').contains('first E2E Task', { timeout: 10000 }).wait(5000).click();
     });
 
     cy.wrap(image_reliance, { timeout: 0 }).should('include', 'done');
