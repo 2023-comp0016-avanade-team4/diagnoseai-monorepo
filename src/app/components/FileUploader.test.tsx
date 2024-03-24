@@ -19,14 +19,14 @@ global.alert = jest.fn().mockImplementation(() => {});
 // Mock store setup
 const middlewares = [];
 const mockStore = configureMockStore(middlewares);
-const initialState = {}; // Adjust according to your actual Redux store's initial state
+const initialState = {};
 const store = mockStore(initialState);
 
 const setUploaderWithFile = () => {
   const uploader = render(
     <Provider store={store}>
       <FileUploader />
-    </Provider>
+    </Provider>,
   );
   const fileInput = uploader.baseElement.getElementsByTagName("input").item(0);
   const file = new File(["reeeee"], "test.pdf", { type: "document/pdf" });
@@ -38,7 +38,7 @@ describe("File Uploader", () => {
     render(
       <Provider store={store}>
         <FileUploader />
-      </Provider>
+      </Provider>,
     );
     expect(screen.getByText("Upload")).toBeInTheDocument();
   });
@@ -47,7 +47,7 @@ describe("File Uploader", () => {
     const uploader = render(
       <Provider store={store}>
         <FileUploader />
-      </Provider>
+      </Provider>,
     );
     const fileInput = uploader.baseElement
       .getElementsByTagName("input")
@@ -59,7 +59,7 @@ describe("File Uploader", () => {
     render(
       <Provider store={store}>
         <FileUploader />
-      </Provider>
+      </Provider>,
     );
     expect(screen.getByText("Confirm Upload")).toBeDisabled();
   });
@@ -91,7 +91,7 @@ describe("File Uploader", () => {
     global.fetch = jest.fn().mockImplementationOnce(() =>
       Promise.resolve({
         json: () => Promise.resolve({ error: true }),
-      })
+      }),
     );
 
     await act(async () => {
@@ -99,7 +99,7 @@ describe("File Uploader", () => {
     });
 
     await waitFor(() =>
-      expect(global.alert).toHaveBeenCalledWith("cannot upload file")
+      expect(global.alert).toHaveBeenCalledWith("cannot upload file"),
     );
   });
 });

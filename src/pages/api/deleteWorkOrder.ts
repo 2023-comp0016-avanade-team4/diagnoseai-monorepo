@@ -7,17 +7,17 @@ async function deleteWorkOrder(req: NextApiRequest, res: NextApiResponse) {
 
   if (method === "DELETE") {
     try {
-      const { order_id } = req.body;
+      const { orderId } = req.body;
 
       // Check if the order_id is provided
-      if (!order_id) {
+      if (!orderId) {
         return res
           .status(400)
           .json({ message: "Order ID is required for deletion" });
       }
 
       // Find the work order by ID
-      const workOrder = await WorkOrder.findByPk(order_id);
+      const workOrder = await WorkOrder.findByPk(orderId);
 
       // Check if the work order exists
       if (!workOrder) {
