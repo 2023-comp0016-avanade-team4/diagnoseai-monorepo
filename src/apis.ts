@@ -33,3 +33,25 @@ export const createMachine = async (manufacturer: string, model: string) =>
     manufacturer,
     model,
   });
+
+export const confirmValidation = async (
+  validation_index_name: string,
+  production_index_name: string,
+) =>
+  await axios.post("/api/confirmValidation", {
+    validation_index_name,
+    production_index_name,
+  });
+
+export const fetchIndexContent = async (searchIndex: string) =>
+  await axios.get(`/api/indexContent?searchIndex=${searchIndex}`);
+
+export const processingIndex = async (searchIndex: string) =>
+  await axios.get(`/api/processingStatus?searchIndex=${searchIndex}`, {
+    headers: {
+      // disable cache for this one
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+      Expires: "0",
+    },
+  });
