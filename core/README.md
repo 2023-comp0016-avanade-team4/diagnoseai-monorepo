@@ -30,7 +30,7 @@ For the full API specification, please see:
 
 - `core/swagger.yml` - Contains the documentation for all available
   endpoints. At the time of writing, this includes:
-  - `/chat_conversation`: Establishes a chat connection with any
+  - `/chat_connection`: Establishes a chat connection with any
     participating interface. This endpoint returns a preauthenticated
     `WebSocket` URL that interfaces should establish a connection to.
   - `/chat_history`: Retrieves all past messages of a chat given a
@@ -137,10 +137,12 @@ to the below table of contents.
 6. [Running MSSQL](#running-mssql)
 7. [Installing required
    dependencies](#installing-required-dependencies)
-2. [Creating the relevant Azure
+8. [Creating the relevant Azure
    services](#creating-the-relevant-azure-services)
-3. [Running the functions locally](#running-the-functions-locally)
-3. [Deploying Core API](#deploying-core-api)
+9. [Running the functions locally](#running-the-functions-locally)
+10. [Deploying Core API](#deploying-core-api)
+11. [Unit Testing](#unit-testing)
+12. [Integration Testing](#integration-testing)
 
 ----
 
@@ -500,8 +502,10 @@ By the end of this section, you should have the following:
 
 - Core OpenAI Key
 - Core OpenAI Endpoint
+- Core OpenAI Names (`gpt-35-turbo`, `text-embedding-ada-002`)
 - Vision OpenAI Key
 - Vision OpenAI Endpoint
+- Vision OpenAI Name
 
 Return to [Guide](#guide).
 
@@ -577,7 +581,238 @@ By the end of this section, you should have:
 - PEM public key
 - A valid user account
 
+Use this [codepen](https://codepen.io/jsnelders/pen/qBByqQy) tool or
+equivalent to replace all line-breaks with the literal `\n` for the
+PEM public key. This will be required for Core API configuration
+later.
+
 Return to [Guide](#guide).
+
+----
+
+### Deploying Core API
+
+`cd` into the `core/` folder, and run:
+
+
+``` text
+func azure functionapp publish <function app name>
+```
+
+In our environment, this is currently `diagnose-ai-core`. This should
+be the same function app name as configured in [Azure Function
+Apps](#azure-function-apps).
+
+To complete the deployment, environment variables need to be
+configured.
+
+1. Navigate to the [Azure Portal](https://portal.azure.com).
+2. Search "Function App" on the services search bar, and click on it.
+   ![Find Function App](./screenshots/fa-01.png)
+3. Click on the "Function App" you have created earlier.
+   ![]()
+4. On the sidebar, click on "Configuration".
+   ![]()
+5. Click on "Advanced edit".
+   ![]()
+6. Copy the following:
+
+    ``` json
+    [
+     ...
+      {
+        "name": "ClerkAZPList",
+        "value": "http://localhost:3000,http://localhost:3001,<uploader url>,<webapp url>",
+        "slotSetting": false
+      },
+      {
+        "name": "ClerkPublicKey",
+        "value": "<public key from the Clerk section. make sure line breaks are replaced>",
+        "slotSetting": false
+      },
+      {
+        "name": "CognitiveSearchEndpoint",
+        "value": "<from Azure AI Search section>",
+        "slotSetting": false
+      },
+      {
+        "name": "CognitiveSearchKey",
+        "value": "<from Cognitive Search Key section>",
+        "slotSetting": false
+      },
+      {
+        "name": "DatabaseName",
+        "value": "<from SQL Databases>",
+        "slotSetting": false
+      },
+      {
+        "name": "DatabasePassword",
+        "value": "<from SQL Databases>",
+        "slotSetting": false
+      },
+      {
+        "name": "DatabaseSelfSigned",
+        "value": "false",
+        "slotSetting": false
+      },
+      {
+        "name": "DatabaseURL",
+        "value": "<from SQL databases>",
+        "slotSetting": false
+      },
+      {
+        "name": "DatabaseUsername",
+        "value": "<from SQL databases>",
+        "slotSetting": false
+      },
+      {
+        "name": "DocBlobConnectionString",
+        "value": "<from Azure Blob Storage - Connection String>",
+        "slotSetting": false
+      },
+      {
+        "name": "DocBlobContainer",
+        "value": "<from Azure Blob Storage>",
+        "slotSetting": false
+      },
+      {
+        "name": "DocumentEndpoint",
+        "value": "<from Azure AI Search>",
+        "slotSetting": false
+      },
+      {
+        "name": "DocumentKey",
+        "value": "<from Azure AI Key>",
+        "slotSetting": false
+      },
+      {
+        "name": "DocumentProductionContainerName",
+        "value": "production",
+        "slotSetting": false
+      },
+      {
+        "name": "DocumentStorageContainer",
+        "value": "<from Azure Blob Storage>",
+        "slotSetting": false
+      },
+      {
+        "name": "DocumentValidationContainerName",
+        "value": "verification",
+        "slotSetting": false
+      },
+      {
+        "name": "FUNCTIONS_EXTENSION_VERSION",
+        "value": "~4",
+        "slotSetting": false
+      },
+      {
+        "name": "FUNCTIONS_WORKER_RUNTIME",
+        "value": "python",
+        "slotSetting": false
+      },
+      {
+        "name": "GPT4VAPIBase",
+        "value": "<from Azure OpenAI Service - Vision Endpoint>",
+        "slotSetting": false
+      },
+      {
+        "name": "GPT4VAPIKey",
+        "value": "<from Azure OpenAI Service - Vision Key>",
+        "slotSetting": false
+      },
+      {
+        "name": "GPT4VDeploymentName",
+        "value": "<from Azure OpenAI Service - Vision Name>",
+        "slotSetting": false
+      },
+      {
+        "name": "ImageBlobConnectionString",
+        "value": "<from Azure Blob Storage - Connection String>",
+        "slotSetting": false
+      },
+      {
+        "name": "ImageBlobContainer",
+        "value": "images",
+        "slotSetting": false
+      },
+      {
+        "name": "OpenAIEndpoint",
+        "value": "<from Azure OpenAI Service - Core OpenAI Endpoint>",
+        "slotSetting": false
+      },
+      {
+        "name": "OpenAIKey",
+        "value": "<from Azure OpenAI Service - Core OpenAI Key>",
+        "slotSetting": false
+      },
+      {
+        "name": "OpenAIModelName",
+        "value": "<from Azure OpenAI Service - Core OpenAI Nam>",
+        "slotSetting": false
+      },
+      {
+        "name": "SMTPPassword",
+        "value": "<your SMTP password>",
+        "slotSetting": false
+      },
+      {
+        "name": "SMTPServer",
+        "value": "<your SMTP server>",
+        "slotSetting": false
+      },
+      {
+        "name": "SMTPUsername",
+        "value": "<your SMTP username>",
+        "slotSetting": false
+      },
+      {
+        "name": "SummarizationModel",
+        "value": "<from Azure OpenAI Service - Core OpenAI",
+        "slotSetting": false
+      },
+      {
+        "name": "SummarySearchEndpoint",
+        "value": "<from Azure AI Search>",
+        "slotSetting": false
+      },
+      {
+        "name": "SummarySearchKey",
+        "value": "<from Azure AI Search>",
+        "slotSetting": false
+      },
+      {
+        "name": "UploaderBaseURL",
+        "value": "<url to your own uploader instance>",
+        "slotSetting": false
+      },
+      {
+        "name": "WebPubSubConnectionString",
+        "value": "<from Azure WebPubSubService>",
+        "slotSetting": false
+      },
+      {
+        "name": "WebPubSubHubName",
+        "value": "chat",
+        "slotSetting": false
+      },
+      {
+        "name": "WEBSITE_MOUNT_ENABLED",
+        "value": "1",
+        "slotSetting": false
+      }
+    ]
+    ```
+7. Press "Ok"
+   ![]()
+8. Press "Save" and then press "Continue"
+   ![]()
+
+---
+
+## Initializing the DB via CoreAPI
+
+Deprecated. Please run an instance of WebApp at least once to generate
+the models. You only need to do this once.
 
 ----
 
@@ -609,11 +844,26 @@ Create a JSON file called `core/local.settings.json`.
     "DatabaseSelfSigned": true,
     "ImageBlobConnectionString": "",
     "ImageBlobContainer": "",
+    "SMTPServer": "",
+    "SMTPUsername": "",
+    "SMTPPassword": "",
+    "UploaderBaseURL": "https://validtion-url-example.com/",
+    "SummarizationModel": "",
+    "SummarySearchKey": "",
+    "SummarySearchEndpoint": "",
+    "ClerkPublicKey": "",
+    "ClerkAZPList": "http://localhost:3000,http://localhost:3001",
+    "DocBlobConnectionString": "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;",
+    "DocBlobContainer": "",
+    "GPT4VAPIBase": "",
+    "GPT4VAPIKey": "",
+    "GPT4VDeploymentName": ""
   }
 }
 ```
 
-The endpoint and keys should be self-explanatory.
+The endpoint and keys should be self-explanatory; otherwise, refer to
+[Deploying Core API](#deploying-core-api).
 
 **Important**: To get proper linting, you must install the current
 package: `pip install -e .` See [this StackOverflow
@@ -716,16 +966,6 @@ func start
 
 Then, start uploading starting to begin the process.
 
-## Deploying
-
-In the `core/` folder, run:
-
-
-``` text
-func azure functionapp publish <function app name>
-```
-
-In our environment, this is currently `diagnose-ai-core`.
 
 ## Unit Testing
 
