@@ -979,6 +979,8 @@ following command will run the test:
 python3 -m unittest discover test
 ```
 
+There are 44 unit tests.
+
 ## Integration Testing
 
 Ensure that you have `docker` installed. The integration tests can be
@@ -999,3 +1001,5 @@ on that is due to the reliance on upstream Azure services, which we
 may not have. The integration tests here simply checks for
 interoperablity between some endpoints, and hence doesn't need the
 full suite of Azure services.
+
+There are 7 integration tests.
