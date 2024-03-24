@@ -3,7 +3,7 @@ name: Deploy
 on:
   push:
     branches:
-      - super-merge-refactor
+      - main
   workflow_dispatch:
 
 jobs:

@@ -115,11 +115,12 @@ export class ChatHandler {
   }
 
   registerIncomingMessageHandler() {
+    const boundHandler = this.incomingMessageHandler.bind(this);
     if (this.ws) {
-      this.ws.addEventListener("message", this.incomingMessageHandler);
+      this.ws.addEventListener("message", boundHandler);
 
       return () => {
-        this.ws.removeEventListener("message", this.incomingMessageHandler);
+        this.ws.removeEventListener("message", boundHandler);
       };
     }
     return () => {};
