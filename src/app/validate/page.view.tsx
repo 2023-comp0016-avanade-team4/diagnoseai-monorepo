@@ -1,3 +1,4 @@
+'use client'
 import { Button, Skeleton } from "@nextui-org/react";
 import MachineList from "@/app/components/MachinesList";
 import { WebSocketProvider } from "@/app/contexts/WebSocketContext";
@@ -6,7 +7,7 @@ import Chat from "@/app/components/Chat";
 export interface ValidateViewProps {
   extractedText: string;
   isLoading: boolean;
-  onValidateClick: () => void;
+  onValidateClick: (() => void) | undefined;
 }
 
 export const ValidateView = ({

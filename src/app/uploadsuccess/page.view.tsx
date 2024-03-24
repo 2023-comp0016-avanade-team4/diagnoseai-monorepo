@@ -1,3 +1,4 @@
+'use client';
 import Image from "next/image";
 import checkmark from "../../../public/accept.png";
 import { Spinner } from "@nextui-org/react";

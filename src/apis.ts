@@ -56,4 +56,4 @@ export const processingIndex = async (searchIndex: string) =>
     },
   });
 
-export const fetchMachines = async () => await axios.get("/api/machines");
+export const fetchMachines = async () => await axios.get("/api/getMachines");
