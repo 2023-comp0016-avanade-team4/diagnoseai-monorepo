@@ -25,19 +25,20 @@ jest.mock("browser-image-resizer", () => ({
 const fileReader = {
   readAsDataURL: jest.fn(),
   result: "data:image/jpeg;base64,",
-}
+};
 
-Object.defineProperty(fileReader, 'onload', {
+Object.defineProperty(fileReader, "onload", {
   get() {
     return this._onload;
   },
   set(value) {
-    this._onload = value
+    this._onload = value;
     // NOTE: in our case, we can just call this directly, since we
     // aren't loading real data
     value();
-  }
+  },
 });
 
-jest.spyOn(global, "FileReader").mockImplementation(
-  (() => fileReader) as any as () => FileReader);
+jest
+  .spyOn(global, "FileReader")
+  .mockImplementation((() => fileReader) as any as () => FileReader);

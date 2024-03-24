@@ -37,7 +37,7 @@ export const ChatContext = createContext<ChatContextType>({
   fetchHistory: () => {},
   isProcessingImage: false,
   setIsProcessingImage: () => {},
-  isProviderBusy: false
+  isProviderBusy: false,
 });
 
 type ChatProviderProps = {
@@ -66,7 +66,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     setIsProviderBusy(true);
     try {
       const response = await axios.get(
-        `/api/chatHistory?conversation_id=${conversationId}`
+        `/api/chatHistory?conversation_id=${conversationId}`,
       );
       const messages = response.data.messages.map(
         (message: IntermediateHistoricalMessage) => {
@@ -78,7 +78,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
             sentAt: message.sentAt / 1000,
             citations: message.citations,
           } as Message;
-        }
+        },
       );
 
       setMessages(messages);
@@ -98,7 +98,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
         fetchHistory,
         isProcessingImage,
         setIsProcessingImage,
-        isProviderBusy
+        isProviderBusy,
       }}
     >
       {children}

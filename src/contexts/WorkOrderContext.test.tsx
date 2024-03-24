@@ -31,7 +31,7 @@ describe("WorkOrderContext", () => {
         conversation_id: "mocked-conversation-id",
         task_name: "mocked-task-name",
         task_desc: "mocked-task-desc",
-        resolved: "COMPLETED"
+        resolved: "COMPLETED",
       },
       {
         order_id: "mocked-order-id-2",
@@ -122,7 +122,7 @@ describe("WorkOrderContext", () => {
       );
       expect(screen.getByText("done")).toBeInTheDocument();
     });
-  })
+  });
 
   it("marks a work order as undone", async () => {
     const DummyComponentMarkAsUndone = () => {

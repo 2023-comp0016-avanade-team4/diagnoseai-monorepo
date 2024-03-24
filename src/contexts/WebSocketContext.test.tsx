@@ -9,9 +9,11 @@ let mockWebSocketInstance: { send: any; close: any; onclose: any };
 let mockWebSocket: jest.Mock;
 
 mockWebSocketInstance = {
-  send: jest.fn(), close: jest.fn().mockImplementation(() => {
+  send: jest.fn(),
+  close: jest.fn().mockImplementation(() => {
     mockWebSocketInstance.onclose();
-  }), onclose: jest.fn()
+  }),
+  onclose: jest.fn(),
 };
 mockWebSocket = jest.fn(() => mockWebSocketInstance) as jest.Mock;
 mockWebSocket.prototype = WebSocket.prototype;
@@ -39,13 +41,14 @@ const DummyComponent = () => {
 
 describe("WebSocketProvider", () => {
   it("sends messages with the correct auth token", async () => {
-    mockAxios.onPost("/api/chatConnection").reply(200,
-      { wsUrl: "wss://test.websocket.url" });
+    mockAxios
+      .onPost("/api/chatConnection")
+      .reply(200, { wsUrl: "wss://test.websocket.url" });
 
     render(
       <WebSocketProvider>
         <DummyComponent />
-      </WebSocketProvider>
+      </WebSocketProvider>,
     );
 
     await waitFor(() => {
@@ -54,13 +57,14 @@ describe("WebSocketProvider", () => {
   });
 
   it("retries the websocket if connection failed", async () => {
-    mockAxios.onPost("/api/chatConnection").reply(200,
-      { wsUrl: "wss://test.websocket.url" });
+    mockAxios
+      .onPost("/api/chatConnection")
+      .reply(200, { wsUrl: "wss://test.websocket.url" });
 
     render(
       <WebSocketProvider>
         <DummyComponent />
-      </WebSocketProvider>
+      </WebSocketProvider>,
     );
 
     await waitFor(() => {
@@ -69,8 +73,11 @@ describe("WebSocketProvider", () => {
 
     expect(mockWebSocketInstance.close).toBeDefined();
     mockWebSocketInstance.close?.();
-    await waitFor(() => {
-      expect(mockWebSocket).toHaveBeenCalledTimes(2);
-    }, { timeout: 5000 }); // have to give a longer timeout because of the retry
+    await waitFor(
+      () => {
+        expect(mockWebSocket).toHaveBeenCalledTimes(2);
+      },
+      { timeout: 5000 },
+    ); // have to give a longer timeout because of the retry
   });
 });

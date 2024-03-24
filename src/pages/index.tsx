@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
 import { Header } from "@/components/header";
 import { FixedSideMenu } from "@/components/fixed-side-menu";
 import { isGreaterThanBreakpoint } from "@/utils/useBreakpoint";
 
 // Both NewMessageForm and MessageList are lazy-loaded
-const NewMessageForm = dynamic(() => import("@/components/new-message-form"),
-  { ssr: false });
-const MessageList = dynamic(() => import("@/components/message-list"),
-  { ssr: false });
+const NewMessageForm = dynamic(() => import("@/components/new-message-form"), {
+  ssr: false,
+});
+const MessageList = dynamic(() => import("@/components/message-list"), {
+  ssr: false,
+});
 
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,7 +25,11 @@ export default function Home() {
 
   return (
     <div className="flex flex-row">
-      <FixedSideMenu className="hidden md:block" isOpen={isOpen} setIsOpen={setIsOpen} />
+      <FixedSideMenu
+        className="hidden md:block"
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+      />
       <div className="flex flex-col bg-cover dark w-full relative">
         <Header isOpen={isOpen} setIsOpen={setIsOpen} />
         <div className="flex-1 overflow-y-scroll no-scrollbar p-6">

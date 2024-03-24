@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import axios from "axios";
 import { showToastWithRefresh } from "@/components/toast-with-refresh";
 import { nextTick } from "process";
@@ -55,54 +61,69 @@ export const WorkOrderProvider: React.FC<WorkOrderProviderProps> = ({
         }
       } else {
         showToastWithRefresh(
-          "You do not have any work orders! Please contact an administrator to add work orders to your account.");
+          "You do not have any work orders! Please contact an administrator to add work orders to your account.",
+        );
       }
     } catch (error) {
       console.error("Error fetching WorkOrder:", error);
       showToastWithRefresh(
-        `Error fetching work order: ${error}, please refresh.`
+        `Error fetching work order: ${error}, please refresh.`,
       );
     }
     setIsProviderBusy(false);
   };
 
-  const markWorkOrder = useCallback(async (workOrderId: string, done: boolean) => {
-    const workOrder = workOrders.find((order) => order.order_id === workOrderId);
-    if (!workOrder) {
-      console.error("Work order not found");
-      return;
-    }
-
-    setWorkOrders(workOrders.map((order) => {
-      if (order.order_id === workOrderId) {
-        const newOrder = { ...order, resolved: done ? "COMPLETED" : "NOT_COMPLETED" } as WorkOrder;
-        // NOTE: This needs to run in the next tick, otherwise React
-        // doesn't pick it up on time to update the UI
-        nextTick(() => {
-          setCurrent(newOrder);
-        });
-
-        return newOrder;
+  const markWorkOrder = useCallback(
+    async (workOrderId: string, done: boolean) => {
+      const workOrder = workOrders.find(
+        (order) => order.order_id === workOrderId,
+      );
+      if (!workOrder) {
+        console.error("Work order not found");
+        return;
       }
-      return order;
-    }))
 
-    try {
-      await axios.post(`/api/chatDone?conversationId=${workOrder.conversation_id}&done=${done}`);
-    } catch (error) {
-      setWorkOrders(workOrders.map((order) => {
-        if (order.order_id === workOrderId) {
-          nextTick(() => {
-            setCurrent(workOrder);
-          });
+      setWorkOrders(
+        workOrders.map((order) => {
+          if (order.order_id === workOrderId) {
+            const newOrder = {
+              ...order,
+              resolved: done ? "COMPLETED" : "NOT_COMPLETED",
+            } as WorkOrder;
+            // NOTE: This needs to run in the next tick, otherwise React
+            // doesn't pick it up on time to update the UI
+            nextTick(() => {
+              setCurrent(newOrder);
+            });
 
-          return { ...workOrder };
-        }
-        return order;
-      }))
-      console.error("Error marking conversation done:", error);
-    }
-  }, [workOrders]);
+            return newOrder;
+          }
+          return order;
+        }),
+      );
+
+      try {
+        await axios.post(
+          `/api/chatDone?conversationId=${workOrder.conversation_id}&done=${done}`,
+        );
+      } catch (error) {
+        setWorkOrders(
+          workOrders.map((order) => {
+            if (order.order_id === workOrderId) {
+              nextTick(() => {
+                setCurrent(workOrder);
+              });
+
+              return { ...workOrder };
+            }
+            return order;
+          }),
+        );
+        console.error("Error marking conversation done:", error);
+      }
+    },
+    [workOrders],
+  );
 
   useEffect(() => {
     refreshOrders();
@@ -115,9 +136,9 @@ export const WorkOrderProvider: React.FC<WorkOrderProviderProps> = ({
         setCurrent,
         workOrders,
         refreshOrders,
-        markWorkOrderAsDone: id => markWorkOrder(id, true),
-        markWorkOrderAsNotDone: id => markWorkOrder(id, false),
-        isProviderBusy
+        markWorkOrderAsDone: (id) => markWorkOrder(id, true),
+        markWorkOrderAsNotDone: (id) => markWorkOrder(id, false),
+        isProviderBusy,
       }}
     >
       {children}

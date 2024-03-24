@@ -33,13 +33,13 @@ describe("ChatContext", () => {
     render(
       <ChatProvider>
         <DummyComponentFetchHistory />
-      </ChatProvider>
+      </ChatProvider>,
     );
 
     await waitFor(() => {
       expect(axios.get).toHaveBeenCalledWith(
         expect.stringContaining("/api/chatHistory") &&
-          expect.stringContaining("mocked-conversation-id")
+          expect.stringContaining("mocked-conversation-id"),
       );
 
       expect(screen.getByText("done")).toBeInTheDocument();
@@ -73,7 +73,7 @@ describe("ChatContext", () => {
     render(
       <ChatProvider>
         <DummyComponentAddMessage />
-      </ChatProvider>
+      </ChatProvider>,
     );
 
     await waitFor(() => {
@@ -116,7 +116,7 @@ describe("ChatContext with Processing image placeholder", () => {
     render(
       <ChatProvider>
         <DummyComponentAddMessage />
-      </ChatProvider>
+      </ChatProvider>,
     );
 
     await waitFor(() => {
