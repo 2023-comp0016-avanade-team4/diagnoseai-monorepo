@@ -77,7 +77,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
   const contextValue = {
     wsUrl,
-    webSocket, // Provide the WebSocket instance in context
+    webSocket,
   };
 
   return (

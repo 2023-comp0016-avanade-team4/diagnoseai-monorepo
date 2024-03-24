@@ -2,12 +2,17 @@ import React from "react";
 import { render, waitFor } from "@testing-library/react";
 import { WebSocketProvider, useWebSocket } from "./WebSocketContext";
 import axios from "axios";
+import MockAdapter from "axios-mock-adapter";
 
-jest.mock("axios");
-let mockWebSocketInstance: { send: any; close?: jest.Mock<any, any, any> };
+const mockAxios = new MockAdapter(axios);
+let mockWebSocketInstance: { send: any; close: any; onclose: any };
 let mockWebSocket: jest.Mock;
 
-mockWebSocketInstance = { send: jest.fn(), close: jest.fn() };
+mockWebSocketInstance = {
+  send: jest.fn(), close: jest.fn().mockImplementation(() => {
+    mockWebSocketInstance.onclose();
+  }), onclose: jest.fn()
+};
 mockWebSocket = jest.fn(() => mockWebSocketInstance) as jest.Mock;
 mockWebSocket.prototype = WebSocket.prototype;
 
@@ -28,15 +33,14 @@ Object.defineProperty(mockWebSocket, "CLOSED", {
 global.WebSocket = mockWebSocket as any;
 
 const DummyComponent = () => {
-  const { addMessage } = useWebSocket();
-  return <div>{addMessage && "Context is available"}</div>;
+  useWebSocket();
+  return <div>Context is available</div>;
 };
 
 describe("WebSocketProvider", () => {
   it("sends messages with the correct auth token", async () => {
-    axios.post = jest
-      .fn()
-      .mockResolvedValue({ data: { wsUrl: "wss://test.websocket.url" } });
+    mockAxios.onPost("/api/chatConnection").reply(200,
+      { wsUrl: "wss://test.websocket.url" });
 
     render(
       <WebSocketProvider>
@@ -45,7 +49,28 @@ describe("WebSocketProvider", () => {
     );
 
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalledWith(expect.any(String));
+      expect(mockAxios.history.post.length).toBe(1);
     });
+  });
+
+  it("retries the websocket if connection failed", async () => {
+    mockAxios.onPost("/api/chatConnection").reply(200,
+      { wsUrl: "wss://test.websocket.url" });
+
+    render(
+      <WebSocketProvider>
+        <DummyComponent />
+      </WebSocketProvider>
+    );
+
+    await waitFor(() => {
+      expect(mockWebSocket).toHaveBeenCalledTimes(1);
+    });
+
+    expect(mockWebSocketInstance.close).toBeDefined();
+    mockWebSocketInstance.close?.();
+    await waitFor(() => {
+      expect(mockWebSocket).toHaveBeenCalledTimes(2);
+    }, { timeout: 5000 }); // have to give a longer timeout because of the retry
   });
 });
