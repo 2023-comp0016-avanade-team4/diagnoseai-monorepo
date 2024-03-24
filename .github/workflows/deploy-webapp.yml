@@ -1,4 +1,4 @@
-name: Deploy
+name: Deploy Webapp
 
 on:
   push:
@@ -23,6 +23,7 @@ jobs:
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
         run: |
+          cd webapp/
           npm install
           npm run build
           mkdir -p .next/standalone/.next
@@ -60,7 +61,7 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'diagnoseai-uploader'
+          app-name: 'diagnoseai-webapp'
           slot-name: 'Production'
           package: .
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_08B34313926748588707A4249E161EB8 }}
