@@ -31,7 +31,8 @@ interface MachineCreationAttributes
 // Define WorkOrder model
 class WorkOrder
   extends Model<WorkOrderAttributes, WorkOrderCreationAttributes>
-  implements WorkOrderAttributes {
+  implements WorkOrderAttributes
+{
   public order_id!: string;
   public user_id!: string;
   public conversation_id!: string;
@@ -88,7 +89,8 @@ WorkOrder.init(
 // Define Machine model
 class Machine
   extends Model<MachineAttributes, MachineCreationAttributes>
-  implements MachineAttributes {
+  implements MachineAttributes
+{
   public machine_id!: string;
   public manufacturer!: string;
   public model!: string;

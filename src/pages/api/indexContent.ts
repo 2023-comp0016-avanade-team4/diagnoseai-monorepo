@@ -18,11 +18,15 @@ if (!AZURE_COGNITIVE_SERVICE_API_KEY) {
   throw Error("Azure Cognitive Service API Key not found");
 }
 
-async function handler(_req: NextApiRequest, res: NextApiResponse, searchIndex: string) {
+async function handler(
+  _req: NextApiRequest,
+  res: NextApiResponse,
+  searchIndex: string,
+) {
   const searchClient = new SearchClient(
     AZURE_COGNITIVE_SERVICE_ENDPOINT!,
     searchIndex,
-    new AzureKeyCredential(AZURE_COGNITIVE_SERVICE_API_KEY!)
+    new AzureKeyCredential(AZURE_COGNITIVE_SERVICE_API_KEY!),
   );
 
   const searchResults = await searchClient.search("*", {
@@ -35,7 +39,7 @@ async function handler(_req: NextApiRequest, res: NextApiResponse, searchIndex: 
   let selectedResults: string[] = [];
   for (let i = 0; i < Math.min(10, count); i++) {
     selectedResults.push(
-      (await searchResults.results.next()).value.document.content as string
+      (await searchResults.results.next()).value.document.content as string,
     );
   }
 
@@ -44,6 +48,4 @@ async function handler(_req: NextApiRequest, res: NextApiResponse, searchIndex: 
   });
 }
 
-export default authGuard(checkSearchIndexMiddleware(
-  handler
-));
+export default authGuard(checkSearchIndexMiddleware(handler));

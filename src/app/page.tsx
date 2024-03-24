@@ -1,5 +1,5 @@
 import { Uploader } from "./components/Uploader";
-import '../global.css';
+import "../global.css";
 
 export default function IndexPage() {
   return <Uploader />;

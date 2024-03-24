@@ -25,7 +25,7 @@ async function addProcessingFileToDB(
 
   await PendingUploads.create({
     filename,
-    username: user.emailAddresses[0].emailAddress.split('@')[0] || "123",
+    username: user.emailAddresses[0].emailAddress.split("@")[0] || "123",
     user_email: user.emailAddresses[0].emailAddress,
     machine_id,
   });
@@ -80,7 +80,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             const user = await clerkClient.users.getUser(userId || "");
             await addProcessingFileToDB(blobName, machineId[0], user);
             console.log(`Upload block blob ${blobName} successfully`);
-            res.status(200).json({ uuid: blobName, message: "File uploaded successfully" });
+            res
+              .status(200)
+              .json({ uuid: blobName, message: "File uploaded successfully" });
           })
           .catch((error) => {
             console.log("catch inside blockBlobClient.uploadFile");

@@ -1,6 +1,6 @@
-import Machine from '@/types/machine';
-import axios from 'axios';
-import { AppDispatch } from '@store/store';
+import Machine from "@/types/machine";
+import { AppDispatch } from "@store/store";
+import { fetchMachines as getMachines } from "@/apis";
 
 interface MachinesAction {
   type: string;
@@ -17,20 +17,22 @@ interface MachinesState {
   selectedMachine: Machine | null;
 }
 
-
 const initialState: MachinesState = {
   machines: [],
   selectedMachine: null,
 };
 
-export const machinesReducer = (state = initialState, action: MachinesAction | SelectedMachineAction): MachinesState => {
+export const machinesReducer = (
+  state = initialState,
+  action: MachinesAction | SelectedMachineAction,
+): MachinesState => {
   switch (action.type) {
-    case 'SET_MACHINES':
+    case "SET_MACHINES":
       return {
         ...state,
         machines: (action as MachinesAction).payload,
       };
-    case 'SELECT_MACHINE':
+    case "SELECT_MACHINE":
       return {
         ...state,
         selectedMachine: (action as SelectedMachineAction).payload,
@@ -41,7 +43,7 @@ export const machinesReducer = (state = initialState, action: MachinesAction | S
 };
 
 export const selectMachine = (machine: Machine) => ({
-  type: 'SELECT_MACHINE',
+  type: "SELECT_MACHINE",
   payload: machine,
 });
 
@@ -55,11 +57,11 @@ export const selectMachineById = (machines: Machine[], id: string) => {
 };
 
 export const setMachines = (machines: Machine[]) => ({
-  type: 'SET_MACHINES',
+  type: "SET_MACHINES",
   payload: machines,
 });
 
 export const fetchMachines = async (dispatch: AppDispatch) => {
-  const response = await axios.get("/api/getMachines");
+  const response = await getMachines();
   dispatch(setMachines(response.data as Machine[]));
-}
+};

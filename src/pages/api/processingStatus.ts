@@ -26,7 +26,7 @@ async function getDocumentCount(searchIndex: string): Promise<number> {
     const searchClient = new SearchClient(
       AZURE_COGNITIVE_SERVICE_ENDPOINT!,
       searchIndex,
-      new AzureKeyCredential(AZURE_COGNITIVE_SERVICE_API_KEY!)
+      new AzureKeyCredential(AZURE_COGNITIVE_SERVICE_API_KEY!),
     );
     const searchResults = await searchClient.search("*", {
       select: ["content"],
@@ -56,7 +56,7 @@ async function isIndexReady(searchIndex: string): Promise<boolean> {
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { searchIndex } = req.query;
 
-  if (typeof searchIndex !== 'string') {
+  if (typeof searchIndex !== "string") {
     res.status(400).json({
       error: "searchIndex must be a string",
     });
@@ -68,4 +68,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   });
 }
 
-export default authGuard(handler)
+export default authGuard(handler);

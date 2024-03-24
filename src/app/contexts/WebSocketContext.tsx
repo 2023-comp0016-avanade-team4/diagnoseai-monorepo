@@ -44,7 +44,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     // Whenever the websocket object changes, we are either reconnecting
     // or cleaning up the websocket
     setIsReady(false);
-  }, [webSocket])
+  }, [webSocket]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,7 +71,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
       ws.onopen = () => {
         setIsReady(true);
-      }
+      };
 
       ws.onclose = () => {
         if (attemptReconnect) {
@@ -87,7 +87,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       };
 
       setWebSocket(ws);
-    }
+    };
 
     connectWebSocket();
 

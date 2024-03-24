@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getAuth } from "@clerk/nextjs/server";
 
 export function authGuard(
-  fn: (req: NextApiRequest, res: NextApiResponse) => Promise<void>
+  fn: (req: NextApiRequest, res: NextApiResponse) => Promise<void>,
 ) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
     const { userId } = getAuth(req);

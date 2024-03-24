@@ -6,7 +6,6 @@
   multi-purpose.
 */
 
-
 interface UUIDAction {
   type: string;
   payload: string;

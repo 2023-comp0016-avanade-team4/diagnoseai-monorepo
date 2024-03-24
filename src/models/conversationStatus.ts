@@ -4,17 +4,21 @@ import { WorkOrder } from "./workOrderModel";
 
 interface ConversationStatusAttributes {
   conversation_id: string;
-  status: 'COMPLETED' | 'NOT_COMPLETED';
+  status: "COMPLETED" | "NOT_COMPLETED";
 }
 
 interface ConversationStatusCreationAttributes
   extends Optional<ConversationStatusAttributes, "conversation_id"> {}
 
 class ConversationStatus
-  extends Model<ConversationStatusAttributes, ConversationStatusCreationAttributes>
-  implements ConversationStatusAttributes {
+  extends Model<
+    ConversationStatusAttributes,
+    ConversationStatusCreationAttributes
+  >
+  implements ConversationStatusAttributes
+{
   public conversation_id!: string;
-  public status!: 'COMPLETED' | 'NOT_COMPLETED';
+  public status!: "COMPLETED" | "NOT_COMPLETED";
 }
 
 ConversationStatus.init(
