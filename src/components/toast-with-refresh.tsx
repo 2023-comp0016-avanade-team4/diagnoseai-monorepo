@@ -1,3 +1,8 @@
+/*
+  Wrapper around toast with refresh. Does not require testing because
+  it is technically a trivial view.
+*/
+
 import React from "react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
