@@ -11,7 +11,7 @@ import axios from 'axios';
 export default function UploadSuccess() {
   const { uuid, machine } = useAppSelector((store) => ({
     uuid: store.uuid.value,
-    machine: store.selectedMachine?.machine_id
+    machine: store.machines.selectedMachine?.machine_id
   }));
   const router = useRouter();
 

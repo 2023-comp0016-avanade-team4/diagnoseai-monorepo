@@ -1,26 +1,57 @@
-import Machine from '../../types/machine';
-import { useAppDispatch } from '../hook';
+import Machine from '@/types/machine';
 import axios from 'axios';
-import { AppDispatch } from '../store';
-
-// Define action types
+import { AppDispatch } from '@store/store';
 
 interface MachinesAction {
   type: string;
   payload: Machine[];
 }
 
-// Define initial state for machines
-const initialState: Machine[] = [];
+interface SelectedMachineAction {
+  type: string;
+  payload: Machine | null;
+}
 
-// Machines reducer
-export const machinesReducer = (state = initialState, action: MachinesAction): Machine[] => {
+interface MachinesState {
+  machines: Machine[];
+  selectedMachine: Machine | null;
+}
+
+
+const initialState: MachinesState = {
+  machines: [],
+  selectedMachine: null,
+};
+
+export const machinesReducer = (state = initialState, action: MachinesAction | SelectedMachineAction): MachinesState => {
   switch (action.type) {
     case 'SET_MACHINES':
-      return action.payload;
+      return {
+        ...state,
+        machines: (action as MachinesAction).payload,
+      };
+    case 'SELECT_MACHINE':
+      return {
+        ...state,
+        selectedMachine: (action as SelectedMachineAction).payload,
+      };
     default:
       return state;
   }
+};
+
+export const selectMachine = (machine: Machine) => ({
+  type: 'SELECT_MACHINE',
+  payload: machine,
+});
+
+export const selectMachineById = (machines: Machine[], id: string) => {
+  const machine = machines.find((machine) => machine.machine_id === id);
+  if (machine === undefined) {
+    console.error(`machine {id} not found`);
+    return null;
+  }
+  return selectMachine(machine);
 };
 
 export const setMachines = (machines: Machine[]) => ({

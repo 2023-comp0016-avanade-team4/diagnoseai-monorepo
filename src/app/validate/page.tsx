@@ -1,14 +1,14 @@
 "use client";
 import { Button } from "@nextui-org/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Chat from "../components/Chat";
-import { useAppSelector, useAppDispatch } from "../../redux/hook";
-import { selectMachineById } from "../../redux/reducers/selectedMachineReducer";
-import { RootState } from "../../redux/store";
+import { useAppSelector, useAppDispatch } from "@store/hook";
+import { selectMachineById } from "@store/reducers/machinesReducer";
+import { RootState } from "@store/store";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Skeleton } from "@nextui-org/react";
-import MachineList from "../components/MachinesList";
-import { WebSocketProvider } from '../contexts/WebSocketContext';
+import MachineList from "@/app/components/MachinesList";
+import { WebSocketProvider } from '@/app/contexts/WebSocketContext';
 
 const Validate = () => {
   // TODO: whoever is doing the backend, use setExtractedText
@@ -20,8 +20,8 @@ const Validate = () => {
   const pathname = usePathname();
   const dispatch = useAppDispatch();
   const { machines, selectedMachine } = useAppSelector((state: RootState) => ({
-    machines: state.machines,
-    selectedMachine: state.selectedMachine,
+    machines: state.machines.machines,
+    selectedMachine: state.machines.selectedMachine,
   }));
   const params = useSearchParams();
   const index = params?.get("index");

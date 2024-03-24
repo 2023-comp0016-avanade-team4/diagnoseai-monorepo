@@ -20,7 +20,7 @@ const ClientPage = ({ users }: { users: User[] }) => {
   const [response, setResponse] = useState("");
 
   const dispatch = useAppDispatch();
-  const machines = useAppSelector((state) => state.machines);
+  const machines = useAppSelector((state) => state.machines.machines);
   useEffect(() => {
     fetchMachines(dispatch);
   }, [dispatch]);

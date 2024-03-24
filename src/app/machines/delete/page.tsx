@@ -6,7 +6,7 @@ import { fetchMachines } from "../../../redux/reducers/machinesReducer";
 import { Select, SelectSection, SelectItem, Input, Button } from "@nextui-org/react";
 
 const Page = () => {
-  const machines = useAppSelector((state) => state.machines);
+  const machines = useAppSelector((state) => state.machines.machines);
   const dispatch = useAppDispatch();
 
   useEffect(() => {

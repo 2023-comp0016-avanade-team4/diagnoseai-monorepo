@@ -26,7 +26,7 @@ export const Uploader = ({ onUploadClick, onUploadCancel }: UploaderInterface) =
 
   const dispatch = useAppDispatch();
   const selectedMachine = useAppSelector(
-    (store: RootState) => store.selectedMachine,
+    (store: RootState) => store.machines.selectedMachine,
   );
 
   const uploadBtnClicked = async () => {

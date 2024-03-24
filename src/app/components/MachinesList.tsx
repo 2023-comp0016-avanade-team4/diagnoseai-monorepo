@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { setMachines } from "../../redux/reducers/machinesReducer";
-import { selectMachine } from "../../redux/reducers/selectedMachineReducer";
-import { RootState } from "../../redux/store";
-import Machine from "../../types/machine";
+import { setMachines, selectMachine } from "@store/reducers/machinesReducer";
+import { RootState } from "@store/store";
+import Machine from "@/types/machine";
 import { Skeleton } from "@nextui-org/react";
 import { Select, SelectItem } from "@nextui-org/react";
 import { UnknownAction } from "redux";
@@ -27,8 +26,8 @@ const MachineList = () => {
   }, [dispatch]);
 
   const { machines, selectedMachine } = useSelector((state: RootState) => ({
-    machines: state.machines,
-    selectedMachine: state.selectedMachine,
+    machines: state.machines.machines,
+    selectedMachine: state.machines.selectedMachine,
   }));
 
   const handleMachineChange = (event: React.ChangeEvent<HTMLSelectElement>) => {

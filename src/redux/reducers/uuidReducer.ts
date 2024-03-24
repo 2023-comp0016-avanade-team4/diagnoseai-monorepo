@@ -1,3 +1,12 @@
+/*
+  The UUID referred here is the index of the uploaded file.
+
+  As of writing (2024-03-24), DiagnoseAI uses this index as both the
+  Cognitive Search index and Azure Blob Storage filename, so it is
+  multi-purpose.
+*/
+
+
 interface UUIDAction {
   type: string;
   payload: string;
