@@ -1,17 +1,19 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect } from "react";
 import { useInView } from "react-intersection-observer";
 
-import MessageComponent from './MessageComponent';
-import { WebSocketContext } from '../contexts/WebSocketContext';
+import MessageComponent from "./MessageComponent";
+import { useWebSocket } from "@/app/contexts/WebSocketContext";
 
-
+// This component is fairly insignificnat; there is no need to
+// refactor it to MVC.  The only thing the controller would be doing
+// is to handle the scrolling.
 const MessageList = () => {
   const [scrollRef, inView, entry] = useInView({
     trackVisibility: true,
     delay: 1000,
   });
 
-  const { messages } = useContext(WebSocketContext)!;
+  const { messages } = useWebSocket();
 
   useEffect(() => {
     if (entry?.target) {
@@ -28,7 +30,10 @@ const MessageList = () => {
           <button
             className="py-1.5 px-3 text-xs bg-[#1c1c1f] border border-[#363739] rounded-full text-white font-medium"
             onClick={() => {
-              entry?.target.scrollIntoView({ behavior: "smooth", block: "end" })
+              entry?.target.scrollIntoView({
+                behavior: "smooth",
+                block: "end",
+              });
             }}
           >
             Scroll to see latest messages

@@ -7,14 +7,12 @@ import configureMockStore from "redux-mock-store";
 
 jest.mock("../../apis", () => {
   return {
-    confirmValidation: jest
-      .fn()
-      .mockResolvedValue(
-        Promise.resolve({
-          status: 200,
-          data: { message: "Validation Successful" },
-        }),
-      ),
+    confirmValidation: jest.fn().mockResolvedValue(
+      Promise.resolve({
+        status: 200,
+        data: { message: "Validation Successful" },
+      }),
+    ),
     fetchIndexContent: jest
       .fn()
       .mockResolvedValue(
@@ -22,6 +20,7 @@ jest.mock("../../apis", () => {
       ),
   };
 });
+
 jest.mock("next/navigation", () => {
   return {
     useRouter: jest.fn(),

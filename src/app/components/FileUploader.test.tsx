@@ -19,7 +19,12 @@ global.alert = jest.fn().mockImplementation(() => {});
 // Mock store setup
 const middlewares = [];
 const mockStore = configureMockStore(middlewares);
-const initialState = {};
+const initialState = {
+  machines: {
+    machines: [],
+    selectedMachine: null,
+  },
+};
 const store = mockStore(initialState);
 
 const setUploaderWithFile = () => {

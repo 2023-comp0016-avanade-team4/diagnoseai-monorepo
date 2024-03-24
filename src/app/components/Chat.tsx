@@ -1,13 +1,15 @@
-import React from 'react';
-import { useWebSocket } from '../contexts/WebSocketContext';
-import { Skeleton } from '@nextui-org/react';
+import React from "react";
+import { useWebSocket } from "../contexts/WebSocketContext";
+import { Skeleton } from "@nextui-org/react";
 import MessageList from "./MessageList";
 import NewMessageForm from "./NewMessageForm";
 
+// Almost pure UI component; the only logic is to check if the socket is ready
+// No tests needed
 const Chat = () => {
   const { isSocketReady } = useWebSocket();
   if (!isSocketReady) {
-    return <Skeleton className="relative h-full bg-slate-400" />
+    return <Skeleton className="relative h-full bg-slate-400" />;
   }
 
   return (
@@ -26,6 +28,6 @@ const Chat = () => {
       </div>
     </div>
   );
-}
+};
 
 export default Chat;

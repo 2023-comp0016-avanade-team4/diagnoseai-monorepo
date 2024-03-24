@@ -1,7 +1,8 @@
-import Image from 'next/image';
-import logo from '../../../public/logo.png';
-import { UserButton } from '@clerk/nextjs';
+import Image from "next/image";
+import logo from "../../../public/logo.png";
+import { UserButton } from "@clerk/nextjs";
 
+// Pure view-only component, no tests needed
 const Header = () => {
   return (
     <header className="bg-slate-200 text-black py-4 shadow-md">
@@ -15,7 +16,7 @@ const Header = () => {
             />
             <span className="ml-2 text-lg font-semibold">DiagnoseAI</span>
           </a>
-          <UserButton afterSignOutUrl='/' />
+          <UserButton afterSignOutUrl="/" />
         </div>
       </div>
     </header>

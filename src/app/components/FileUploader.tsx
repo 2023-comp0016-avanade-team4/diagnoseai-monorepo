@@ -15,25 +15,35 @@ interface UploaderInterface {
   onUploadCancel?: () => void;
 }
 
-export const Uploader = ({ onUploadClick, onUploadCancel }: UploaderInterface) => {
+export interface UploaderViewProps {
+  file: File | undefined;
+  setFile: ((file: File) => void) | undefined;
+  isLoaded: boolean;
+  isUploading: boolean;
+  uploadBtnClicked: (() => void) | undefined;
+}
+
+export const UploaderController = ({
+  View,
+  onUploadCancel,
+  onUploadClick,
+}: { View: React.FC<UploaderViewProps> } & UploaderInterface) => {
   const [file, setFile] = useState<File | undefined>(undefined);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const router = useRouter();
-  const handleChange = (file: File) => {
-    setFile(file);
-  };
-
   const dispatch = useAppDispatch();
   const selectedMachine = useAppSelector(
     (store: RootState) => store.machines.selectedMachine,
   );
 
-  const uploadBtnClicked = async () => {
+  useEffect(() => {
+    setIsLoaded((_) => true);
+  }, []);
+
+  const uploadButtonClicked = async () => {
     setIsUploading((_) => true);
     if (file === undefined) {
-      // TODO: Eventually, we should have a toast within the website
-      // to show errors instead of using the alert box
       alert("please choose a file");
       onUploadCancel?.();
       return;
@@ -55,16 +65,28 @@ export const Uploader = ({ onUploadClick, onUploadCancel }: UploaderInterface) =
       onUploadCancel?.();
     } else {
       dispatch(setUUID(data.uuid));
-      router.push('/uploadsuccess');
+      router.push("/uploadsuccess");
     }
   };
 
-  useEffect(() => {
-    // useEffect only runs on mount, so this hook essentially ensures
-    // that FileUploder has fully loaded (it takes a while)
-    setIsLoaded((_) => true);
-  }, []);
+  return (
+    <View
+      file={file}
+      setFile={setFile}
+      isLoaded={isLoaded}
+      isUploading={isUploading}
+      uploadBtnClicked={uploadButtonClicked}
+    />
+  );
+};
 
+export const UploaderView = ({
+  file,
+  setFile,
+  isLoaded,
+  isUploading,
+  uploadBtnClicked,
+}: UploaderViewProps) => {
   // HACK: The FileUploader component doesn't let us change the
   // success message directly, so we change it with JS
   useEffect(() => {
@@ -83,7 +105,7 @@ export const Uploader = ({ onUploadClick, onUploadCancel }: UploaderInterface) =
       isLoaded={isLoaded && !isUploading}
     >
       <FileUploader
-        handleChange={handleChange}
+        handleChange={setFile}
         name="file"
         types={fileTypes}
         disabled={isUploading}
@@ -99,6 +121,10 @@ export const Uploader = ({ onUploadClick, onUploadCancel }: UploaderInterface) =
       </Button>
     </Skeleton>
   );
+};
+
+export const Uploader = () => {
+  return <UploaderController View={UploaderView} />;
 };
 
 export default Uploader;

@@ -1,21 +1,33 @@
-'use client'
+"use client";
 
 import { useEffect, useState } from "react";
-import axios from "axios";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "@store/hook";
 import { setMachines, selectMachine } from "@store/reducers/machinesReducer";
 import { RootState } from "@store/store";
 import Machine from "@/types/machine";
 import { Skeleton } from "@nextui-org/react";
 import { Select, SelectItem } from "@nextui-org/react";
 import { UnknownAction } from "redux";
+import { fetchMachines } from "@/apis";
 
-const MachineList = () => {
+export interface MachineListViewProps {
+  isLoading: boolean;
+  machines: Machine[];
+  selectedMachine: Machine | null;
+  handleMachineChange:
+    | ((event: React.ChangeEvent<HTMLSelectElement>) => void)
+    | undefined;
+}
+
+export const MachineListController = ({
+  View,
+}: {
+  View: React.FC<MachineListViewProps>;
+}) => {
   const [isLoading, setIsLoading] = useState(true);
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   useEffect(() => {
-    axios
-      .get("/api/getMachines")
+    fetchMachines()
       .then((response) => {
         dispatch(setMachines(response.data as Machine[]));
         setIsLoading(false);
@@ -25,7 +37,7 @@ const MachineList = () => {
       });
   }, [dispatch]);
 
-  const { machines, selectedMachine } = useSelector((state: RootState) => ({
+  const { machines, selectedMachine } = useAppSelector((state: RootState) => ({
     machines: state.machines.machines,
     selectedMachine: state.machines.selectedMachine,
   }));
@@ -41,6 +53,22 @@ const MachineList = () => {
       );
   };
 
+  return (
+    <View
+      isLoading={isLoading}
+      machines={machines}
+      selectedMachine={selectedMachine}
+      handleMachineChange={handleMachineChange}
+    />
+  );
+};
+
+export const MachineListView = ({
+  isLoading,
+  machines,
+  selectedMachine,
+  handleMachineChange,
+}: MachineListViewProps) => {
   return (
     <Skeleton className="rounded-lg" isLoaded={!isLoading}>
       <Select
@@ -64,4 +92,7 @@ const MachineList = () => {
   );
 };
 
+export const MachineList = () => (
+  <MachineListController View={MachineListView} />
+);
 export default MachineList;
