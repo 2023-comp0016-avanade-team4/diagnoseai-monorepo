@@ -1,0 +1,16 @@
+{
+  "env": {
+    "cypress/globals": true
+  },
+  "plugins": [
+    "cypress"
+  ],
+  "extends": [
+    "plugin:cypress/recommended",
+    "plugin:prettier/recommended"
+  ],
+  "rules": {
+    "cypress/no-unnecessary-waiting": "off",
+    "cypress/require-data-selectors": "off"
+  }
+}
