@@ -436,7 +436,7 @@ Blob storage is used to store:
 
 By the end of this section, you should have:
 - Storage Account Connection String
-- `images`, `produciton` and `verification` containers
+- `images`, `production` and `verification` containers
 
 Return to [Guide](#guide).
 
@@ -547,6 +547,25 @@ By the end of this section, you should have:
 Return to [Guide](#guide).
 
 ----
+#### Document Intelligence 
+
+1. Navigate to the [Azure Portal](https://portal.azure.com).
+2. Search "Document Intelligence" on the services search bar, and
+   click on it.
+   ![]()
+3. Click "Create".
+   ![]()
+4. Select the _Resource Group_ (created earlier), and name it anything
+   you want.
+   ![]()
+5. Choose the closest region to the target deployment.
+   ![]()
+6. Click "Review + create". Wait for the resource creation to
+   complete, and then click on "Go to resource".
+   ![]()
+7. On the side bar, click on "Keys and Endpoints" and copy the Key and Endpoint.
+    This will henceforth be referred to as the Document Key and Document Endpoint.
+   ![]()
 
 #### Clerk
 
@@ -611,7 +630,7 @@ configured.
    ![Find Function App](./screenshots/fa-01.png)
 3. Click on the "Function App" you have created earlier.
    ![]()
-4. On the sidebar, click on "Configuration".
+4. On the sidebar, click on "Environment Variables".
    ![]()
 5. Click on "Advanced edit".
    ![]()
@@ -632,12 +651,12 @@ configured.
       },
       {
         "name": "CognitiveSearchEndpoint",
-        "value": "<from Azure AI Search section>",
+        "value": "<from Search Service URL from AI Search section>",
         "slotSetting": false
       },
       {
         "name": "CognitiveSearchKey",
-        "value": "<from Cognitive Search Key section>",
+        "value": "<from Search Service API from AI Search section>",
         "slotSetting": false
       },
       {
@@ -663,16 +682,6 @@ configured.
       {
         "name": "DatabaseUsername",
         "value": "<from SQL databases>",
-        "slotSetting": false
-      },
-      {
-        "name": "DocBlobConnectionString",
-        "value": "<from Azure Blob Storage - Connection String>",
-        "slotSetting": false
-      },
-      {
-        "name": "DocBlobContainer",
-        "value": "<from Azure Blob Storage>",
         "slotSetting": false
       },
       {
