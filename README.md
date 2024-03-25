@@ -45,3 +45,12 @@ Diagrams for visualization can be found under `./diagrams`
 ## License
 
 MIT License, see [License](/LICENSE).
+
+## Deployments
+
+These deployments are not guaranteed to stay online after
+May 2024. While they are available right now, do note that you will
+still need a valid user account to actually use the service.
+
+- Uploader: https://diagnoseai-uploader.azurewebsites.net/
+- WebApp: https://diagnoseai-webapp.azurewebsites.net/
