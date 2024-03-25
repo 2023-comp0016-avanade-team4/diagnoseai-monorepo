@@ -336,18 +336,25 @@ services.
    creation is complete, you should get an email; either way, find
    your way to the API Management service.
    ![]()
-9. On the side menu, click on APIs.
+9. On the side menu, click on Backends
+10. Click on "+Add"
+11. Name the Backend the same as your function app name
+12. Under Type, Select Azure Resource
+13. Select the Function app created earlier under Azure Resource
+14. For runtime URL, put the URL found in the function app + /api. So this would be <URL>/api
+15. Press Create
+16. On the side menu, click on APIs.
    ![]()
-10. Click on "Add API"; then click on "HTTP".
+17. Click on "Add API"; then click on "HTTP".
     ![]()
-11. Set "Display name" and "Name" to anything you want; ideally,
+18. Set "Display name" and "Name" to anything you want; ideally,
     something that denotes it is a Core API related resource. A
     suggested example is "diagnose-ai-core"
     ![]()
-12. Once the API has been created, select it from the side menu, then
+19. Once the API has been created, select it from the side menu, then
     click "Add operation".
     ![]()
-13. You will now create the following endpoints:
+20. You will now create the following endpoints:
     - Method: `POST`, URL: `/chat_done`, Display Name: `Chat Done`
     - Method: `GET`, URL: `/work_order`, Display Name: `Work Order`
     - Method: `POST`, URL: `/validation_to_production`, Display Name:
@@ -357,7 +364,7 @@ services.
     - Method: `GET`, URL: `/chat_history`, Display Name: `Chat
       History`
     ![]()
-14. In each created endpoint, go to "Inbound Processing" and set the
+21. In each created endpoint, go to "Inbound Processing" and set the
     XML to the following:
     ```xml
     <policies>
@@ -380,9 +387,9 @@ services.
     where `<function app name>` is the function name is generated in
     [Azure Function Apps](#azure-function-apps).
     ![]()
-15. On the main sidebar, click on "Subscriptions".
+22. On the main sidebar, click on "Subscriptions".
     ![]()
-16. Click on "Add subscription", and name it anything you want. Once
+23. Click on "Add subscription", and name it anything you want. Once
     the subscription has been created, copy the "Primary key". This is
     referred to as "Subscription Key" across the entirety of
     DiagnoseAI, including the Uploader and WebApp.
