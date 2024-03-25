@@ -15,7 +15,7 @@ Configure environment variables by creating a file `.env` in _this_ folder.
 
 ``` text
 AZURE_STORAGE_CONNECTION_STRING=""
-AZURE_STORAGE_CONTAINER_NAME=""
+AZURE_STORAGE_CONTAINER_NAME="verification"
 AZURE_COGNITIVE_SERVICE_ENDPOINT=""
 AZURE_COGNITIVE_SERVICE_API_KEY=""
 DB_HOST=""
