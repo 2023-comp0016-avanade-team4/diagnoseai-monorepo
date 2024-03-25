@@ -554,7 +554,8 @@ By the end of this section, you should have:
 Return to [Guide](#guide).
 
 ----
-#### Document Intelligence 
+
+#### Document Intelligence
 
 1. Navigate to the [Azure Portal](https://portal.azure.com).
 2. Search "Document Intelligence" on the services search bar, and
