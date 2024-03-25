@@ -22,10 +22,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     """
     Creates a chat connection
 
-    TODO: contact some database to store user id (if
-    needed). WebPubSub service can store user IDs on their own, so we
-    may not even need to do this
-
     Args:
         req (func.HttpRequest): The HTTP request
     """

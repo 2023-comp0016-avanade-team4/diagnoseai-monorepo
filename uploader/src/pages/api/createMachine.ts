@@ -8,8 +8,6 @@ async function createMachine(req: NextApiRequest, res: NextApiResponse) {
 
   if (method === "POST") {
     try {
-      // TODO: There is a model way to do it. I'll have to change it
-      // after the demo lazy, so I'm doing this instead
       const machine_id = uuid4();
       const { manufacturer, model } = req.body;
 

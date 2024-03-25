@@ -74,7 +74,7 @@ components:
           description: The authentication token to identify the sender
         index:
           type: string
-          description: "A data source index. (validation-* prefixes are validation indexes, while production-* are production indexes) TODO: This changes often, and hence should not be documented at this point. Once things are more firm, we can try to solidify the index."
+          description: "A data source index. For validation, pass the randomly generated UUID. For production, pass the machine ID."
           default: validation-index
       required:
         - conversationId

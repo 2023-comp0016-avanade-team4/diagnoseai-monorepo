@@ -1,0 +1,25 @@
+sequenceDiagram
+    participant User
+    participant WebPubSub
+    participant CoreAPI
+    participant AzureBlobStorage
+    participant AzureDB
+    participant AzureCognitiveSearch
+    participant AzureOpenAI
+
+    User->>WebPubSub: Message
+    WebPubSub->>CoreAPI: Message sent by user
+    CoreAPI->>AzureDB: GET Conversation History
+    AzureDB->>CoreAPI: Conversation History
+    CoreAPI->>AzureOpenAI: GET Inference based on summaries
+    AzureOpenAI->>AzureCognitiveSearch: GET Summaries
+    AzureCognitiveSearch->>AzureOpenAI: Matching summaries
+    AzureOpenAI->>CoreAPI: Inference based on summaries
+    CoreAPI->>AzureOpenAI: Get Inference based on docs + summaries
+    AzureOpenAI->>AzureCognitiveSearch: GET Docs
+    AzureCognitiveSearch->>AzureOpenAI: Matching Docs
+    AzureOpenAI->>CoreAPI: Inference based on docs + summaries
+    CoreAPI->>AzureBlobStorage: GET preauthenticated URLs for citations
+    AzureBlobStorage->>CoreAPI: Preauthenticated URL for citations
+    CoreAPI->>WebPubSub: Response
+    WebPubSub->>User: Response

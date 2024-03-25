@@ -1,0 +1,33 @@
+sequenceDiagram
+    participant User
+    participant UploaderInterface
+    participant AzureBlobStorage
+    participant AzureDB
+    participant CoreAPI
+    participant AzureOpenAI
+    participant AzureAISearch
+    participant SMTPServer
+
+    User->>UploaderInterface: Upload PDF
+    UploaderInterface->>AzureBlobStorage: POST PDF
+    UploaderInterface->>AzureDB: Create to-process entry
+    UploaderInterface->>User: Uploaded successfully, await
+    activate UploaderInterface
+    Note right of CoreAPI: Can take up to 5 mins
+    CoreAPI->>AzureBlobStorage: GET PDF
+    AzureBlobStorage->>CoreAPI: PDF
+    loop for all pages
+        CoreAPI->>AzureOpenAI: Embed page
+        AzureOpenAI->>CoreAPI: Embedding
+        CoreAPI->>AzureAISearch: Send embedding
+        AzureAISearch->>CoreAPI: OK
+    end
+    CoreAPI->>AzureDB: Delete to-process entry
+    CoreAPI->>SMTPServer: Send email to notify user
+    SMTPServer->>CoreAPI: OK
+    deactivate UploaderInterface
+    UploaderInterface->>AzureDB: Check if entry still exist
+    AzureDB->>UploaderInterface: 404
+    UploaderInterface->>AzureAISearch: Check if index is empty
+    AzureAISearch->>UploaderInterface: Not empty
+    UploaderInterface->>User: Redirect to /validate

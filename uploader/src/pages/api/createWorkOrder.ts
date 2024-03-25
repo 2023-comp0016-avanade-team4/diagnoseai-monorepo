@@ -9,8 +9,6 @@ async function createWorkOrder(req: NextApiRequest, res: NextApiResponse) {
 
   if (method === "POST") {
     try {
-      // HACK: There is a model way to do it. I'll have to change it
-      // after the demo lazy, so I'm doing this instead
       const order_id = uuid4();
       const conversation_id = uuid4();
       const { user_id, machine_id, task_name, task_desc } = req.body;

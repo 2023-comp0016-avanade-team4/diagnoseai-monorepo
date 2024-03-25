@@ -1,5 +1,4 @@
 """
-TODO: Refactor into verify_token.py
 This module provides a function to extract the user_id from a valid token.
 """
 

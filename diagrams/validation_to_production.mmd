@@ -1,0 +1,15 @@
+sequenceDiagram
+    participant User
+    participant UploaderInterface
+    participant CoreAPI
+    participant AzureBlobStorage
+    participant AzureAISearch
+
+    User->>UploaderInterface: Validate
+    UploaderInterface->>CoreAPI: POST /validation_to_production
+    CoreAPI->>AzureBlobStorage: Move file to prod container
+    AzureBlobStorage->>CoreAPI: OK
+    CoreAPI->>AzureAISearch: Move contents of validation index to machine index
+    AzureAISearch->>CoreAPI: OK
+    CoreAPI->>UploaderInterface: OK
+    UploaderInterface->>User: Verification success screen

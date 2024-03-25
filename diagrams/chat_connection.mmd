@@ -1,0 +1,9 @@
+sequenceDiagram
+    participant User
+    participant WebPubSub
+    participant CoreAPI
+
+    User->>CoreAPI: GET /chat_connection
+    CoreAPI->>WebPubSub: Get preauthenticated URL
+    WebPubSub->>CoreAPI: Preauthenticated URL
+    CoreAPI->>User: OK preauthenticated URL

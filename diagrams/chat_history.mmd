@@ -1,0 +1,12 @@
+sequenceDiagram
+    participant User
+    participant CoreAPI
+    participant AzureDB
+    participant AzureBlobStorage
+
+    User->>CoreAPI: GET /chat_history
+    CoreAPI->>AzureDB: Get conversation history
+    AzureDB->>CoreAPI: OK
+    CoreAPI->>AzureBlobStorage: Get preauthenticated URLs if required
+    AzureBlobStorage->>CoreAPI: Preauthenticated URLs
+    CoreAPI->>User: Chat history

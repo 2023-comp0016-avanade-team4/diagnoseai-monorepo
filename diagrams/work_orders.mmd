@@ -1,0 +1,9 @@
+sequenceDiagram
+    participant User
+    participant CoreAPI
+    participant AzureDB
+
+    User->>CoreAPI: GET /work_orders
+    CoreAPI->>AzureDB: Get work orders
+    AzureDB->>CoreAPI: Work Orders
+    CoreAPI->>User: OK Work Orders
